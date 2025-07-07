@@ -1,5 +1,6 @@
 package com.header.header.domain.shop.dto;
 
+import com.header.header.domain.shop.enums.ShopStatus;
 import lombok.*;
 
 @Getter
@@ -12,7 +13,7 @@ public class ShopUpdateDTO {
     private String shopName;
     private String shopPhone;
     private String shopLocation;
-    private String shopStatus;
+    private ShopStatus shopStatus;
     private String shopOpen;
     private String shopClose;
 

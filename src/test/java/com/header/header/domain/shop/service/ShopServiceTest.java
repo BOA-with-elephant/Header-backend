@@ -4,6 +4,8 @@ import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.enitity.Shop;
+import com.header.header.domain.shop.enums.ShopStatus;
+import com.header.header.domain.shop.external.MapService;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.shop.repository.UserRepository;
 import com.header.header.domain.user.enitity.User;
@@ -44,14 +46,14 @@ class ShopServiceTest {
         shopDTO.setShopName("기니의 빡올빡올");
         shopDTO.setCategoryCode(1);
         shopDTO.setAdminCode(testUserId);
-        shopDTO.setShopLocation("서울시 강남구");
+        shopDTO.setShopLocation("서울특별시 종로구 세종대로 175");
         shopDTO.setShopOpen("09:00");
         shopDTO.setShopClose("18:00");
         shopDTO.setIsActive(true);
         shopDTO.setShopPhone("010-1234-5678");
-        shopDTO.setShopLa(123.456);
-        shopDTO.setShopLong(123.456); //TODO. kakao api 사용하여 주소에서 위도 경도 자동으로 가져오기 .. 어케함?
-        shopDTO.setShopStatus("영업중");
+//        shopDTO.setShopLa(123.456);
+//        shopDTO.setShopLong(123.456); //TODO. kakao api 사용하여 주소에서 위도 경도 자동으로 가져오기 .. 어케함?
+        shopDTO.setShopStatus(ShopStatus.CLOSE);
 
         // when
         ShopDTO createdShop = shopService.createShop(shopDTO);
@@ -73,36 +75,62 @@ class ShopServiceTest {
         System.out.println(foundedShop);
     }
 
-
     @Test
-    @DisplayName("UPDATE (ShopUpdateDTO 사용)")
-    void testUpdateShopWithDTO() {
-        // given
-        Integer shopCodeToUpdate = 5;
-        ShopDTO originalShop = shopService.getShopByShopCode(shopCodeToUpdate);
+    @DisplayName("Shop 생성 및 상태 변경 테스트 (UPDATE - ShopUpdateDTO 사용)")
+    void testCreateAndUpdateShopStatus() {
+        // given - 새로운 상점 생성 (OPEN 상태로)
+        ShopDTO shopDTO = new ShopDTO();
+        shopDTO.setShopName("상태 테스트 상점");
+        shopDTO.setCategoryCode(1);
+        shopDTO.setAdminCode(testUserId);
+        shopDTO.setShopLocation("서울시 송파구");
+        shopDTO.setShopOpen("09:00");
+        shopDTO.setShopClose("18:00");
+        shopDTO.setIsActive(true);
+        shopDTO.setShopPhone("010-9876-5432");
+        shopDTO.setShopLa(37.5123);
+        shopDTO.setShopLong(127.1023);
+        shopDTO.setShopStatus(ShopStatus.OPEN);
 
+        // when - 상점 생성
+        ShopDTO createdShop = shopService.createShop(shopDTO);
+
+        // then - 생성된 상점 검증
+        assertNotNull(createdShop);
+        assertEquals(ShopStatus.OPEN, createdShop.getShopStatus());
+
+        // given - 상태 업데이트 (OPEN → CLOSE)
+        Integer shopCode = createdShop.getShopCode();
         ShopUpdateDTO updateDTO = new ShopUpdateDTO();
-        updateDTO.setShopName("기니의 빠글빠글");
-        updateDTO.setShopPhone(originalShop.getShopPhone());  // 기존 값 유지
-        updateDTO.setShopLocation(originalShop.getShopLocation());
-        updateDTO.setShopStatus("휴업");  // 상태 변경
-        updateDTO.setShopOpen("10:00");  // 오픈 시간 변경
-        updateDTO.setShopClose(originalShop.getShopClose());
+        updateDTO.setShopName(createdShop.getShopName());
+        updateDTO.setShopPhone(createdShop.getShopPhone());
+        updateDTO.setShopLocation(createdShop.getShopLocation());
+        updateDTO.setShopOpen(createdShop.getShopOpen());
+        updateDTO.setShopClose(createdShop.getShopClose());
+        updateDTO.setShopStatus(ShopStatus.CLOSE);
 
-        // when
-        Shop updatedShop = shopService.updateShop(shopCodeToUpdate, updateDTO);
+        // when - 상점 업데이트
+        Shop updatedShop = shopService.updateShop(shopCode, updateDTO);
 
-        // then
+        // then - 업데이트된 상점 검증
         assertNotNull(updatedShop);
-        assertEquals("기니의 빠글빠글", updatedShop.getShopName());
-        assertEquals("휴업", updatedShop.getShopStatus());
-        assertEquals("10:00", updatedShop.getShopOpen());
-        assertEquals(shopCodeToUpdate, updatedShop.getShopCode());
+        assertEquals(ShopStatus.CLOSE, updatedShop.getShopStatus());
 
-        // 변경하지 않은 필드
-        assertEquals(originalShop.getAdminCode(), updatedShop.getAdminCode());
-        assertEquals(originalShop.getCategoryCode(), updatedShop.getCategoryCode());
-        assertEquals(originalShop.getIsActive(), updatedShop.getIsActive());
+        // given - 다른 상태로 업데이트 (CLOSE → OPEN)
+        updateDTO.setShopStatus(ShopStatus.OPEN);
+
+        // when - 상점 재업데이트
+        updatedShop = shopService.updateShop(shopCode, updateDTO);
+
+        // then - 재업데이트된 상점 검증
+        assertEquals(ShopStatus.OPEN, updatedShop.getShopStatus());
+
+        // 모든 가능한 상태 테스트
+        for (ShopStatus status : ShopStatus.values()) {
+            updateDTO.setShopStatus(status);
+            updatedShop = shopService.updateShop(shopCode, updateDTO);
+            assertEquals(status, updatedShop.getShopStatus());
+        }
     }
 
     @Test

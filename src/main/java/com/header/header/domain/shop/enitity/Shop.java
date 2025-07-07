@@ -1,5 +1,6 @@
 package com.header.header.domain.shop.enitity;
 
+import com.header.header.domain.shop.enums.ShopStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,7 +22,10 @@ public class Shop {
     private String shopLocation;
     private Double shopLong;
     private Double shopLa;
-    private String shopStatus;
+
+    @Enumerated (EnumType.STRING)
+    private ShopStatus shopStatus;
+
     private String shopOpen;
     private String shopClose;
     private Boolean isActive;

@@ -1,5 +1,6 @@
 package com.header.header.domain.shop.dto;
 
+import com.header.header.domain.shop.enums.ShopStatus;
 import lombok.*;
 
 @Getter
@@ -14,5 +15,5 @@ public class ShopSummaryDTO {
     private Integer adminCode;
     private String shopName;
     private String shopLocation;
-    private String shopStatus;
+    private ShopStatus shopStatus;
 }
