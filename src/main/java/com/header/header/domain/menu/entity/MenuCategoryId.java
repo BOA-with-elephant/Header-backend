@@ -22,7 +22,7 @@ import lombok.ToString;
 @ToString
 public class MenuCategoryId implements Serializable {
 
-    private int categoryCode;
-    private int shopCode;
+    private Integer categoryCode;
+    private Integer shopCode;
 
 }
