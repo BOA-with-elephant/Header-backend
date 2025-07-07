@@ -1,18 +1,14 @@
-package com.header.header.domain.shop.enitity;
+package com.header.header.domain.shop.dto;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Entity
-@Table(name="tbl_shop")
 @Getter
-@NoArgsConstructor( access = AccessLevel.PROTECTED)
-public class Shop {
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+public class ShopDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer shopCode;
     private Integer categoryCode;
     private Integer adminCode;
