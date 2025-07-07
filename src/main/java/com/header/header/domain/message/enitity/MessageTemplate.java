@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class MessageTemplate {
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private Integer templeteCode;
+    private Integer templateCode;
     private Integer shopCode;
     private String templateContent;
 

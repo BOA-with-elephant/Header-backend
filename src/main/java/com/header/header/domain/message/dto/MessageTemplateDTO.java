@@ -9,7 +9,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class MessageTemplateDTO {
-    private Integer templeteCode;
+    private Integer templateCode;
     private Integer shopCode;
     private String templateContent;
     private TemplateType templateType;

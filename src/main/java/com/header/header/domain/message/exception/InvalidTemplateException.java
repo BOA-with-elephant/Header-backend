@@ -38,6 +38,7 @@ public class InvalidTemplateException  extends RuntimeException {
     }
 
 
-
-
+    public static InvalidTemplateException notFound(String message) {
+        return new InvalidTemplateException("유효하지 않은 템플릿 코드" + message);
+    }
 }

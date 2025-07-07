@@ -42,7 +42,7 @@ public class MessageTemplateService {
      * @return List<MessageTemplateDTO>
      */
     public List<MessageTemplateDTO> getPromotionalTemplatesByShop(Integer shopCode){
-        findTemplateOrThrow(shopCode); // 유효한 샵 코드인지 검증
+        validateShopExists(shopCode); // comment. 해당 검증은 shop 시스템에서 가져오거나 controller에서 interceptor을 통해 처리해도 될 듯.
 
         List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByShopCodeAndTemplateType(shopCode, TemplateType.PROMOTIONAL);
 
@@ -84,7 +84,7 @@ public class MessageTemplateService {
      */
     @Transactional
     public MessageTemplateDTO modifyMessageTemplateContent(MessageTemplateDTO templateDTO){
-        MessageTemplate foundMessageTemplate = findTemplateOrThrow(templateDTO.getTempleteCode());
+        MessageTemplate foundMessageTemplate = findTemplateOrThrow(templateDTO.getTemplateCode());
 
         validateBasicFields(templateDTO); // 기본 필드 검증
         validateModifiable(foundMessageTemplate); // 수정할 수 있는 템플릿인지 검증
@@ -109,9 +109,15 @@ public class MessageTemplateService {
     }
 
     // == 비즈니스 검증 메서드 ==
+    private void validateShopExists(Integer shopCode) {
+        messageTemplateRepository.findById(shopCode)
+                .orElseThrow(() -> InvalidTemplateException.notFound("샵을 찾을 수 없습니다."));
+    }
+
     private MessageTemplate findTemplateOrThrow(Integer templateCode) {
-        return messageTemplateRepository.findById(templateCode)
-                .orElseThrow(() -> new IllegalArgumentException("템플릿을 찾을 수 없습니다."));
+        return messageTemplateRepository.findByTemplateCode(templateCode)
+                .orElseThrow(() -> InvalidTemplateException.notFound("템플릿을 찾을 수 없습니다."));
+        
     }
 
     private void validateModifiable(MessageTemplate template) {
