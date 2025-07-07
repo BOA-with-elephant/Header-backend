@@ -1,5 +1,6 @@
 package com.header.header.domain.message.enitity;
 
+import com.header.header.domain.message.enums.TemplateType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,11 +11,16 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor( access = AccessLevel.PROTECTED)
 public class MessageTemplate {
-
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private int templeteCode;
+    private Integer templateCode;
     private Integer shopCode;
     private String templateContent;
-    private String templateType;
+
+    @Enumerated(EnumType.STRING) // DB에 "INFORMATIONAL", "PROMOTIONAL" 문자열로 저장
+    private TemplateType templateType;
+
+    public void modifyMessageTemplateContent(String templateContent) {
+        this.templateContent = templateContent;
+    }
 }
