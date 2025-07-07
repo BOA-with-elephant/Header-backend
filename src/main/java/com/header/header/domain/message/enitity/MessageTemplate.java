@@ -1,5 +1,6 @@
 package com.header.header.domain.message.enitity;
 
+import com.header.header.domain.message.enums.TemplateType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,7 +18,9 @@ public class MessageTemplate {
     private Integer templeteCode;
     private Integer shopCode;
     private String templateContent;
-    private String templateType;/* todo. ✏️ String type에서 Enum으로 변경하기 */
+
+    @Enumerated(EnumType.STRING) // DB에 "INFORMATIONAL", "PROMOTIONAL" 문자열로 저장
+    private TemplateType templateType;
 
     public void modifyMessageTemplateContent(String templateContent) {
         this.templateContent = templateContent;

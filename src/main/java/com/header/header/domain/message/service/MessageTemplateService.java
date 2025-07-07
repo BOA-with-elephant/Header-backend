@@ -2,6 +2,7 @@ package com.header.header.domain.message.service;
 
 import com.header.header.domain.message.dto.MessageTemplateDTO;
 import com.header.header.domain.message.enitity.MessageTemplate;
+import com.header.header.domain.message.enums.TemplateType;
 import com.header.header.domain.message.repository.MessageTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,8 +22,8 @@ public class MessageTemplateService {
      *   AddType은 샵 별 커스텀 템플릿이고 광고성 템플릿이다. */
 
     /* comment. [Read] 정보성 템플릿 리스트 가져오기 templateType = NAd */
-    public List<MessageTemplateDTO> getSystemProvidedTemplates(String templateType){
-        List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByTemplateType(templateType);
+    public List<MessageTemplateDTO> getSystemProvidedTemplates(){
+        List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByTemplateType(TemplateType.INFORMATIONAL);
 
         return messageTemplates.stream()
                 .map(messageTemplate -> modelMapper.map(messageTemplate, MessageTemplateDTO.class))
@@ -31,7 +32,7 @@ public class MessageTemplateService {
 
     /* comment. [Read] parameter shopId에 해당하는 광고성 템플릿 리스트 가져오기. templateType = Ad*/
     public List<MessageTemplateDTO> getPromotionalTemplatesByShop(Integer shopCode){
-        List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByShopCodeAndTemplateType(shopCode, "Ad");
+        List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByShopCodeAndTemplateType(shopCode, TemplateType.PROMOTIONAL);
 
         return messageTemplates.stream()
                 .map( messageTemplate -> modelMapper.map(messageTemplate, MessageTemplateDTO.class))
