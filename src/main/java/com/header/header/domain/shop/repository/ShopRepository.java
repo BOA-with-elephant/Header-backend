@@ -1,7 +1,7 @@
 package com.header.header.domain.shop.repository;
 
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
-import com.header.header.domain.shop.enitity.Shop;
+import com.header.header.domain.shop.entity.Shop;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

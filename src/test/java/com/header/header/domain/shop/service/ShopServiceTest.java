@@ -3,14 +3,10 @@ package com.header.header.domain.shop.service;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
-import com.header.header.domain.shop.enitity.Shop;
+import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.enums.ShopStatus;
-import com.header.header.domain.shop.external.MapService;
-import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.shop.repository.UserRepository;
 import com.header.header.domain.user.enitity.User;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +49,7 @@ class ShopServiceTest {
         shopDTO.setShopPhone("010-1234-5678");
 //        shopDTO.setShopLa(123.456);
 //        shopDTO.setShopLong(123.456); //TODO. kakao api 사용하여 주소에서 위도 경도 자동으로 가져오기 .. 어케함?
-        shopDTO.setShopStatus(ShopStatus.CLOSE);
+        shopDTO.setShopStatus(ShopStatus.CLOSED);
 
         // when
         ShopDTO createdShop = shopService.createShop(shopDTO);
@@ -107,14 +103,14 @@ class ShopServiceTest {
         updateDTO.setShopLocation(createdShop.getShopLocation());
         updateDTO.setShopOpen(createdShop.getShopOpen());
         updateDTO.setShopClose(createdShop.getShopClose());
-        updateDTO.setShopStatus(ShopStatus.CLOSE);
+        updateDTO.setShopStatus(ShopStatus.CLOSED);
 
         // when - 상점 업데이트
         Shop updatedShop = shopService.updateShop(shopCode, updateDTO);
 
         // then - 업데이트된 상점 검증
         assertNotNull(updatedShop);
-        assertEquals(ShopStatus.CLOSE, updatedShop.getShopStatus());
+        assertEquals(ShopStatus.CLOSED, updatedShop.getShopStatus());
 
         // given - 다른 상태로 업데이트 (CLOSE → OPEN)
         updateDTO.setShopStatus(ShopStatus.OPEN);
@@ -148,7 +144,7 @@ class ShopServiceTest {
     @DisplayName("DELETE (deActive)")
     void testDeleteShop() {
         //given
-        Integer shopCodeToDelete = 7;
+        Integer shopCodeToDelete = 3;
 
         //when
         shopService.deActiveShop(shopCodeToDelete);

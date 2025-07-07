@@ -3,16 +3,12 @@ package com.header.header.domain.shop.service;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
-import com.header.header.domain.shop.enitity.Shop;
-import com.header.header.domain.shop.exception.DeactivatedShopException;
-import com.header.header.domain.shop.exception.LocationDoesNotExistException;
-import com.header.header.domain.shop.exception.ShopAlreadyDeletedException;
-import com.header.header.domain.shop.exception.ShopNotFoundException;
+import com.header.header.domain.shop.entity.Shop;
+import com.header.header.domain.shop.enums.ShopErrorCode;
+import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.shop.repository.UserRepository;
-import com.header.header.domain.user.enitity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -51,14 +47,14 @@ public class ShopService {
         System.out.println("좌표 결과: " + coords);
 
         if (coords == null) {
-            throw new LocationDoesNotExistException("잘못된 주소입니다");
+            throw new ShopExceptionHandler(ShopErrorCode.LOCATION_NOT_FOUND);
         }
 
         System.out.println(shopDTO.getShopLocation());
 
         Map<String, Double> coords1 = mapService.getCoordinatesFromAddress(shopDTO.getShopLocation());
         if (coords == null) {
-            throw new LocationDoesNotExistException("잘못된 주소입니다");
+            throw new ShopExceptionHandler(ShopErrorCode.LOCATION_NOT_FOUND);
         }
 
         //Hibernate는 ID 필드가 null이어야 새로운 entity인 것을 알 수 있음
@@ -81,7 +77,7 @@ public class ShopService {
     // READ (단건 조회 - 상세 조회)
     public ShopDTO getShopByShopCode(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new ShopNotFoundException("해당 샵을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
         return modelMapper.map(shop, ShopDTO.class);
     }
 
@@ -94,9 +90,9 @@ public class ShopService {
     @Transactional
     public Shop updateShop(Integer shopCode, ShopUpdateDTO shopInfo) {
         Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new ShopNotFoundException("해당 샵을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
         if (shop.getIsActive() == false) {
-            throw new DeactivatedShopException("비활성화된 샵입니다. 관리자에게 문의하세요.");
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
         }
         modelMapper.map(shopInfo, shop);
         return shopRepository.save(shop);
@@ -106,22 +102,18 @@ public class ShopService {
     @Transactional
     public void deActiveShop(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new ShopNotFoundException("해당 샵을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
         ShopDTO shopDTO = getShopByShopCode(shopCode);
 
-        if (shopDTO.getIsActive() == false) {
-            throw new ShopAlreadyDeletedException("이미 비활성화된 샵입니다.");
+        if (!shopDTO.getIsActive()) {
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
         }
-        shopDTO.setIsActive(false);
 
+        shopDTO.setIsActive(false);
         modelMapper.map(shopDTO, shop);
         shopRepository.save(shop);
 
-        if (shop.getIsActive() == false) {
-            System.out.println("논리적 삭제 성공");
-        } else if (shop.getIsActive() == true) {
-            System.out.println("삭제 실패");
-        }
+        System.out.println("논리적 삭제 성공");
     }
 }

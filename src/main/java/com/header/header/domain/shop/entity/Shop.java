@@ -1,5 +1,6 @@
-package com.header.header.domain.shop.enitity;
+package com.header.header.domain.shop.entity;
 
+import com.header.header.domain.shop.common.ShopStatusConverter;
 import com.header.header.domain.shop.enums.ShopStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -23,7 +24,7 @@ public class Shop {
     private Double shopLong;
     private Double shopLa;
 
-    @Enumerated (EnumType.STRING)
+    @Convert(converter = ShopStatusConverter.class)
     private ShopStatus shopStatus;
 
     private String shopOpen;
