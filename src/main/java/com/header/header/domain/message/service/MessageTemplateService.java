@@ -3,7 +3,10 @@ package com.header.header.domain.message.service;
 import com.header.header.domain.message.dto.MessageTemplateDTO;
 import com.header.header.domain.message.enitity.MessageTemplate;
 import com.header.header.domain.message.enums.TemplateType;
+import com.header.header.domain.message.exception.InvalidTemplateException;
+import com.header.header.domain.message.exception.ValidationResult;
 import com.header.header.domain.message.repository.MessageTemplateRepository;
+import com.header.header.domain.message.validator.TemplateValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -17,11 +20,13 @@ public class MessageTemplateService {
 
     private final MessageTemplateRepository messageTemplateRepository;
     private final ModelMapper modelMapper;
+    private final TemplateValidator templateValidator;
 
-    /* comment. MessageTemplate 중 NAddType은 ShopId가 Null이고 정보성 기본 제공 템플릿.
-     *   AddType은 샵 별 커스텀 템플릿이고 광고성 템플릿이다. */
-
-    /* comment. [Read] 정보성 템플릿 리스트 가져오기 templateType = NAd */
+    /**
+     * 정보성 템플릿 리스트 가져오기
+     *
+     * @return List<MessageTemplateDTO>
+     */
     public List<MessageTemplateDTO> getSystemProvidedTemplates(){
         List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByTemplateType(TemplateType.INFORMATIONAL);
 
@@ -30,8 +35,15 @@ public class MessageTemplateService {
                 .toList();
     }
 
-    /* comment. [Read] parameter shopId에 해당하는 광고성 템플릿 리스트 가져오기. templateType = Ad*/
+    /**
+     * 광고성 템플릿 리스트 가져오기
+     *
+     * @param shopCode 어떤 샵의 템플릿을 가져올지
+     * @return List<MessageTemplateDTO>
+     */
     public List<MessageTemplateDTO> getPromotionalTemplatesByShop(Integer shopCode){
+        findTemplateOrThrow(shopCode); // 유효한 샵 코드인지 검증
+
         List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByShopCodeAndTemplateType(shopCode, TemplateType.PROMOTIONAL);
 
         return messageTemplates.stream()
@@ -39,28 +51,104 @@ public class MessageTemplateService {
                 .toList();
     }
 
-    /* comment. [Create] 광고성 템플릿 생성하기 */
+
+    /**
+     * 광고성 템플릿 생성
+     *
+     * @param templateDTO 생성할 템플릿 DTO
+     * @return MessageTemplateDTO
+     */
     @Transactional
-    public void createPromotionalTemplate(MessageTemplateDTO messageTemplateDTO){
-        // todo. ⭐ 유효한 템플릿 형식인지 검증 하는 로직 필요
-        messageTemplateRepository.save(modelMapper.map(messageTemplateDTO, MessageTemplate.class));
+    public MessageTemplateDTO createPromotionalTemplate(MessageTemplateDTO templateDTO){
+        // 1. 기본 필드 검증 : 비어있는 값 있는지 확인.
+        validateBasicFields(templateDTO);
+        
+        // 2. 비즈니스 로직 검증 : 광고성 템플릿만 사용자가 생성 가능.
+        validateBusinessRules(templateDTO);
+
+        // 3. 플레이스홀더 유효성 검증 : 플레이스 홀더에 올바른 제공되는 키를 넣었는지 확인.
+        validateTemplatePalceholder(templateDTO.getTemplateContent());
+
+        // Save
+        MessageTemplate savedTemplate = messageTemplateRepository
+                .save(modelMapper.map(templateDTO, MessageTemplate.class));
+
+        return modelMapper.map(savedTemplate, MessageTemplateDTO.class);
     }
 
-    /* comment. [Update] 광고성 템플릿 메세지 내용 수정하기 */
+    /**
+     * 광고성 템플릿 수정
+     *
+     * @param templateDTO 생성할 템플릿 DTO
+     * @return MessageTemplateDTO
+     */
     @Transactional
-    public void modifyMessageTemplateContent(MessageTemplateDTO messageTemplateDTO){
-        // todo. 👾 템플릿 못찾을 경우 예외처리 제대로 하기
-        MessageTemplate foundMessageTemplate = messageTemplateRepository.findById(messageTemplateDTO.getTempleteCode()).orElseThrow(IllegalAccessError::new);
-        // todo. ⭐ 유효한 템플릿 형식인지 검증 하는 로직 필요
-        foundMessageTemplate.modifyMessageTemplateContent(messageTemplateDTO.getTemplateContent());
+    public MessageTemplateDTO modifyMessageTemplateContent(MessageTemplateDTO templateDTO){
+        MessageTemplate foundMessageTemplate = findTemplateOrThrow(templateDTO.getTempleteCode());
+
+        validateBasicFields(templateDTO); // 기본 필드 검증
+        validateModifiable(foundMessageTemplate); // 수정할 수 있는 템플릿인지 검증
+        validateTemplatePalceholder(templateDTO.getTemplateContent()); // 템플릿 placeholder 검증
+        
+        foundMessageTemplate.modifyMessageTemplateContent(templateDTO.getTemplateContent());
+
+        return modelMapper.map(foundMessageTemplate, MessageTemplateDTO.class);
     }
 
-    /* comment. [Delete] paramter shopId, parameter templateCode에 해당하는 광고성 템플릿 삭제하기 */
-    public void deleteMessageTemplate(Integer messageTemplateCode){
-        // todo. 👾 템플릿 못찾을 경우 예외처리 제대로 하기
-        messageTemplateRepository.deleteById(messageTemplateCode);
+    /**
+     * 광고성 템플릿 수정
+     *
+     * @param templateCode 생성할 템플릿 DTO
+     */
+    public void deleteMessageTemplate(Integer templateCode){
+        MessageTemplate foundMessageTemplate =  findTemplateOrThrow(templateCode); // 존재하는 템플릿인지 확인
+
+        validateModifiable(foundMessageTemplate); // 유저가 삭제 가능한 템플릿인지 검증
+        
+        messageTemplateRepository.deleteById(templateCode); // 삭제
     }
 
-    // todo. == 비즈니스 검증 메서드 ==
+    // == 비즈니스 검증 메서드 ==
+    private MessageTemplate findTemplateOrThrow(Integer templateCode) {
+        return messageTemplateRepository.findById(templateCode)
+                .orElseThrow(() -> new IllegalArgumentException("템플릿을 찾을 수 없습니다."));
+    }
+
+    private void validateModifiable(MessageTemplate template) {
+        if (!template.getTemplateType().isUserManageable()) {
+            throw InvalidTemplateException.unauthorized("시스템 템플릿은 수정할 수 없습니다");
+        }
+    }
+
+    // 기본 필드 검증 메서드
+    private void validateBasicFields(MessageTemplateDTO templateDTO) {
+        if (templateDTO.getShopCode() == null) {
+            throw InvalidTemplateException.missingRequired("샵 코드가 필요합니다.");
+        }
+
+        if (templateDTO.getTemplateContent() == null || templateDTO.getTemplateContent().trim().isEmpty()) {
+            throw InvalidTemplateException.missingRequired("템플릿 내용을 입력해주세요.");
+        }
+
+        if (templateDTO.getTemplateType() == null) {
+            throw InvalidTemplateException.missingRequired("템플릿 타입을 선택해주세요.");
+        }
+    }
+
+    // 비즈니스 로직 검증
+    private void validateBusinessRules(MessageTemplateDTO templateDTO){
+        if(!templateDTO.getTemplateType().isUserManageable()){
+            throw InvalidTemplateException.invalidType("생성할 수 없는 템플릿 타입입니다.");
+        }
+    }
+
+    // 템플릿 플레이스 홀더 검증
+    private void validateTemplatePalceholder(String content){
+        ValidationResult validationResult = templateValidator.validateTemplate(content);
+        if(!validationResult.isValid()){
+            throw InvalidTemplateException.invalidPlaceholder(validationResult.getErrorMessage());
+        }
+
+    }
 
 }

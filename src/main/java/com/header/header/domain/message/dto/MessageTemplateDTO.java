@@ -1,5 +1,6 @@
 package com.header.header.domain.message.dto;
 
+import com.header.header.domain.message.enums.TemplateType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -11,5 +12,5 @@ public class MessageTemplateDTO {
     private Integer templeteCode;
     private Integer shopCode;
     private String templateContent;
-    private String templateType;
+    private TemplateType templateType;
 }
