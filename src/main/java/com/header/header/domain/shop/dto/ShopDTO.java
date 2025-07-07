@@ -1,5 +1,6 @@
 package com.header.header.domain.shop.dto;
 
+import jakarta.persistence.Enumerated;
 import lombok.*;
 
 @Getter
@@ -17,6 +18,8 @@ public class ShopDTO {
     private String shopLocation;
     private Double shopLong;
     private Double shopLa;
+
+    @Enumerated
     private String shopStatus;
     private String shopOpen;
     private String shopClose;

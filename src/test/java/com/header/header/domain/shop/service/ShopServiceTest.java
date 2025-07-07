@@ -36,30 +36,6 @@ class ShopServiceTest {
         testUserId = testUser.getUserCode();
     }
 
-    /*
-    * -- auto-generated definition
-create table TBL_SHOP
-(
-    SHOP_CODE     int auto_increment
-        primary key,
-    CATEGORY_CODE int                  not null comment '샵 유형 코드',
-    ADMIN_CODE    int                  not null comment '관리자 코드',
-    SHOP_NAME     varchar(50)          not null comment '샵 이름',
-    SHOP_PHONE    varchar(20)          not null comment '샵 전화번호',
-    SHOP_LOCATION varchar(255)         not null comment '샵 주소',
-    SHOP_LONG     decimal(10, 7)       not null comment '샵 경도',
-    SHOP_LA       decimal(10, 7)       not null comment '샵 위도',
-    SHOP_STATUS   varchar(20)          not null comment '샵 상태',
-    SHOP_OPEN     varchar(5)           not null comment '샵 운영시간',
-    SHOP_CLOSE    varchar(5)           not null comment '샵 닫는시간',
-    IS_ACTIVE     tinyint(1) default 1 not null comment '활성 여부',
-    constraint FK_TBL_SHOP_CATEGORY_TO_SHOP_1
-        foreign key (CATEGORY_CODE) references TBL_SHOP_CATEGORY (CATEGORY_CODE),
-    constraint FK_TBL_USER_TO_SHOP_1
-        foreign key (ADMIN_CODE) references TBL_USER (USER_CODE)
-);
-    * */ //shop 테이블 ddl 정보
-
     @Test
     @DisplayName("CREATE")
     void testCreateShop() {
@@ -90,7 +66,7 @@ create table TBL_SHOP
     @DisplayName("READ (단건 조회)")
     void testGetShop() {
         //when
-        ShopDTO foundedShop = shopService.getShopByShopCode(4);
+        ShopDTO foundedShop = shopService.getShopByShopCode(2);
 
         //then
         assertNotNull(foundedShop);
@@ -144,7 +120,7 @@ create table TBL_SHOP
     @DisplayName("DELETE (deActive)")
     void testDeleteShop() {
         //given
-        Integer shopCodeToDelete = 4;
+        Integer shopCodeToDelete = 7;
 
         //when
         shopService.deActiveShop(shopCodeToDelete);

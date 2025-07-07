@@ -4,6 +4,8 @@ import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.enitity.Shop;
+import com.header.header.domain.shop.exception.ShopAlreadyDeletedException;
+import com.header.header.domain.shop.exception.ShopNotFoundException;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.shop.repository.UserRepository;
 import com.header.header.domain.user.enitity.User;
@@ -13,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +51,7 @@ public class ShopService {
     // READ (단건 조회 - 상세 조회)
     public ShopDTO getShopByShopCode(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new RuntimeException());
+                .orElseThrow(() -> new ShopNotFoundException("해당 샵을 찾을 수 없습니다."));
         return modelMapper.map(shop, ShopDTO.class);
     }
 
@@ -63,7 +64,7 @@ public class ShopService {
     @Transactional
     public Shop updateShop(Integer shopCode, ShopUpdateDTO shopInfo) {
         Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new RuntimeException());
+                .orElseThrow(() -> new ShopNotFoundException("해당 샵을 찾을 수 없습니다."));
         modelMapper.map(shopInfo, shop);
         return shopRepository.save(shop);
     }
@@ -72,12 +73,12 @@ public class ShopService {
     @Transactional
     public void deActiveShop(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new RuntimeException());
+                .orElseThrow(() -> new ShopNotFoundException("해당 샵을 찾을 수 없습니다."));
 
         ShopDTO shopDTO = getShopByShopCode(shopCode);
 
         if (shopDTO.getIsActive() == false) {
-            throw new RuntimeException("이미 삭제된 샵");
+            throw new ShopAlreadyDeletedException("이미 비활성화된 샵입니다.");
         }
         shopDTO.setIsActive(false);
 
