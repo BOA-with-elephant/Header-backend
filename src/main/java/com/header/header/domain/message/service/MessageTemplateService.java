@@ -28,7 +28,7 @@ public class MessageTemplateService {
      * @return List<MessageTemplateDTO>
      */
     public List<MessageTemplateDTO> getSystemProvidedTemplates(){
-        List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByTemplateType(TemplateType.INFORMATIONAL);
+        List<MessageTemplate> messageTemplates = messageTemplateRepository.findByTemplateType(TemplateType.INFORMATIONAL);
 
         return messageTemplates.stream()
                 .map(messageTemplate -> modelMapper.map(messageTemplate, MessageTemplateDTO.class))
@@ -44,11 +44,17 @@ public class MessageTemplateService {
     public List<MessageTemplateDTO> getPromotionalTemplatesByShop(Integer shopCode){
         validateShopExists(shopCode); // comment. 해당 검증은 shop 시스템에서 가져오거나 controller에서 interceptor을 통해 처리해도 될 듯.
 
-        List<MessageTemplate> messageTemplates = messageTemplateRepository.findMessageTemplatesByShopCodeAndTemplateType(shopCode, TemplateType.PROMOTIONAL);
+        List<MessageTemplate> messageTemplates = messageTemplateRepository.findByShopCodeAndTemplateType(shopCode, TemplateType.PROMOTIONAL);
 
         return messageTemplates.stream()
                 .map( messageTemplate -> modelMapper.map(messageTemplate, MessageTemplateDTO.class))
                 .toList();
+    }
+
+
+    /* comment. for test */
+    public void getTemplate(Integer templateCode) {
+        modelMapper.map(findTemplateOrThrow(templateCode), MessageTemplateDTO.class);
     }
 
 
@@ -96,22 +102,28 @@ public class MessageTemplateService {
     }
 
     /**
-     * 광고성 템플릿 수정
+     * 광고성 템플릿 삭제
      *
      * @param templateCode 생성할 템플릿 DTO
      */
-    public void deleteMessageTemplate(Integer templateCode){
-        MessageTemplate foundMessageTemplate =  findTemplateOrThrow(templateCode); // 존재하는 템플릿인지 확인
+    public void deleteMessageTemplate(Integer templateCode, Integer shopCode){
+        MessageTemplate foundMessageTemplate = findTemplateOrThrow(templateCode);
 
-        validateModifiable(foundMessageTemplate); // 유저가 삭제 가능한 템플릿인지 검증
-        
-        messageTemplateRepository.deleteById(templateCode); // 삭제
+        validateOwnership(shopCode, templateCode);  // 권한 검증 추가
+        validateModifiable(foundMessageTemplate);
+
+        messageTemplateRepository.deleteById(templateCode);
     }
 
     // == 비즈니스 검증 메서드 ==
     private void validateShopExists(Integer shopCode) {
         messageTemplateRepository.findById(shopCode)
                 .orElseThrow(() -> InvalidTemplateException.notFound("샵을 찾을 수 없습니다."));
+    }
+
+    private void validateOwnership(Integer shopCode, Integer templateCode) {
+        messageTemplateRepository.findByShopCodeAndTemplateCode(shopCode, templateCode)
+                .orElseThrow(() -> InvalidTemplateException.unauthorized("해당 샵의 템플릿이 아닙니다."));
     }
 
     private MessageTemplate findTemplateOrThrow(Integer templateCode) {
