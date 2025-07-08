@@ -1,4 +1,4 @@
-package com.header.header.domain.shop.enitity;
+package com.header.header.domain.message.enitity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
