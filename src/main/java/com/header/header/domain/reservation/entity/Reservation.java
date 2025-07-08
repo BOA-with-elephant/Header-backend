@@ -42,6 +42,8 @@ public class Reservation {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
         } else if (this.resvState == UserReservationState.FINISH) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
+        } else if (this.resvState == UserReservationState.PAY_COMPLETED) {
+            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_PAID);
         }
 
         this.resvState = UserReservationState.CANCEL;

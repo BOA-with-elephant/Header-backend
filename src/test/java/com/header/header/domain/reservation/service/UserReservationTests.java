@@ -26,12 +26,10 @@ public class UserReservationTests {
 
     @Test
     @DisplayName("CREATE")
+    @Commit
     public void testCreateUserReservation() {
 
         //given
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-
         Integer userCode = 1;
         Integer shopCode = 1;
 
@@ -86,7 +84,7 @@ public class UserReservationTests {
     @Commit
     public void testDeleteUserReservation() {
         //given
-        Integer resvCode = 29;
+        Integer resvCode = 33;
 
         //when
         UserReservationDTO userReservationDTO = userReservationService.deleteUserReservation(resvCode);
