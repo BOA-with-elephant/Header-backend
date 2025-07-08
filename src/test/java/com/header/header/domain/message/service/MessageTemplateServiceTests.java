@@ -28,6 +28,7 @@ public class MessageTemplateServiceTests {
     void setUp(){
         MessageTemplateDTO createDTO  = new MessageTemplateDTO();
         createDTO .setShopCode(2);
+        createDTO .setTemplateTitle("서비스 할인 안내");
         createDTO .setTemplateType(TemplateType.PROMOTIONAL);
         createDTO .setTemplateContent("안녕하세요 {고객명}님! {서비스명}이 현재 할인중 입니다.");
 
