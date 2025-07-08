@@ -1,7 +1,7 @@
 package com.header.header.domain.message.service;
 
 import com.header.header.domain.message.dto.MessageTemplateDTO;
-import com.header.header.domain.message.enitity.MessageTemplate;
+import com.header.header.domain.message.entity.MessageTemplate;
 import com.header.header.domain.message.enums.TemplateType;
 import com.header.header.domain.message.exception.InvalidTemplateException;
 import com.header.header.domain.message.exception.ValidationResult;
