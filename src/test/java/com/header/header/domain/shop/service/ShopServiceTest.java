@@ -1,10 +1,10 @@
 package com.header.header.domain.shop.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
+import com.header.header.domain.shop.repository.UserRepository;
 import com.header.header.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +23,7 @@ class ShopServiceTest {
     private ShopService shopService;
 
     @Autowired
-    private AuthUserRepository userRepository;
+    private UserRepository userRepository;
 
     private Integer testUserId;
 
@@ -202,7 +202,7 @@ class ShopServiceTest {
     @DisplayName("DELETE (비활성화)")
     void testDeleteShop() {
         //given
-        Integer shopCodeToDelete = 28;
+        Integer shopCodeToDelete = 1;
 
         //when
         ShopDTO shopToDelete = shopService.deActiveShop(shopCodeToDelete);
@@ -225,7 +225,7 @@ class ShopServiceTest {
     @DisplayName("DELETE 예외: 재비활성화 시도")
     void testAttemptWhenDelete() {
         //given
-        Integer shopCodeToDelete = 8;
+        Integer shopCodeToDelete = 2;
 
         //when and then
         assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));

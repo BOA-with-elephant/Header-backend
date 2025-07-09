@@ -1,6 +1,5 @@
 package com.header.header.domain.auth.model.dto;
 
-import com.header.header.domain.auth.common.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

@@ -9,6 +9,7 @@ import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
 import com.header.header.domain.shop.repository.ShopRepository;
+import com.header.header.domain.shop.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,7 +26,7 @@ public class ShopService {
     private final MapService mapService;
 
     //User 정보 가져오기 위해 임시 처리 - 머지 & 삭제 후 임포트 구문 수정 예상
-    private final AuthUserRepository userRepository;
+    private final UserRepository userRepository;
 
     //CREATE
     @Transactional
