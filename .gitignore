@@ -37,3 +37,8 @@ out/
 .vscode/
 /src/main/resources/application.yml
 /settings.gradle
+
+### ignore all md, html, yml file ###
+*.md
+*.html
+*.yml
