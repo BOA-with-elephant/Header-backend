@@ -7,8 +7,10 @@ import lombok.*;
 @Setter
 @ToString
 @AllArgsConstructor
-@NoArgsConstructor
 public class ShopSummaryDTO {
+
+    /* 관리자 코드로 전체 조회시 필요한 정보만 담을 수 있도록 한 요약 정보용 DTO
+       필요하지 않은 값의 필드를 불러내는 것을 방지해 성능 향상 */
 
     private Integer shopCode;
     private Integer categoryCode;

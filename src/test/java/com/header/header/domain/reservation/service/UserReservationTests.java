@@ -3,19 +3,19 @@ package com.header.header.domain.reservation.service;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
-import org.springframework.test.annotation.Rollback;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -78,6 +78,20 @@ public class UserReservationTests {
         //then
         System.out.println(resvList);
     }
+
+    @Test
+    @DisplayName("전체 조회 - 존재하지 않는 userCode로 조회")
+    public void testUserNotFound() {
+
+        //given
+        Integer userCode = 100;
+
+        //then
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findUserReservationsByUserCode(userCode));
+
+    }
+
+
 
     @Test
     @DisplayName("DELETE")
