@@ -1,5 +1,7 @@
-package com.header.header.domain.shop.enitity;
+package com.header.header.domain.shop.entity;
 
+import com.header.header.domain.shop.common.ShopStatusConverter;
+import com.header.header.domain.shop.enums.ShopStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,7 +15,7 @@ public class Shop {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int shopCode;
+    private Integer shopCode;
     private Integer categoryCode;
     private Integer adminCode;
     private String shopName;
@@ -21,10 +23,12 @@ public class Shop {
     private String shopLocation;
     private Double shopLong;
     private Double shopLa;
-    private String shopStatus;
+
+    @Convert(converter = ShopStatusConverter.class)
+    private ShopStatus shopStatus;
+
     private String shopOpen;
     private String shopClose;
     private Boolean isActive;
-
 
 }

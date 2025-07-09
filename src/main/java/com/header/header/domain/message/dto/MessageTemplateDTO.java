@@ -11,6 +11,7 @@ import lombok.ToString;
 public class MessageTemplateDTO {
     private Integer templateCode;
     private Integer shopCode;
+    private String templateTitle;
     private String templateContent;
     private TemplateType templateType;
 }
