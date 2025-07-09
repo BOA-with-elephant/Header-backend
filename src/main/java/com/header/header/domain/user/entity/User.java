@@ -1,4 +1,4 @@
-package com.header.header.domain.user.enitity;
+package com.header.header.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -22,4 +22,20 @@ public class User {
     private String userPhone;
     private Date birthday;
     private boolean isLeave;
+
+    public void modifyUserLeave(boolean isLeave){
+        this.isLeave = isLeave;
+    }
+
+    public void modifyUserPassword(String newPwd) {
+        this.userPwd = newPwd;
+    }
+
+    public void modifyUserPhone(String newPhone) {
+        this.userPhone = newPhone;
+    }
+
+    public void modifyUserName(String newName) {
+        this.userName = newName;
+    }
 }
