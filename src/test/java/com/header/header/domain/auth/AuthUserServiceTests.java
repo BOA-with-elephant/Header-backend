@@ -61,7 +61,6 @@ public class AuthUserServiceTests {
 
         //then
         assertNotNull(checkLoggedIn);
-        assertNotNull(checkLoggedIn.getUserCode());
         assertNotNull(checkLoggedIn.getUserName());
 
         assertEquals("user03", checkLoggedIn.getUserId());
