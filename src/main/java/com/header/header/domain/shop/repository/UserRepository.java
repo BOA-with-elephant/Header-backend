@@ -3,6 +3,6 @@ package com.header.header.domain.shop.repository;
 import com.header.header.domain.user.enitity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-// 임시로 해두고 정아님 거랑 합치기
+// 유저 정보를 받아오기 위한 임시 처리.. 추후 머지 하면서 삭제될 예정
 public interface UserRepository extends JpaRepository<User, Integer> {
 }

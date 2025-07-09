@@ -50,6 +50,11 @@ public class UserReservationService {
 
     //READ (전체 조회 - UserReservationSummaryDTO)
     public List<UserReservationSummaryDTO> findUserReservationsByUserCode(Integer userCode) {
+
+        if (userRepository.findById(userCode).isEmpty()) {
+            throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND);
+        }
+
         return userReservationRepository.findReservationSummaryByUserCode(userCode);
     }
 
