@@ -61,6 +61,7 @@ public class AuthUserServiceTests {
 
         //then
         assertNotNull(checkLoggedIn);
+        assertNotNull(checkLoggedIn.getUserCode());
         assertNotNull(checkLoggedIn.getUserName());
 
         assertEquals("user03", checkLoggedIn.getUserId());
@@ -190,7 +191,6 @@ public class AuthUserServiceTests {
         dto.setUserCode(userCode);
         System.out.println("original:" + dto);
         //original:AuthUserDTO(userCode=30, userId=null, userPwd=null, isAdmin=false, userName=null, userPhone=null, birthday=null, isLeave=false)
-
 
         // when
         authUserService.deleteUser(dto);
