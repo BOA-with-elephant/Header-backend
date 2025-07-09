@@ -1,6 +1,5 @@
 package com.header.header.domain.shop.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.shop.dto.MapServiceDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
