@@ -48,7 +48,7 @@ public class ShopService {
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
         if (shop.getIsActive() == false) {
-            // 비활성화된 샵 조회 시도 시 예외 처리
+            // 비활성화된 샵 조회 시도 시 예외 처리 -> 테스트시 비활성화되지 않은 샵으로 해야 통과되니 주의
             throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
         }
         return modelMapper.map(shop, ShopDTO.class);

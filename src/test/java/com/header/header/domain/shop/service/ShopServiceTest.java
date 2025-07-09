@@ -84,7 +84,7 @@ class ShopServiceTest {
     @DisplayName("READ (상세 조회)")
     void testGetShop() {
         //when
-        ShopDTO foundedShop = shopService.getShopByShopCode(2);
+        ShopDTO foundedShop = shopService.getShopByShopCode(3);
 
         //then
         assertNotNull(foundedShop);
