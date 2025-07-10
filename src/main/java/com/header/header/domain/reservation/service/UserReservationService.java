@@ -61,8 +61,6 @@ public class UserReservationService {
 
         if (reservation.getResvState() == UserReservationState.CANCEL) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
-        } else if (reservation.getResvState() == UserReservationState.PAID) {
-            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_PAID);
         } else if (reservation.getResvState() == UserReservationState.FINISH) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
         } else {
@@ -73,5 +71,7 @@ public class UserReservationService {
 
         return modelMapper.map(reservation, UserReservationDTO.class);
     }
+
+
 
 }

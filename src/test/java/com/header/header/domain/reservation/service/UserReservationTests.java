@@ -87,7 +87,7 @@ public class UserReservationTests {
     public void testUserNotFound() {
 
         //given
-        Integer userCode = 100;
+        Integer userCode = 200;
 
         //then
         assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findByUserCode(userCode));
@@ -101,7 +101,7 @@ public class UserReservationTests {
     @Commit
     public void testCancelUserReservation() {
         //given
-        Integer resvCode = 20;
+        Integer resvCode = 18;
 
         //when
         UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
@@ -115,7 +115,7 @@ public class UserReservationTests {
     @DisplayName("DELETE 예외 : 결제 완료된 예약 취소 시도")
     public void testCancelPaidReservation() {
         //given
-        Integer resvCode = 7;
+        Integer resvCode = 99;
 
         //when and then
         assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
@@ -125,7 +125,7 @@ public class UserReservationTests {
     @DisplayName("DELETE 예외 : 시술 완료된 예약 취소 시도")
     public void testCancelWrongAttempt() {
         //given
-        Integer resvCode = 29;
+        Integer resvCode = 8;
 
         //when and then
         assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));

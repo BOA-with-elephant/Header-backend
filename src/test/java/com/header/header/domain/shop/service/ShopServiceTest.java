@@ -84,7 +84,7 @@ class ShopServiceTest {
     @DisplayName("READ (상세 조회)")
     void testGetShop() {
         //when
-        ShopDTO foundedShop = shopService.getShopByShopCode(3);
+        ShopDTO foundedShop = shopService.getShopByShopCode(9);
 
         //then
         assertNotNull(foundedShop);
@@ -205,7 +205,7 @@ class ShopServiceTest {
     @DisplayName("DELETE (비활성화)")
     void testDeleteShop() {
         //given
-        Integer shopCodeToDelete = 3;
+        Integer shopCodeToDelete = 13;
 
         //when
         ShopDTO shopToDelete = shopService.deActiveShop(shopCodeToDelete);
@@ -228,7 +228,7 @@ class ShopServiceTest {
     @DisplayName("DELETE 예외: 재비활성화 시도")
     void testAttemptWhenDelete() {
         //given
-        Integer shopCodeToDelete = 2;
+        Integer shopCodeToDelete = 3;
 
         //when and then
         assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));
