@@ -133,7 +133,7 @@ public class BossReservationRepositoryTests {
         bossReservationService.registNewReservation(newReservation);
 
         // then
-        BossReservationDTO saved = bossReservationService.findReservationByUserNameAndUserPhone(SHOP_CODE, userName, userPhone);
+        List<BossReservationDTO> saved = bossReservationService.findReservationByUserNameAndUserPhone(SHOP_CODE, userName, userPhone);
         assertNotNull(saved);
 //        System.out.println(saved);
     }
@@ -148,7 +148,7 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 내용 수정하기")
     void testModifyReservation(String menuName, Date resvDate, Time resvTime, String userComment){
         // given
-        Integer resvCode = 31;
+        Integer resvCode = 33;
         BossResvInputDTO inputDTO = new BossResvInputDTO(menuName, resvDate, resvTime, userComment);
 
         // when
@@ -165,7 +165,7 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 내역 삭제하기")
     void testCancleResercation(){
         // given
-        int resvCode = 31;
+        int resvCode = 33;
 
         // when
         bossReservationService.cancleReservation(resvCode);

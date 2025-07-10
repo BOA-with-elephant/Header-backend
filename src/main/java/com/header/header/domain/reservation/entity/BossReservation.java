@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.entity;
 
+import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,13 +26,13 @@ public class BossReservation {
     private Integer shopCode;
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "menuCode")
-    private BossResvMenu menuInfo;
+    private Menu menuInfo;
     private Date resvDate;
     private Time resvTime;
     private String userComment;
     private String resvState;
 
-    public BossReservation(int resvCode, User userInfo, Integer shopCode, BossResvMenu menuInfo, Date resvDate, Time resvTime, String userComment, String resvState) {
+    public BossReservation(int resvCode, User userInfo, Integer shopCode, Menu menuInfo, Date resvDate, Time resvTime, String userComment, String resvState) {
         this.resvCode = resvCode;
         this.userInfo = userInfo;
         this.shopCode = shopCode;
