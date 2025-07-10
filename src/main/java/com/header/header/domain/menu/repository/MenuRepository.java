@@ -63,10 +63,14 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         "AND m.menuName LIKE %:menuName% AND m.isActive = true")
     List<Menu> findByMenuNameContainingAndShopCode(@Param("menuName") String menuName,
         @Param("shopCode") Integer shopCode);
+
     /*
      * 인기 메뉴 조회 (예약 수 기준):
      @Query("SELECT m FROM Menu m JOIN Reservation ri ON m.menuCode = ri.menu.menuCode " +
             "WHERE m.menuCategory.id.shopCode = :shopCode AND m.isActive = true " +
          "GROUP BY m ORDER BY COUNT(ri) DESC")
      List<Menu> findPopularMenusByShop(@Param("shopCode") Integer shopCode, Pageable pageable);*/
+
+    /* 메뉴 이름으로 메뉴 엔티티 조회하기 */
+    Menu findByMenuName(String menuName);
 }

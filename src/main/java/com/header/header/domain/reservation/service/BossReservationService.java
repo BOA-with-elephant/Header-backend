@@ -175,10 +175,12 @@ public class BossReservationService {
 
 
     /* 테스트용 */
-    public BossReservationDTO findReservationByUserNameAndUserPhone(Integer shopCode, String userName, String userPhone) {
+    public List<BossReservationDTO> findReservationByUserNameAndUserPhone(Integer shopCode, String userName, String userPhone) {
 
-        BossReservation reservation = bossReservationRepository.findByUserNameAndUserPhone(shopCode, userName, userPhone);
+        List<BossReservation> reservationList = bossReservationRepository.findByUserNameAndUserPhone(shopCode, userName, userPhone);
 
-        return modelMapper.map(reservation, BossReservationDTO.class);
+        return reservationList.stream()
+                .map(reservation -> modelMapper.map(reservation, BossReservationDTO.class))
+                .toList();
     }
 }
