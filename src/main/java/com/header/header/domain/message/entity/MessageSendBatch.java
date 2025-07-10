@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -22,7 +24,6 @@ public class MessageSendBatch {
     private Integer shopCode;
     private Integer templateCode;
 
-    /* comment. Batch는 사용자가 요청한 시점에 기록한다. */
     private Date sendDate;
     private Time sendTime;
 
@@ -33,5 +34,13 @@ public class MessageSendBatch {
     private Integer failCount;
     @CreationTimestamp // 애플리케이션 레벨에서 Insert 쿼리가 발생할 때 생성 시간을 자동 주입.
     private Timestamp createdAt;
+
+    public void updateBatchResultsCount(Integer successCount,Integer failCount){
+        if(totalCount != (successCount + failCount)){
+            throw new RuntimeException("일치하지 않는 결과 카운트"); // todo. 공통 템플릿으로 보내기.
+        }
+        this.successCount = successCount;
+        this.failCount = failCount;
+    }
 
 }
