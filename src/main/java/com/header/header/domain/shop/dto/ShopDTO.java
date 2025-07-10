@@ -8,7 +8,7 @@ import lombok.*;
 @Setter
 @ToString
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor  //테스트 코드 작성, 객체 생성시 필요
 public class ShopDTO {
     private Integer shopCode;
 

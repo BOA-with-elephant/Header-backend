@@ -1,9 +1,9 @@
 package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.reservation.dto.UserReservationDTO;
-import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.reservation.projection.UserReservationSummary;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,21 +73,24 @@ public class UserReservationTests {
         Integer userCode = 1;
 
         //when
-        List<UserReservationSummaryDTO> resvList = userReservationService.findUserReservationsByUserCode(userCode);
+        List<UserReservationSummary> resvList = userReservationService.findByUserCode(userCode);
 
         //then
-        System.out.println(resvList);
+        for (UserReservationSummary resv: resvList) {
+            assert resv.getUserCode() == userCode;
+            System.out.println(resv.getResvCode() + ", 유저코드 : " + resv.getUserCode() + ", 예약 상태 : " + resv.getResvState());
+        }
     }
 
     @Test
-    @DisplayName("전체 조회 - 존재하지 않는 userCode로 조회")
+    @DisplayName("전체 조회 예외 : 존재하지 않는 userCode로 조회")
     public void testUserNotFound() {
 
         //given
-        Integer userCode = 100;
+        Integer userCode = 200;
 
         //then
-        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findUserReservationsByUserCode(userCode));
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findByUserCode(userCode));
 
     }
 
@@ -96,15 +99,37 @@ public class UserReservationTests {
     @Test
     @DisplayName("DELETE")
     @Commit
-    public void testDeleteUserReservation() {
+    public void testCancelUserReservation() {
         //given
-        Integer resvCode = 33;
+        Integer resvCode = 18;
 
         //when
-        UserReservationDTO userReservationDTO = userReservationService.deleteUserReservation(resvCode);
+        UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
 
         //then
         assert userReservationDTO.getResvState() == UserReservationState.CANCEL;
         System.out.println(userReservationDTO);
     }
+
+    @Test
+    @DisplayName("DELETE 예외 : 결제 완료된 예약 취소 시도")
+    public void testCancelPaidReservation() {
+        //given
+        Integer resvCode = 99;
+
+        //when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
+    }
+
+    @Test
+    @DisplayName("DELETE 예외 : 시술 완료된 예약 취소 시도")
+    public void testCancelWrongAttempt() {
+        //given
+        Integer resvCode = 8;
+
+        //when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
+    }
+    
+    
 }

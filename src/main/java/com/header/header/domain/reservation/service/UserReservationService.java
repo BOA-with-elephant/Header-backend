@@ -2,19 +2,17 @@ package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
-import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
+import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -46,26 +44,34 @@ public class UserReservationService {
     }
 
     //READ (전체 조회 - UserReservationSummaryDTO)
-    public List<UserReservationSummaryDTO> findUserReservationsByUserCode(Integer userCode) {
+    public List<UserReservationSummary> findByUserCode(Integer userCode) {
 
         if (userRepository.findById(userCode).isEmpty()) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND);
         }
 
-        return userReservationRepository.findReservationSummaryByUserCode(userCode);
+        return userReservationRepository.findByUserCode(userCode);
     }
 
     //DELETE (논리적 삭제)
     @Transactional
-    public UserReservationDTO deleteUserReservation(Integer resvCode) {
+    public UserReservationDTO cancelReservation(Integer resvCode) {
         Reservation reservation = userReservationRepository.findById(resvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
 
-        reservation.cancelReservation();
+        if (reservation.getResvState() == UserReservationState.CANCEL) {
+            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
+        } else if (reservation.getResvState() == UserReservationState.FINISH) {
+            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
+        } else {
+            reservation.cancelReservation();
+        }
 
         userReservationRepository.save(reservation);
 
         return modelMapper.map(reservation, UserReservationDTO.class);
     }
+
+
 
 }
