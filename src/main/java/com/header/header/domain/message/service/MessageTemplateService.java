@@ -105,6 +105,7 @@ public class MessageTemplateService {
      * 광고성 템플릿 삭제
      *
      * @param templateCode 생성할 템플릿 DTO
+     * @param shopCode 샵 코드
      */
     public void deleteMessageTemplate(Integer templateCode, Integer shopCode){
         MessageTemplate foundMessageTemplate = findTemplateOrThrow(templateCode);
@@ -126,7 +127,7 @@ public class MessageTemplateService {
                 .orElseThrow(() -> InvalidTemplateException.unauthorized("해당 샵의 템플릿이 아닙니다."));
     }
 
-    private MessageTemplate findTemplateOrThrow(Integer templateCode) {
+    protected MessageTemplate findTemplateOrThrow(Integer templateCode) {
         return messageTemplateRepository.findByTemplateCode(templateCode)
                 .orElseThrow(() -> InvalidTemplateException.notFound("템플릿을 찾을 수 없습니다."));
         
