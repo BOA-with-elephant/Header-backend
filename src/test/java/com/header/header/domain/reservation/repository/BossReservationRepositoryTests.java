@@ -7,6 +7,10 @@ import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.service.BossReservationService;
+import com.header.header.domain.sales.dto.SalesDTO;
+import com.header.header.domain.sales.enums.PaymentStatus;
+import com.header.header.domain.sales.repository.SalesRepository;
+import com.header.header.domain.sales.service.SalesService;
 import org.hibernate.Internal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,7 +36,8 @@ public class BossReservationRepositoryTests {
     @Autowired
     private BossReservationService bossReservationService;
     @Autowired
-    private BossReservationRepository bossReservationRepository;
+    SalesRepository salesRepository;
+
     // 테스트용 샵코드
     private static final int SHOP_CODE = 1;
 
@@ -189,5 +195,29 @@ public class BossReservationRepositoryTests {
                 NotFoundException.class,
                 () -> bossReservationService.findReservationByResvCode(resvCode)
         );
+    }
+
+    private static Stream<Arguments> salesInfo(){
+        return Stream.of(Arguments.of(30, 80000, "신용카드", LocalDateTime.of(2025, 7, 7, 11, 0, 0), PaymentStatus.COMPLETED, 0)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("salesInfo")
+    @DisplayName("시술 완료 시 매출 테이블에 데이터 넣기")
+    void testAfterProcedure(Integer resvCode, Integer payAmount, String payMetod, LocalDateTime payDateTime, PaymentStatus payStatus, Integer cancelAmount){
+
+        // when
+        SalesDTO salesDTO = new SalesDTO();
+        salesDTO.setResvCode(resvCode);
+        salesDTO.setPayAmount(payAmount);
+        salesDTO.setPayMethod(payMetod);
+        salesDTO.setPayDatetime(payDateTime);
+        salesDTO.setPayStatus(payStatus);
+        salesDTO.setCancelAmount(cancelAmount);
+
+        bossReservationService.afterProcedure(salesDTO);
+
+        assertNotNull(salesRepository.existsByResvCode(resvCode));
     }
 }

@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.service;
 
+import com.header.header.common.exception.GlobalExceptionHandler;
 import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
@@ -11,6 +12,9 @@ import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
+import com.header.header.domain.sales.dto.SalesDTO;
+import com.header.header.domain.sales.repository.SalesRepository;
+import com.header.header.domain.sales.service.SalesService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
@@ -20,6 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +39,7 @@ public class BossReservationService {
     private final BossReservationRepository bossReservationRepository;
     private final UserReservationRepository userReservationRepository;
     private final MainUserRepository userRepository;
+    private final SalesService salesService;
     private final MenuRepository menuRepository;
     private final ModelMapper modelMapper;
 
@@ -188,10 +197,26 @@ public class BossReservationService {
     }
 
     /* 시술 후 사장님이 시술 완료로 상태 변경하면 매출 테이블로 해당 데이터 넘기기(insert) */
-    public void afterProcedure(Integer resvCode){
-        Reservation reservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
+    public void afterProcedure(SalesDTO salesDTO){
 
-        reservation.completeProcedure();
+        Reservation reservation = userReservationRepository.findById(salesDTO.getResvCode()).orElseThrow(IllegalArgumentException::new);
+
+        /* 예약 날짜가 현재 시간보다 이전인지 확인 */
+        Date resvDate = reservation.getResvDate();
+        Time resvTime = reservation.getResvTime();
+        LocalDateTime resvDateTime = LocalDateTime.of(resvDate.toLocalDate(), resvTime.toLocalTime());
+        LocalDateTime now = LocalDateTime.now();
+
+        /* 예약 날짜가 현재 시간보다 이전이거나 같으면 시술 완료 처리 및 매출 정보 넘기기 */
+        if(resvDateTime.isBefore(now) || resvDateTime.isEqual(now)){
+            /* 프론트에서 사장님이 시술 완료 버튼 클릭 시 해당 예약의 resvState가 예약 확정에서 시술 완료로 변경 */
+            reservation.completeProcedure();
+
+            salesService.createPayment(salesDTO);
+        } else {
+            /* 예외 처리 */
+            throw new IllegalArgumentException("시술 완료 처리는 예약 시간이 지난 경우에만 가능합니다.");
+        }
     }
 
     /* 노쇼 갯수 반환 - 예약 확정 이면서 날짜가 오늘 이전인 것들 조회 */
