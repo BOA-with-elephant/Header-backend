@@ -1,4 +1,4 @@
-package com.header.header.domain.message.enitity;
+package com.header.header.domain.message.entity;
 
 import com.header.header.domain.message.enums.TemplateType;
 import jakarta.persistence.*;

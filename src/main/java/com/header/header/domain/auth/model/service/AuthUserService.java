@@ -25,25 +25,25 @@ public class AuthUserService {
     -> SignupDTO 사용
     @param signupDTO 생성할 user 정보가 담긴 DTO
     @return 생성된 signupDTO(user관련 DTO)
-    @throws IllegalArgumentException 이미 존재하는 아이디나 전화번호일 때 */
+    @throws ApiResponse 이미 존재하는 아이디나 전화번호일 때 */
     @Transactional
-    public SignupDTO registerNewUser(SignupDTO signupDTO){
+    public Object registerNewUser(SignupDTO signupDTO){
         //중복확인 1 : userId
         if (authUserRepository.existsByUserId(signupDTO.getUserId())) {
-            throw new IllegalArgumentException(
-                    String.format("이미 존재하는 아이디입니다.", signupDTO.getUserId()));
+            return DUPLICATE_ID.getMessage();
         }
         //중복확인 2 : userPhone
         if (authUserRepository.existsByUserPhone(signupDTO.getUserPhone())) {
-            throw new IllegalArgumentException(
-                    String.format("이미 존재하는 전화번호입니다.", signupDTO.getUserPhone()));
+            return DUPLICATE_PHONE.getMessage();
         }
 
         User newUser = authUserRepository.save(modelMapper.map(signupDTO, User.class));
 
-        // 생성된 userCode를 DTO에 다시 설정
+        // 생성된 userCode를 갖고와서 DTO에 다시 설정
         signupDTO.setUserCode(newUser.getUserCode());
-        return signupDTO;
+
+        //return: 회원가입 성공메세지
+        return SUCCESS_REGISTER_USER.getMessage();
     }
 
     /*Read specific : Login
@@ -60,44 +60,39 @@ public class AuthUserService {
     }
 
     /*Update : Modify user information
-    *
-    * @param authUserDTO
-    * @throws IllegalArgumentException */
-    /*수정(엔티티 객체의 필드 값 변경) -> 일단 수정할 menuCode를 findById로 받아온다. */
+     *
+     * @param authUserDTO
+     * @throws IllegalArgumentException */
     @Transactional
     public String modifyUser(AuthUserDTO authUserDTO){
         // 1. 기존 유저 엔티티 조회 (예시로 userCode 또는 userId 기준으로 조회)
         User user = authUserRepository.findById(authUserDTO.getUserCode())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
-        // 2. 이전 값과 동일한지 확인
-        if (user.getUserPwd().equals(authUserDTO.getUserPwd())) {
-            return SAME_PASSWORD.getMessage();
+        // 2. 이전에 사용한 값과 동일한지 확인
+        if (authUserDTO.getUserPwd() != null && user.getUserPwd().equals(authUserDTO.getUserPwd())) {
+            return authUserDTO.getUserPwd() + SAME_PASSWORD.getMessage();
         }
 
-        if (user.getUserPhone().equals(authUserDTO.getUserPhone())) {
-            return SAME_PHONE.getMessage();
+        if (authUserDTO.getUserPhone() != null && user.getUserPhone().equals(authUserDTO.getUserPhone())) {
+            return authUserDTO.getUserPhone() + SAME_PHONE.getMessage();
         }
 
-        if (user.getUserName().equals(authUserDTO.getUserName())) {
-            return SAME_NAME.getMessage();
+        if (authUserDTO.getUserName() != null && user.getUserName().equals(authUserDTO.getUserName())) {
+            return authUserDTO.getUserName() + SAME_NAME.getMessage();
         }
 
-        // 3. 전화번호 중복 확인
-//        if (authUserRepository.existsByUserPhone(authUserDTO.getUserPhone())) {
-//            return DUPLICATE_PHONE.getMessage();
-//        }
-
-        // 3. 전화번호 중복 확인 (자기 자신 제외)
+        // 3. DB 전체와 비교, 전화번호 중복 확인 (자기 자신 제외)
         if (authUserRepository.existsByUserPhoneAndUserCodeNot(authUserDTO.getUserPhone(), authUserDTO.getUserCode())) {
             return DUPLICATE_PHONE.getMessage();
         }
 
         // 4. 도메인 메서드를 통한 정보 수정
-        user.modifyUserPassword(authUserDTO.getUserPwd());
-        user.modifyUserPhone(authUserDTO.getUserPhone());
-        user.modifyUserName(authUserDTO.getUserName());
-        return String.valueOf(user);
+        if (authUserDTO.getUserPwd() != null) user.modifyUserPassword(authUserDTO.getUserPwd());
+        if (authUserDTO.getUserPhone() != null) user.modifyUserPhone(authUserDTO.getUserPhone());
+        if (authUserDTO.getUserName() != null) user.modifyUserName(authUserDTO.getUserName());
+
+        return SUCCESS_MODIFY_USER.getMessage();
     }
 
 
