@@ -7,6 +7,7 @@ import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
+import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.user.dto.UserDTO;
@@ -73,9 +74,9 @@ public class BossReservationService {
     }
 
     /* 예약번호를 통한 예약 상세 조회 */
-    public BossReservationDTO findReservationByResvCode(Integer shopCode, Integer resvCode){
+    public BossReservationDTO findReservationByResvCode(Integer resvCode){
 
-        BossReservation reservation = bossReservationRepository.findByResvCode(shopCode, resvCode);
+        BossReservation reservation = bossReservationRepository.findByResvCode(resvCode);
 
         if (reservation == null) {
             return null;
@@ -127,7 +128,7 @@ public class BossReservationService {
         registDTO.setResvDate(inputDTO.getResvDate());
         registDTO.setResvTime(inputDTO.getResvTime());
         registDTO.setUserComment(inputDTO.getUserComment());
-        registDTO.setResvState("예약 확정");
+        registDTO.setResvState(UserReservationState.APPROVE.name());
 
         // 저장
         userReservationRepository.save(modelMapper.map(registDTO, Reservation.class));
@@ -166,11 +167,13 @@ public class BossReservationService {
     }
 
 
-//    /* 예약 내역 삭제하기 */
-    public void cancleReservation(Integer resvCode){
+//    /* 예약 내역 삭제하기 - 논리적 삭제 */
+    public void cancelReservation(Integer resvCode){
 
-        bossReservationRepository.deleteById(resvCode);
+        /* 예약 취소 시 물리적 삭제가 아닌 논리적 삭제로 진행하기 -> resvState를 예약 취소로 변경하기 */
+        Reservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
 
+        foundReservation.cancelReservation();
     }
 
 
