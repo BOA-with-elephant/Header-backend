@@ -113,7 +113,6 @@ public class UserReservationTests {
 
     @Test
     @DisplayName("DELETE 예외 : 결제 완료된 예약 취소 시도")
-    @Commit
     public void testCancelPaidReservation() {
         //given
         Integer resvCode = 7;
@@ -124,7 +123,6 @@ public class UserReservationTests {
 
     @Test
     @DisplayName("DELETE 예외 : 시술 완료된 예약 취소 시도")
-    @Commit
     public void testCancelWrongAttempt() {
         //given
         Integer resvCode = 29;
