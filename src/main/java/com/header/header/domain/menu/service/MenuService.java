@@ -4,7 +4,7 @@ import com.header.header.domain.menu.dto.MenuDTO;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
-import com.header.header.domain.menu.exception.NotFoundException;
+import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.menu.repository.MenuCategoryRepository;
 import lombok.RequiredArgsConstructor;

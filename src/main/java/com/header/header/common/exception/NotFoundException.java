@@ -1,8 +1,7 @@
-package com.header.header.domain.menu.exception;
+package com.header.header.common.exception;
 
 /**
- * 메뉴, 메뉴 카테고리 등 리소스를 찾을 수 없을 때 발생하는 공통 예외
- * - 메뉴 도메인뿐만 아니라 다른 도메인에서도 재사용 가능
+ * 전역에서 리소스를 찾을 수 없을 때 발생하는 공통 예외
  * - HTTP 404 Not Found 상태로 응답
  */
 public class NotFoundException extends RuntimeException {
@@ -50,4 +49,6 @@ public class NotFoundException extends RuntimeException {
     public static NotFoundException category(Integer categoryCode, Integer shopCode) {
         return new NotFoundException("메뉴 카테고리", "카테고리 코드: " + categoryCode + ", 샵 코드: " + shopCode);
     }
+
+    // 필요시, 각 도메인에 맞는 팩토리 메소드 추가 생성하세요~!
 }

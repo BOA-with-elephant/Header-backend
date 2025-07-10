@@ -3,7 +3,7 @@ package com.header.header.domain.menu.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.header.header.domain.menu.dto.MenuDTO;
-import com.header.header.domain.menu.exception.NotFoundException;
+import com.header.header.common.exception.NotFoundException;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;

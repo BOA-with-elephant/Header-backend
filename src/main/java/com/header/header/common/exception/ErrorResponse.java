@@ -1,4 +1,4 @@
-package com.header.header.domain.menu.exception;
+package com.header.header.common.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

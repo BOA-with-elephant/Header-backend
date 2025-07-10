@@ -1,4 +1,4 @@
-package com.header.header.domain.menu.exception;
+package com.header.header.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,20 +8,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 /**
- * 메뉴 도메인의 전역 예외 처리기
+ * 전역 예외 처리기
  *
- * - 메뉴, 메뉴 카테고리 등 메뉴 도메인의 모든 예외를 통합 관리
+ * - 전역 모든 예외를 통합 관리
  * - NotFoundException을 주로 사용하여 리소스 찾기 실패 처리
  * - 적절한 HTTP 상태 코드와 함께 구조화된 에러 정보 반환
  */
-@RestControllerAdvice(basePackages = "com.header.header.domain.menu")
+@RestControllerAdvice(basePackages = "com.header.header")
 @Slf4j
-public class MenuExceptionHandler {
+public class GlobalExceptionHandler {
 
     /**
      * NotFoundException 처리
      *
-     * - 메뉴, 메뉴 카테고리 등을 찾을 수 없을 때 발생
+     * - 리소스를 찾을 수 없을 때 발생
      * - HTTP 404 Not Found 상태로 응답
      */
     @ExceptionHandler(NotFoundException.class)

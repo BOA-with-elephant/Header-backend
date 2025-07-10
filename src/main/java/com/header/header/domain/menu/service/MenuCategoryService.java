@@ -3,7 +3,7 @@ package com.header.header.domain.menu.service;
 import com.header.header.domain.menu.dto.MenuCategoryDTO;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
-import com.header.header.domain.menu.exception.NotFoundException;
+import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.repository.MenuCategoryRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
