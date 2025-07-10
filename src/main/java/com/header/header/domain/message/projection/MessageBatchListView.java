@@ -1,6 +1,5 @@
 package com.header.header.domain.message.projection;
 
-import java.io.Serializable;
 import java.sql.Date;
 import java.sql.Time;
 

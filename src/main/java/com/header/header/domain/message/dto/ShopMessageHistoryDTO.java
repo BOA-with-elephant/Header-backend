@@ -16,7 +16,7 @@ public class ShopMessageHistoryDTO {
     private Integer userCode;
 
     private String msgContent;
-    private String sentStatus;
+    private String sendStatus;
     private String errorMessage;
     private Timestamp sentAt;
 }
