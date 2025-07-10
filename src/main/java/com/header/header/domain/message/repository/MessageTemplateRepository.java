@@ -1,6 +1,6 @@
 package com.header.header.domain.message.repository;
 
-import com.header.header.domain.message.enitity.MessageTemplate;
+import com.header.header.domain.message.entity.MessageTemplate;
 import com.header.header.domain.message.enums.TemplateType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
