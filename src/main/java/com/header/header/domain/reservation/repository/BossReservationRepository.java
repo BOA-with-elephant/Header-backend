@@ -43,6 +43,9 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
             value = baiscQuery
     )
     List<BossReservation> findByShopCode(@Param("shopCode")Integer shopCode);
+//    @Query( "SELECT r, u, m FROM BossReservation r INNER JOIN FETCH User u INNER JOIN FETCH (SELECT mn, mc FROM Menu mn INNER JOIN FETCH MenuCategory mc) m WHERE r.shopCode = :shopCode"
+//    )
+//    List<BossReservation> findByShopCode(@Param("shopCode")Integer shopCode);
 
     /* 선택된 날짜의 예약 조회 */
     @Query( nativeQuery = true,
