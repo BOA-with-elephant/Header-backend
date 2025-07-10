@@ -118,7 +118,7 @@ public class BossReservationRepositoryTests {
     }
 
     private static Stream<Arguments> newReservations(){
-        return Stream.of(Arguments.of("이하나", "010-8899-7766", "젤 네일 프렌치", Date.valueOf("2025-07-10"), Time.valueOf("14:00:00"), "짧은 손톱에 어울리게 해주세요.")
+        return Stream.of(Arguments.of("이하나", "010-8899-7766", "젤 네일 프렌치", Date.valueOf("2025-07-11"), Time.valueOf("14:00:00"), "짧은 손톱에 어울리게 해주세요.")
 //        return Stream.of(Arguments.of("권은지", "010-1002-1002", "브라질리언 왁싱", Date.valueOf("2025-07-15"), Time.valueOf("16:00:00"), "")
                 );
     }
@@ -135,7 +135,6 @@ public class BossReservationRepositoryTests {
         // then
         List<BossReservationDTO> saved = bossReservationService.findReservationByUserNameAndUserPhone(SHOP_CODE, userName, userPhone);
         assertNotNull(saved);
-//        System.out.println(saved);
     }
 
     private static Stream<Arguments> modifiedReservation(){
@@ -148,7 +147,7 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 내용 수정하기")
     void testModifyReservation(String menuName, Date resvDate, Time resvTime, String userComment){
         // given
-        Integer resvCode = 33;
+        Integer resvCode = 29;
         BossResvInputDTO inputDTO = new BossResvInputDTO(menuName, resvDate, resvTime, userComment);
 
         // when
@@ -165,13 +164,13 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 내역 삭제하기")
     void testCancleResercation(){
         // given
-        int resvCode = 33;
+        int resvCode = 29;
 
         // when
-        bossReservationService.cancleReservation(resvCode);
+        bossReservationService.cancelReservation(resvCode);
 
         // then
         BossReservationDTO deleted = bossReservationService.findReservationByResvCode(SHOP_CODE, resvCode);
-        assertNull(deleted);
+        assertEquals(deleted.getResvState(), "예약취소");
     }
 }
