@@ -1,16 +1,26 @@
 package com.header.header.domain.reservation.repository;
 
+import com.header.header.domain.reservation.dto.BasicReservationDTO;
 import com.header.header.domain.reservation.dto.BossReservationDTO;
+import com.header.header.domain.reservation.dto.BossResvInputDTO;
+import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.service.BossReservationService;
+import org.hibernate.Internal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -107,16 +117,61 @@ public class BossReservationRepositoryTests {
         );
     }
 
+    private static Stream<Arguments> newReservations(){
+        return Stream.of(Arguments.of("이하나", "010-8899-7766", "젤 네일 프렌치", Date.valueOf("2025-07-10"), Time.valueOf("14:00:00"), "짧은 손톱에 어울리게 해주세요.")
+//        return Stream.of(Arguments.of("권은지", "010-1002-1002", "브라질리언 왁싱", Date.valueOf("2025-07-15"), Time.valueOf("16:00:00"), "")
+                );
+    }
+
+    @ParameterizedTest
+    @MethodSource("newReservations")
+    @DisplayName("새로운 예약 등록하기")
+    void testRegistNewReservation(String userName, String userPhone, String menuName, Date resvDate, Time resvTime, String userComment){
+
+        // when
+        BossResvInputDTO newReservation = new BossResvInputDTO(userName, userPhone, SHOP_CODE, menuName, resvDate, resvTime, userComment);
+        bossReservationService.registNewReservation(newReservation);
+
+        // then
+        BossReservationDTO saved = bossReservationService.findReservationByUserNameAndUserPhone(SHOP_CODE, userName, userPhone);
+        assertNotNull(saved);
+//        System.out.println(saved);
+    }
+
+    private static Stream<Arguments> modifiedReservation(){
+        return Stream.of(Arguments.of("젤 네일 풀컬러", Date.valueOf("2025-07-13"), Time.valueOf("14:00:00"), "짧은 손톱에 어울리게 해주세요.")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("modifiedReservation")
+    @DisplayName("예약 내용 수정하기")
+    void testModifyReservation(String menuName, Date resvDate, Time resvTime, String userComment){
+        // given
+        Integer resvCode = 31;
+        BossResvInputDTO inputDTO = new BossResvInputDTO(menuName, resvDate, resvTime, userComment);
+
+        // when
+        bossReservationService.updateReservation(inputDTO, resvCode);
+
+        // then
+        BossReservationDTO saved = bossReservationService.findReservationByResvCode(SHOP_CODE, resvCode);
+        assertEquals(saved.getMenuInfo().getMenuCode(), 7);
+        assertEquals(saved.getResvDate(), Date.valueOf("2025-07-13"));
+        System.out.println(saved);
+    }
+
     @Test
     @DisplayName("예약 내역 삭제하기")
     void testCancleResercation(){
         // given
-        int resvCode = 22;
+        int resvCode = 31;
 
         // when
         bossReservationService.cancleReservation(resvCode);
 
         // then
-//        assertNull();
+        BossReservationDTO deleted = bossReservationService.findReservationByResvCode(SHOP_CODE, resvCode);
+        assertNull(deleted);
     }
 }

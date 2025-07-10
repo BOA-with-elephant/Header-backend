@@ -14,6 +14,7 @@ public class BossResvInputDTO {
 
     private String userName;
     private String userPhone;
+    private Integer shopCode;
     private String menuName;
     private Date resvDate;
     private Time resvTime;
@@ -22,13 +23,17 @@ public class BossResvInputDTO {
     public void BossResvInputDTO() {
     }
 
-    public BossResvInputDTO(String userName, String userPhone, String menuName, Date resvDate, Time resvTime, String userComment) {
-        this.userName = userName;
-        this.userPhone = userPhone;
+    public BossResvInputDTO(String menuName, Date resvDate, Time resvTime, String userComment) {
         this.menuName = menuName;
         this.resvDate = resvDate;
         this.resvTime = resvTime;
         this.userComment = userComment;
     }
 
+    public BossResvInputDTO(String userName, String userPhone, Integer shopCode, String menuName, Date resvDate, Time resvTime, String userComment) {
+        this(menuName, resvDate, resvTime, userComment);
+        this.userName = userName;
+        this.userPhone = userPhone;
+        this.shopCode = shopCode;
+    }
 }

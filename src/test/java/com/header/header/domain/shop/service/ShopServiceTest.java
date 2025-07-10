@@ -6,7 +6,7 @@ import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.repository.UserRepository;
-import com.header.header.domain.user.enitity.User;
+import com.header.header.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.header.header.domain.reservation.entity;
 
-import com.header.header.domain.user.enitity.User;
+import com.header.header.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +12,6 @@ import java.sql.Time;
 
 @Entity
 @Table(name="tbl_reservation")
-@Immutable  // Hibernate에게 읽기 전용임을 명시
 @Getter
 @NoArgsConstructor( access = AccessLevel.PROTECTED)
 public class BossReservation {
@@ -32,4 +31,14 @@ public class BossReservation {
     private String userComment;
     private String resvState;
 
+    public BossReservation(int resvCode, User userInfo, Integer shopCode, BossResvMenu menuInfo, Date resvDate, Time resvTime, String userComment, String resvState) {
+        this.resvCode = resvCode;
+        this.userInfo = userInfo;
+        this.shopCode = shopCode;
+        this.menuInfo = menuInfo;
+        this.resvDate = resvDate;
+        this.resvTime = resvTime;
+        this.userComment = userComment;
+        this.resvState = resvState;
+    }
 }

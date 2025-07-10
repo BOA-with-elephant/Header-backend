@@ -1,6 +1,7 @@
 package com.header.header.domain.reservation.entity;
 
 import com.header.header.domain.reservation.converter.UserReservationStateConverter;
+import com.header.header.domain.reservation.dto.BasicReservationDTO;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
 import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
@@ -47,6 +48,13 @@ public class Reservation {
         }
 
         this.resvState = UserReservationState.CANCEL;
+    }
+
+    public void modifyReservation(BasicReservationDTO reservationDTO){
+        this.menuCode = reservationDTO.getMenuCode();
+        this.resvDate = reservationDTO.getResvDate();
+        this.resvTime = reservationDTO.getResvTime();
+        this.userComment = reservationDTO.getUserComment();
     }
 
 }

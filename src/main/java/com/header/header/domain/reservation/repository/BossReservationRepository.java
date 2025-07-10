@@ -1,8 +1,6 @@
 package com.header.header.domain.reservation.repository;
 
 import com.header.header.domain.reservation.entity.BossReservation;
-import com.header.header.domain.reservation.entity.Reservation;
-import com.header.header.domain.user.enitity.User;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -70,4 +68,9 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
     List<BossReservation> findByShopCodeAndMenuName(@Param("shopCode") Integer shopCode, @Param("menuName") String menuName);
 
 
+    /* 테스트용 */
+    @Query( nativeQuery = true,
+            value = baiscQuery + " AND u.user_name = :userName AND u.user_phone = :userPhone"
+    )
+    BossReservation findByUserNameAndUserPhone(@Param("shopCode") Integer shopCode, @Param("userName") String userName, @Param("userPhone") String userPhone);
 }
