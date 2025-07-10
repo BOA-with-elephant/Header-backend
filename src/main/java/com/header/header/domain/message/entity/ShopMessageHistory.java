@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 
@@ -25,7 +24,7 @@ public class ShopMessageHistory {
     private String msgContent;
 
     @Enumerated(EnumType.STRING)
-    private MessageStatus sentStatus;
+    private MessageStatus sendStatus;
 
     private String errorMessage;
     /* 예약 메세지일 경우에는 sentStatus가 reservation이었다가 sent로 바뀌게 된다 따라서 history의 Timestamp는 어노테이션으로
@@ -35,7 +34,7 @@ public class ShopMessageHistory {
     public void updateStatus(MessageStatus newStatus, String errorMessage){
         validateStatusTransition(newStatus);
 
-        this.sentStatus = newStatus;
+        this.sendStatus = newStatus;
 
         if (newStatus == MessageStatus.SUCCESS) {
             this.sentAt = new Timestamp(System.currentTimeMillis());
@@ -51,9 +50,9 @@ public class ShopMessageHistory {
 
     // 상태 전환 검증
     private void validateStatusTransition(MessageStatus newStatus){
-        if(!this.sentStatus.canTransitionTo(newStatus)){
+        if(!this.sendStatus.canTransitionTo(newStatus)){
             throw new IllegalStateException(
-                    String.format("상태전환불가: %s -> %s", this.sentStatus, newStatus)
+                    String.format("상태전환불가: %s -> %s", this.sendStatus, newStatus)
             );
         }
     }
