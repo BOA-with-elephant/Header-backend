@@ -98,6 +98,10 @@ public class ShopService {
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
+        if (!shop.getIsActive()) {
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_ALREADY_DEACTIVATED);
+        }
+
         shop.deactivateShop();
 
         shopRepository.save(shop);
@@ -110,7 +114,7 @@ public class ShopService {
 
        @param address 변환할 주소
        @return MapServiceDTO.Document (위도, 경도 포함)
-       @throws IllegalArgumentException 주소에 해당하는 좌표를 찾을 수 없을 경우 발생
+       @throws ShopErrorCode.LOCATION_NOT_FOUND (주소에 해당하는 좌표를 찾을 수 없을 경우 발생)
        */
     private MapServiceDTO.Document getCoordinatesFromAddress(String address){
         MapServiceDTO mapServiceDTO = mapService.getCoordinates(address).block();

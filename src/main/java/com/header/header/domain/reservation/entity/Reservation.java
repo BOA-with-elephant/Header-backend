@@ -37,14 +37,6 @@ public class Reservation {
 
     public void cancelReservation() {
 
-   /*     if (this.resvState == UserReservationState.CANCEL) {
-            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
-        } else if (this.resvState == UserReservationState.PAID) {
-            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
-        } else if (this.resvState == UserReservationState.FINISH) {
-            throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_PAID);
-        }*/
-
         this.resvState = UserReservationState.CANCEL;
     }
 

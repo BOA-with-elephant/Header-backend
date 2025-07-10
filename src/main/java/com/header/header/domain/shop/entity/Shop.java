@@ -40,10 +40,6 @@ public class Shop {
         /* Shop을 논리적 삭제 (활성 상태 -> False 변환)하는 메소드
         *  Setter가 아니기 때문에 엔티티 내부에 직접 작성하였어도 보안 위협 낮음*/
 
-        if (!this.isActive) {
-            throw new ShopExceptionHandler(ShopErrorCode.SHOP_ALREADY_DEACTIVATED);
-        }
-
         this.isActive = false;
     }
 
