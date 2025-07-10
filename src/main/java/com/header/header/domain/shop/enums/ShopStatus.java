@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum ShopStatus {
 
-    OPEN("영업중"),     //영업중
+    //ShopStatus(샵 상태)를 관리하는 enum
+
+    OPEN("영업중"),
     CLOSED("휴업중");
 
     private final String dbName;

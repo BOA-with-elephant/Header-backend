@@ -15,7 +15,6 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
 public class UserReservationDTO {
 
     private Integer resvCode;

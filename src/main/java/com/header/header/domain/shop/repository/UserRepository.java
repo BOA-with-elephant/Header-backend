@@ -1,8 +1,8 @@
 package com.header.header.domain.shop.repository;
 
-import com.header.header.domain.user.enitity.User;
+import com.header.header.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-// 임시로 해두고 정아님 거랑 합치기
+// 임시 처리, 주혜님 거랑 합칠 때 삭제 예상
 public interface UserRepository extends JpaRepository<User, Integer> {
 }

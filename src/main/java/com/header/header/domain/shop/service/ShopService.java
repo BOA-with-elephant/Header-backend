@@ -1,8 +1,8 @@
 package com.header.header.domain.shop.service;
 
+import com.header.header.domain.shop.dto.MapServiceDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
-import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
@@ -15,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,95 +24,100 @@ public class ShopService {
     private final ModelMapper modelMapper;
     private final MapService mapService;
 
-    //User 정보 가져오기 위해 임시 처리
+    //User 정보 가져오기 위해 임시 처리 - 머지 & 삭제 후 임포트 구문 수정 예상
     private final UserRepository userRepository;
-
-/*    private Integer adminCode;
-
-    private Integer getAdminCode() {
-        User testUser = userRepository.findById(1).orElseThrow();
-        return adminCode;
-    }*/
 
     //CREATE
     @Transactional
     public ShopDTO createShop(ShopDTO shopDTO) {
+        // getCoordinatesFromAddress -> getCoordinates -> MapService 호출하여 API에 담긴 정보 가져옴
+        MapServiceDTO.Document document = getCoordinatesFromAddress(shopDTO.getShopLocation());
 
-        // 테스트용 하드코딩
-        String testAddress = "서울특별시 종로구 세종대로 175";
-        System.out.println("테스트 주소: " + testAddress);
+        shopDTO.setShopLa(document.getLatitude());
+        shopDTO.setShopLong(document.getLongitude());
 
-        Map<String, Double> coords = mapService.getCoordinatesFromAddress(testAddress);
-        System.out.println("좌표 결과: " + coords);
-
-        if (coords == null) {
-            throw new ShopExceptionHandler(ShopErrorCode.LOCATION_NOT_FOUND);
-        }
-
-        System.out.println(shopDTO.getShopLocation());
-
-        Map<String, Double> coords1 = mapService.getCoordinatesFromAddress(shopDTO.getShopLocation());
-        if (coords == null) {
-            throw new ShopExceptionHandler(ShopErrorCode.LOCATION_NOT_FOUND);
-        }
-
-        //Hibernate는 ID 필드가 null이어야 새로운 entity인 것을 알 수 있음
-        shopDTO.setShopCode(null);
-
-        //입력된 주소 기반으로 위도, 경도 세팅
-        shopDTO.setShopLa(coords.get("shopLa"));
-        shopDTO.setShopLong(coords.get("shopLong"));
-
-        // DTO -> Entity 변환
-        Shop shop = modelMapper.map(shopDTO, Shop.class);
-
-        // Repository를 통해 Entity 저장
-        Shop savedShop = shopRepository.save(shop);
-
-        // 저장된 Entity -> DTO 변환하여 반환
-        return modelMapper.map(savedShop, ShopDTO.class);
+        // Entity -> DTO 변환하여 반환
+        return modelMapper.map(shopRepository.save(modelMapper.map(shopDTO, Shop.class)), ShopDTO.class);
     }
 
     // READ (단건 조회 - 상세 조회)
     public ShopDTO getShopByShopCode(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
+                // 존재하지 않는 샵 예외 처리
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+
+        if (shop.getIsActive() == false) {
+            // 비활성화된 샵 조회 시도 시 예외 처리 -> 테스트시 비활성화되지 않은 샵으로 해야 통과되니 주의
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
+        }
         return modelMapper.map(shop, ShopDTO.class);
     }
 
     //READ (전체 조회 - 요약정보 조회용 SummaryDTO 사용)
     public List<ShopSummaryDTO> findShopsSummaryByAdminCode(Integer adminCode) {
+
+        if (userRepository.findById(adminCode).isEmpty()) {
+            throw new ShopExceptionHandler(ShopErrorCode.ADMIN_NOT_FOUND);
+        }
+
         return shopRepository.findShopsSummaryByAdminCode(adminCode);
     }
 
     //UPDATE
     @Transactional
-    public Shop updateShop(Integer shopCode, ShopUpdateDTO shopInfo) {
+    public ShopDTO updateShop(Integer shopCode, ShopDTO shopInfo) {
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+
         if (shop.getIsActive() == false) {
+
             throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
+        } else if(!shop.getShopLocation().equals(shopInfo.getShopLocation())){
+
+            /* 주소 설정을 위한 if문
+               기존의 주소와 다를 경우에만 API 서버와 통신하여 DB의 위도, 경도 값을 업데이트 */
+            // getCoordinatesFromAddress -> getCoordinates -> MapService 호출하여 API에 담긴 정보 가져옴
+            MapServiceDTO.Document document = getCoordinatesFromAddress(shopInfo.getShopLocation());
+            shopInfo.setShopLa(document.getLatitude());
+            shopInfo.setShopLong(document.getLongitude());
         }
-        modelMapper.map(shopInfo, shop);
-        return shopRepository.save(shop);
+
+        // Entity -> DTO 변환하여 반환
+        return modelMapper.map(shopRepository.save(modelMapper.map(shopInfo, Shop.class)), ShopDTO.class);
     }
 
-    //DELETE
+    //DELETE (논리적 삭제)
     @Transactional
-    public void deActiveShop(Integer shopCode) {
+    public ShopDTO deActiveShop(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
-        ShopDTO shopDTO = getShopByShopCode(shopCode);
+        shop.deactivateShop();
 
-        if (!shopDTO.getIsActive()) {
-            throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
-        }
-
-        shopDTO.setIsActive(false);
-        modelMapper.map(shopDTO, shop);
         shopRepository.save(shop);
 
-        System.out.println("논리적 삭제 성공");
+        return modelMapper.map(shop, ShopDTO.class);
+    }
+
+    /* MapService - getCoordinates 메소드를 통해 문서에서 필요한 정보를 가져오는 메소드
+       - CREATE, UPDATE 시에 중복되는 코드라 이곳에 구현함
+
+       @param address 변환할 주소
+       @return KakaoApiResponseDto.Document (위도, 경도 포함)
+       @throws IllegalArgumentException 주소에 해당하는 좌표를 찾을 수 없을 경우 발생
+       */
+    private MapServiceDTO.Document getCoordinatesFromAddress(String address){
+        MapServiceDTO mapServiceDTO = mapService.getCoordinates(address).block();
+
+        if(mapServiceDTO == null ||
+                mapServiceDTO.getDocuments() == null ||
+                mapServiceDTO.getDocuments().isEmpty() ||
+                mapServiceDTO.getDocuments().get(0) == null) {
+
+            // 잘못된 샵 정보를 입력하려고 시도할 경우 예외 발생
+            throw new ShopExceptionHandler(ShopErrorCode.LOCATION_NOT_FOUND);
+        }
+
+        return mapServiceDTO.getDocuments().get(0);
     }
 }
