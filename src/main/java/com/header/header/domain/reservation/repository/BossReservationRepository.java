@@ -72,5 +72,5 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
     @Query( nativeQuery = true,
             value = baiscQuery + " AND u.user_name = :userName AND u.user_phone = :userPhone"
     )
-    BossReservation findByUserNameAndUserPhone(@Param("shopCode") Integer shopCode, @Param("userName") String userName, @Param("userPhone") String userPhone);
+    List<BossReservation> findByUserNameAndUserPhone(@Param("shopCode") Integer shopCode, @Param("userName") String userName, @Param("userPhone") String userPhone);
 }
