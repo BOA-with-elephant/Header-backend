@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
-    // 요약 정보를 위해 Projection Based Interface 방식 사용
+    // 요약 정보(ShopSummary)를 위해 Projection Based Interface 방식 사용
     List<ShopSummary> findByAdminCodeAndIsActiveTrue(Integer adminCode);
 }

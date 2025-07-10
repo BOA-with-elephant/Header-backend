@@ -58,7 +58,7 @@ public class UserReservationService {
 
     //DELETE (논리적 삭제)
     @Transactional
-    public UserReservationDTO deleteUserReservation(Integer resvCode) {
+    public UserReservationDTO cancelReservation(Integer resvCode) {
         Reservation reservation = userReservationRepository.findById(resvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
 

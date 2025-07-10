@@ -1,7 +1,6 @@
 package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.reservation.dto.UserReservationDTO;
-import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
@@ -84,7 +83,7 @@ public class UserReservationTests {
     }
 
     @Test
-    @DisplayName("전체 조회 - 존재하지 않는 userCode로 조회")
+    @DisplayName("전체 조회 예외 : 존재하지 않는 userCode로 조회")
     public void testUserNotFound() {
 
         //given
@@ -100,15 +99,32 @@ public class UserReservationTests {
     @Test
     @DisplayName("DELETE")
     @Commit
-    public void testDeleteUserReservation() {
+    public void testCancelUserReservation() {
         //given
-        Integer resvCode = 33;
+        Integer resvCode = 25;
 
         //when
-        UserReservationDTO userReservationDTO = userReservationService.deleteUserReservation(resvCode);
+        UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
 
         //then
         assert userReservationDTO.getResvState() == UserReservationState.CANCEL;
         System.out.println(userReservationDTO);
     }
+
+    @Test
+    @DisplayName("DELETE 예외 : 결제 완료된 예약 취소 시도")
+    @Commit
+    public void testCancelWrongAttempt() {
+        //given
+        Integer resvCode = 25;
+
+        //when
+        UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
+
+        //then
+        assert userReservationDTO.getResvState() == UserReservationState.CANCEL;
+        System.out.println(userReservationDTO);
+    }
+    
+    
 }
