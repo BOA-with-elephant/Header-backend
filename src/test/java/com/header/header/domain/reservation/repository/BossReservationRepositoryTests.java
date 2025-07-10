@@ -91,7 +91,7 @@ public class BossReservationRepositoryTests {
         int resvCode = 6;
 
         // when
-        BossReservationDTO reservation = bossReservationService.findReservationByResvCode(SHOP_CODE, resvCode);
+        BossReservationDTO reservation = bossReservationService.findReservationByResvCode(resvCode);
 
         // then
         assertNotNull(reservation);
@@ -147,14 +147,14 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 내용 수정하기")
     void testModifyReservation(String menuName, Date resvDate, Time resvTime, String userComment){
         // given
-        Integer resvCode = 29;
+        Integer resvCode = 30;
         BossResvInputDTO inputDTO = new BossResvInputDTO(menuName, resvDate, resvTime, userComment);
 
         // when
         bossReservationService.updateReservation(inputDTO, resvCode);
 
         // then
-        BossReservationDTO saved = bossReservationService.findReservationByResvCode(SHOP_CODE, resvCode);
+        BossReservationDTO saved = bossReservationService.findReservationByResvCode(resvCode);
         assertEquals(saved.getMenuInfo().getMenuCode(), 7);
         assertEquals(saved.getResvDate(), Date.valueOf("2025-07-13"));
         System.out.println(saved);
@@ -164,13 +164,13 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 내역 삭제하기")
     void testCancleResercation(){
         // given
-        int resvCode = 29;
+        int resvCode = 30;
 
         // when
         bossReservationService.cancelReservation(resvCode);
 
         // then
-        BossReservationDTO deleted = bossReservationService.findReservationByResvCode(SHOP_CODE, resvCode);
+        BossReservationDTO deleted = bossReservationService.findReservationByResvCode(resvCode);
         assertEquals(deleted.getResvState(), "예약취소");
     }
 }

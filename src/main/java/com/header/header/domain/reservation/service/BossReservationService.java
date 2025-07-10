@@ -74,9 +74,9 @@ public class BossReservationService {
     }
 
     /* 예약번호를 통한 예약 상세 조회 */
-    public BossReservationDTO findReservationByResvCode(Integer shopCode, Integer resvCode){
+    public BossReservationDTO findReservationByResvCode(Integer resvCode){
 
-        BossReservation reservation = bossReservationRepository.findByResvCode(shopCode, resvCode);
+        BossReservation reservation = bossReservationRepository.findByResvCode(resvCode);
 
         if (reservation == null) {
             return null;

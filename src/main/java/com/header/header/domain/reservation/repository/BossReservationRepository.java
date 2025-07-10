@@ -10,70 +10,32 @@ import java.util.List;
 
 public interface BossReservationRepository extends JpaRepository<BossReservation, Integer> {
 
-    String baiscQuery = "SELECT r.resv_code" +
-            "                 , u.user_code" +
-            "                 , u.user_name" +
-            "                 , u.user_phone" +
-            "                 , u.birthday" +
-            "                 , r.shop_code" +
-            "                 , m.menu_code" +
-            "                 , m.menu_name" +
-            "                 , m.menu_price" +
-            "                 , m.est_time" +
-            "                 , m.is_active" +
-            "                 , m.menu_color" +
-            "                 , r.resv_date" +
-            "                 , r.resv_time" +
-            "                 , r.user_comment" +
-            "                 , r.resv_state" +
-            "              FROM tbl_reservation r " +
-            "             INNER JOIN tbl_user u ON(r.user_code = u.user_code)" +
-            "             INNER JOIN (SELECT mn.menu_code" +
-            "                              , mn.menu_name" +
-            "                              , mn.menu_price" +
-            "                              , mn.est_time" +
-            "                              , mn.is_active" +
-            "                              , mc.menu_color" +
-            "                           FROM tbl_menu mn" +
-            "                           JOIN tbl_menu_category mc ON (mn.category_code = mc.category_code and mn.shop_code = mc.shop_code)) m ON(r.menu_code = m.menu_code)" +
-            "             WHERE r.shop_code = :shopCode";
-
-    /* 모든 예약 내역 조회하기 */
-    @Query( nativeQuery = true,
-            value = baiscQuery
+    @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.shopCode = :shopCode"
     )
     List<BossReservation> findByShopCode(@Param("shopCode")Integer shopCode);
-//    @Query( "SELECT r, u, m FROM BossReservation r INNER JOIN FETCH User u INNER JOIN FETCH (SELECT mn, mc FROM Menu mn INNER JOIN FETCH MenuCategory mc) m WHERE r.shopCode = :shopCode"
-//    )
-//    List<BossReservation> findByShopCode(@Param("shopCode")Integer shopCode);
 
     /* 선택된 날짜의 예약 조회 */
-    @Query( nativeQuery = true,
-            value = baiscQuery + " AND r.resv_date = :selectedDate"
+    @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.shopCode = :shopCode AND r.resvDate = :selectedDate"
     )
     List<BossReservation> findByShopCodeAndResvDate(@Param("shopCode") Integer shopCode, @Param("selectedDate") Date selectedDate);
 
     /* 고객 이름으로 예약 조회 */
-    @Query( nativeQuery = true,
-            value = baiscQuery + " AND u.user_name LIKE CONCAT('%', :userName, '%')"
+    @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.shopCode = :shopCode AND u.userName LIKE CONCAT('%', :userName, '%')"
     )
     List<BossReservation> findByShopCodeAndUserName(@Param("shopCode") Integer shopCode, @Param("userName") String userName);
 
-    /* 예약 번호르 예약 상세조회 */
-    @Query( nativeQuery = true,
-            value =  baiscQuery + " AND r.resv_code = :resvCode"
+    /* 예약 번호로 예약 상세조회 */
+    @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.resvCode = :resvCode"
     )
-    BossReservation findByResvCode(@Param("shopCode") Integer shopCode, @Param("resvCode") Integer resvCode);
+    BossReservation findByResvCode(@Param("resvCode") Integer resvCode);
 
-    @Query( nativeQuery = true,
-            value = baiscQuery + " AND m.menu_name LIKE CONCAT('%', :menuName, '%')"
+    /* 메뉴 이름 별 예약 내역 조회 */
+    @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.shopCode = :shopCode AND m.menuName LIKE CONCAT('%', :menuName, '%')"
     )
     List<BossReservation> findByShopCodeAndMenuName(@Param("shopCode") Integer shopCode, @Param("menuName") String menuName);
 
-
     /* 테스트용 */
-    @Query( nativeQuery = true,
-            value = baiscQuery + " AND u.user_name = :userName AND u.user_phone = :userPhone"
+    @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.shopCode = :shopCode AND u.userName = :userName AND u.userPhone = :userPhone"
     )
     List<BossReservation> findByUserNameAndUserPhone(@Param("shopCode") Integer shopCode, @Param("userName") String userName, @Param("userPhone") String userPhone);
 }
