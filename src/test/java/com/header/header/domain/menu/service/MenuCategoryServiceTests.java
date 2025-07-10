@@ -1,4 +1,4 @@
-package com.header.header.domain.menu;
+package com.header.header.domain.menu.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -6,7 +6,6 @@ import com.header.header.domain.menu.dto.MenuCategoryDTO;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
 import com.header.header.domain.menu.repository.MenuCategoryRepository;
-import com.header.header.domain.menu.service.MenuCategoryService;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @TestMethodOrder(OrderAnnotation.class)
 // 테스트 메서드의 실행 순서를 지정하는 어노테이션, 클래스 레벨에 선언
-public class MenuCategoryRepositoryTests {
+public class MenuCategoryServiceTests {
 
     @Autowired
     private MenuCategoryService menuCategoryService;
@@ -29,7 +28,7 @@ public class MenuCategoryRepositoryTests {
     private MenuCategoryRepository menuCategoryRepository;
 
     // 테스트용 샵 코드
-    private static final int TEST_SHOP_CODE = 1;
+    private static final Integer TEST_SHOP_CODE = 1;
 
     @Test
     @Order(1)   // 각 테스트별로 실행순서를 어노테이션으로 관리
@@ -61,6 +60,7 @@ public class MenuCategoryRepositoryTests {
         newCategory.setCategoryName("테스트 카테고리");
         newCategory.setMenuColor("#FF0000");
         newCategory.setIsActive(true);
+        newCategory.setShopCode(TEST_SHOP_CODE);
 
         // when
         MenuCategoryDTO createdCategory = menuCategoryService.createMenuCategory(newCategory, TEST_SHOP_CODE);
@@ -85,13 +85,13 @@ public class MenuCategoryRepositoryTests {
     void testFindMenuCategoryById() {
         // when
         MenuCategoryDTO foundCategory = menuCategoryService.findMenuCategoryById(
-            18, TEST_SHOP_CODE);
+            1, TEST_SHOP_CODE);
 
         // then
         assertNotNull(foundCategory);
-        assertEquals(18, foundCategory.getCategoryCode());
+        assertEquals(1, foundCategory.getCategoryCode());
         assertEquals(TEST_SHOP_CODE, foundCategory.getShopCode());
-        assertEquals("테스트 카테고리", foundCategory.getCategoryName());
+        assertEquals("컷", foundCategory.getCategoryName());
 
         System.out.println("foundCategory = " + foundCategory);
     }
@@ -166,7 +166,7 @@ public class MenuCategoryRepositoryTests {
         updateDTO.setIsActive(false);
 
         MenuCategoryDTO updatedCategory = menuCategoryService.updateMenuCategory(
-            18, TEST_SHOP_CODE, updateDTO);
+            7, TEST_SHOP_CODE, updateDTO);
 
         // then
         assertNotNull(updatedCategory);
@@ -184,7 +184,7 @@ public class MenuCategoryRepositoryTests {
     @Transactional
     void testDeleteMenuCategory() {
         // given
-        int categoryCodeToDelete = 18;
+        int categoryCodeToDelete = 7;
         MenuCategoryId categoryId = new MenuCategoryId(categoryCodeToDelete, TEST_SHOP_CODE);
 
         // 삭제 전 존재 확인

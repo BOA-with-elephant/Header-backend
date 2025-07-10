@@ -7,4 +7,6 @@ public interface AuthUserRepository extends JpaRepository<User, Integer> {
     boolean existsByUserId(String userId);
 
     boolean existsByUserPhone(String userPhone);
+
+    boolean existsByUserPhoneAndUserCodeNot(String userPhone, int userCode);
 }

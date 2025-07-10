@@ -1,0 +1,119 @@
+name: Header Backend DEPLOY
+
+on:
+  push:
+    branches:
+      - main
+
+#jobs:
+#  Header-Backend-job:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: SSH(원격접속)로 EC2에 접속하기
+#        # uses : 사용하고자 하는 githun actions에서 제공하는 라이브러리 기재
+#        uses: appleboy/ssh-action@v1.0.3
+#        # application.yml(gitignore 등록되어있는) 파일 자동 배포 파일에 등록
+#        env:
+#          APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
+#        with:
+#          host: ${{ secrets.EC2_HOST }}
+#          username: ${{ secrets.EC2_USERNAME }}
+#          key: ${{ secrets.EC2_PRIVATE_KEY }}
+#          envs: APPLICATION_PROPERTIES
+#          script_stop: true
+#          script: |
+#            cd /home/ubuntu/header-server
+#            rm -rf src/main/resources/application.yml
+#            git pull origin main
+#            echo "APPLICATION_PROPERTIES" > src/main/resources/application.yml
+#            ./gradlew clean build
+#            sudo fuser -k -n tcp 8080 || true
+#            nohub java -jar build/libs/*SNAPSHOT.jar > ./output.log 2>&1 &
+
+jobs:
+  Header-Backend-job:
+    runs-on: ubuntu-latest
+    steps:
+     # JDK setting - 깃허브 actions에서 사용할 JDK 설정(프로젝트나 AWS의 java 버전과 달라도 무방하다.)
+     - uses: actions/checkout@v3
+     - name: Set up JDK 17
+       uses: actions/setup-java@v3
+       with: 
+         java-version: '17'
+         distribution: 'temurin'
+     
+     # 빌드 시간 향상 - 해당 과정은 생략 가능하지만 적용 시 빌드 시간 단축 가능하다.
+     - name: Gradle Caching
+       uses: actions/cache@v3
+       with:
+         path: |
+           ~/.gradle/caches
+           ~/.gradle/wrapper
+         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/gradle-wrapper.properties') }}
+         restore-keys: |
+           ${{ runner.os }}-gradle-
+
+     # 환경별 yml파일 생성(1) - application.yml
+     - name: make application.yml
+       if: |
+         contains(github.ref, 'main')
+       run: |
+         mkdir ./src/main/resources
+         cd ./src/main/resources
+         touch ./application.yml
+         echo "${{ secrets.APPLICATION_PROPERTIES }} > ./application.yml
+
+     # 빌드
+     # docker-test-prod 도커 레포지토리 이름
+     - name: Build with Gradle
+       run: ./gradlew clean build
+
+     # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - main 브랜치
+     - name: Docker build & push to prod
+       if: contains(github.ref, 'main')
+       run: |
+         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+         docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:main .
+         docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:main
+     # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - develop 브랜치
+#     - name: Docker build & push to dev
+#       if: contains(github.ref, 'develop')
+#       run: |
+#         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#         docker build -f Dockerfile-dev -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:dev .
+#         docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:dev
+
+     # deploy to EC2 - main
+     - name: Deploy to prod
+       uses: appleboy/ssh-action@v1.0.3
+       id: deploy-prod
+       if: contains(github.ref, 'main')
+       with:
+         host: ${{ secrets.EC2_HOST }}
+         username: ${{ secrets.EC2_USERNAME }}
+         key: ${{ secrets.EC2_PRIVATE_KEY }}
+         envs: APPLICATION_PROPERTIES
+         script: |
+           sudo docker stop header-container || true
+           sudo docker rm header-container || true
+           sudo docker ps
+           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/header-back-img:main
+           sudo docker run -d --name header-container -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/header-back-img:main
+           sudo docker image prune -f
+
+     # deploy to EC2 - develop
+#     - name: Deploy to dev
+#       uses: appleboy/ssh-action@v1.0.3
+#       id: deploy-dev
+#       if: contains(github.ref, 'develop')
+#       with:
+#         host: ${{ secrets.EC2_HOST }}
+#         username: ${{ secrets.EC2_USERNAME }}
+#         passphrase: ${{ secrets.PASSWORD }}
+#         port: 80
+#         key: ${{ secrets.EC2_PRIVATE_KEY }}
+#         script: |
+#           sudo docker ps
+#           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/docker-test-dev
+#           sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/docker-test-dev
+#           sudo docker image prune -f
