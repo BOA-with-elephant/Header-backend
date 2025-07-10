@@ -1,9 +1,7 @@
 package com.header.header.domain.shop.entity;
 
 import com.header.header.domain.shop.converter.ShopStatusConverter;
-import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.enums.ShopStatus;
-import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

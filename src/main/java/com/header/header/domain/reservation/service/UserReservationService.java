@@ -2,7 +2,6 @@ package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
-import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
 import com.header.header.domain.reservation.enums.UserReservationState;
@@ -14,9 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
