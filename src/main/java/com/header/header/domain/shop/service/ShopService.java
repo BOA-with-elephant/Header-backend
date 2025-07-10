@@ -2,13 +2,13 @@ package com.header.header.domain.shop.service;
 
 import com.header.header.domain.shop.dto.MapServiceDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
+import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopRepository;
-import com.header.header.domain.shop.repository.UserRepository;
+import com.header.header.domain.user.repository.MainUserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,7 +25,7 @@ public class ShopService {
     private final MapService mapService;
 
     //User 정보 가져오기 위해 임시 처리 - 머지 & 삭제 후 임포트 구문 수정 예상
-    private final UserRepository userRepository;
+    private final MainUserRepository userRepository;
 
     //CREATE
     @Transactional
@@ -54,13 +54,19 @@ public class ShopService {
     }
 
     //READ (전체 조회 - 요약정보 조회용 SummaryDTO 사용)
-    public List<ShopSummaryDTO> findShopsSummaryByAdminCode(Integer adminCode) {
+    public List<ShopSummary> findByAdminCodeAndIsActiveTrue(Integer adminCode) {
 
         if (userRepository.findById(adminCode).isEmpty()) {
             throw new ShopExceptionHandler(ShopErrorCode.ADMIN_NOT_FOUND);
         }
 
-        return shopRepository.findShopsSummaryByAdminCode(adminCode);
+        List<ShopSummary> shopSummaryList = shopRepository.findByAdminCodeAndIsActiveTrue(adminCode);
+
+        if(shopSummaryList.isEmpty()){
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND);
+        }
+
+        return shopSummaryList;
     }
 
     //UPDATE
@@ -92,6 +98,10 @@ public class ShopService {
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
+        if (!shop.getIsActive()) {
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_ALREADY_DEACTIVATED);
+        }
+
         shop.deactivateShop();
 
         shopRepository.save(shop);
@@ -103,8 +113,8 @@ public class ShopService {
        - CREATE, UPDATE 시에 중복되는 코드라 이곳에 구현함
 
        @param address 변환할 주소
-       @return KakaoApiResponseDto.Document (위도, 경도 포함)
-       @throws IllegalArgumentException 주소에 해당하는 좌표를 찾을 수 없을 경우 발생
+       @return MapServiceDTO.Document (위도, 경도 포함)
+       @throws ShopErrorCode.LOCATION_NOT_FOUND (주소에 해당하는 좌표를 찾을 수 없을 경우 발생)
        */
     private MapServiceDTO.Document getCoordinatesFromAddress(String address){
         MapServiceDTO mapServiceDTO = mapService.getCoordinates(address).block();

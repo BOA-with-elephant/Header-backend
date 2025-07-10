@@ -1,11 +1,11 @@
 package com.header.header.domain.shop.service;
 
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
-import com.header.header.domain.shop.repository.UserRepository;
+import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.repository.MainUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class ShopServiceTest {
     private ShopService shopService;
 
     @Autowired
-    private UserRepository userRepository;
+    private MainUserRepository userRepository;
 
     private Integer testUserId;
 
@@ -84,7 +84,7 @@ class ShopServiceTest {
     @DisplayName("READ (상세 조회)")
     void testGetShop() {
         //when
-        ShopDTO foundedShop = shopService.getShopByShopCode(3);
+        ShopDTO foundedShop = shopService.getShopByShopCode(9);
 
         //then
         assertNotNull(foundedShop);
@@ -102,18 +102,21 @@ class ShopServiceTest {
     @DisplayName("READ (다수 조회)")
     void testGetShopsByAdminCode() {
         //when
-        List<ShopSummaryDTO> foundedShopList = shopService.findShopsSummaryByAdminCode(testUserId);
+        List<ShopSummary> foundedShopList = shopService.findByAdminCodeAndIsActiveTrue(testUserId);
 
         //then
         assertNotNull(foundedShopList);
-        System.out.println(foundedShopList);
+
+        for (ShopSummary list: foundedShopList) {
+            System.out.println("관리자 코드 : " + list.getAdminCode() + ", 활성 상태 : " + list.getIsActive() + ", 샵 이름 : " + list.getShopName());
+        }
     }
 
     @Test
     @DisplayName("READ 예외: 잘못된 관리자 코드")
     void testWrongAdminCode() {
         //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.findShopsSummaryByAdminCode(100));
+        assertThrows(ShopExceptionHandler.class, () -> shopService.findByAdminCodeAndIsActiveTrue(100));
     }
 
     @Test
@@ -202,7 +205,7 @@ class ShopServiceTest {
     @DisplayName("DELETE (비활성화)")
     void testDeleteShop() {
         //given
-        Integer shopCodeToDelete = 1;
+        Integer shopCodeToDelete = 13;
 
         //when
         ShopDTO shopToDelete = shopService.deActiveShop(shopCodeToDelete);
@@ -225,7 +228,7 @@ class ShopServiceTest {
     @DisplayName("DELETE 예외: 재비활성화 시도")
     void testAttemptWhenDelete() {
         //given
-        Integer shopCodeToDelete = 2;
+        Integer shopCodeToDelete = 3;
 
         //when and then
         assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));
