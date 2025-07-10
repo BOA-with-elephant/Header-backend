@@ -101,7 +101,7 @@ public class UserReservationTests {
     @Commit
     public void testCancelUserReservation() {
         //given
-        Integer resvCode = 25;
+        Integer resvCode = 20;
 
         //when
         UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
@@ -114,16 +114,23 @@ public class UserReservationTests {
     @Test
     @DisplayName("DELETE 예외 : 결제 완료된 예약 취소 시도")
     @Commit
+    public void testCancelPaidReservation() {
+        //given
+        Integer resvCode = 7;
+
+        //when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
+    }
+
+    @Test
+    @DisplayName("DELETE 예외 : 시술 완료된 예약 취소 시도")
+    @Commit
     public void testCancelWrongAttempt() {
         //given
-        Integer resvCode = 25;
+        Integer resvCode = 29;
 
-        //when
-        UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
-
-        //then
-        assert userReservationDTO.getResvState() == UserReservationState.CANCEL;
-        System.out.println(userReservationDTO);
+        //when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
     }
     
     
