@@ -2,7 +2,6 @@ package com.header.header.domain.message.service;
 
 import com.header.header.domain.message.dto.MessageSendBatchDTO;
 import com.header.header.domain.message.exception.InvalidBatchException;
-import com.header.header.domain.message.exception.InvalidTemplateException;
 import com.header.header.domain.message.projection.MessageBatchListView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
