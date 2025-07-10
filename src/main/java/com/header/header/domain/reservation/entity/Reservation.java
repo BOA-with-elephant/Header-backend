@@ -55,4 +55,7 @@ public class Reservation {
         this.userComment = reservationDTO.getUserComment();
     }
 
+    public void completeProcedure() {
+        this.resvState = UserReservationState.PAY_COMPLETED;
+    }
 }

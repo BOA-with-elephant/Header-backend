@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.repository;
 
+import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.reservation.dto.BasicReservationDTO;
 import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
@@ -88,7 +89,7 @@ public class BossReservationRepositoryTests {
     @DisplayName("예약 번호로 예약 상세 내역 조회하기")
     void testDetailReservationByResvCode() {
         // given
-        int resvCode = 6;
+        int resvCode = 40;
 
         // when
         BossReservationDTO reservation = bossReservationService.findReservationByResvCode(resvCode);
@@ -161,7 +162,7 @@ public class BossReservationRepositoryTests {
     }
 
     @Test
-    @DisplayName("예약 내역 삭제하기")
+    @DisplayName("예약 취소하기 - 논리적 삭제")
     void testCancleResercation(){
         // given
         int resvCode = 30;
@@ -170,7 +171,23 @@ public class BossReservationRepositoryTests {
         bossReservationService.cancelReservation(resvCode);
 
         // then
-        BossReservationDTO deleted = bossReservationService.findReservationByResvCode(resvCode);
-        assertEquals(deleted.getResvState(), "예약취소");
+        BossReservationDTO cancled = bossReservationService.findReservationByResvCode(resvCode);
+        assertEquals(cancled.getResvState(), "예약취소");
+    }
+
+    @Test
+    @DisplayName("예약 삭제하기 - 물리적 삭제")
+    void testDeleteReservation(){
+        // given
+        Integer resvCode = 32;
+
+        // when
+        bossReservationService.deleteReservation(resvCode);
+
+        // then
+        assertThrowsExactly(
+                NotFoundException.class,
+                () -> bossReservationService.findReservationByResvCode(resvCode)
+        );
     }
 }

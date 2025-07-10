@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface BossReservationRepository extends JpaRepository<BossReservation, Integer> {
 
@@ -27,7 +28,7 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
     /* 예약 번호로 예약 상세조회 */
     @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.resvCode = :resvCode"
     )
-    BossReservation findByResvCode(@Param("resvCode") Integer resvCode);
+    Optional<BossReservation> findByResvCode(@Param("resvCode") Integer resvCode);
 
     /* 메뉴 이름 별 예약 내역 조회 */
     @Query( "SELECT r FROM BossReservation r JOIN FETCH r.userInfo u JOIN FETCH r.menuInfo m JOIN FETCH m.menuCategory mc WHERE r.shopCode = :shopCode AND m.menuName LIKE CONCAT('%', :menuName, '%')"

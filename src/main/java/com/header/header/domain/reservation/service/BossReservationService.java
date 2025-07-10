@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.service;
 
+import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.BasicReservationDTO;
@@ -76,11 +77,8 @@ public class BossReservationService {
     /* 예약번호를 통한 예약 상세 조회 */
     public BossReservationDTO findReservationByResvCode(Integer resvCode){
 
-        BossReservation reservation = bossReservationRepository.findByResvCode(resvCode);
-
-        if (reservation == null) {
-            return null;
-        }
+        BossReservation reservation = bossReservationRepository.findByResvCode(resvCode)
+                .orElseThrow(() -> NotFoundException.reservation(resvCode));
 
         return modelMapper.map(reservation, BossReservationDTO.class);
     }
@@ -167,7 +165,7 @@ public class BossReservationService {
     }
 
 
-//    /* 예약 내역 삭제하기 - 논리적 삭제 */
+//    /* 예약 취소하기 - 논리적 삭제 */
     public void cancelReservation(Integer resvCode){
 
         /* 예약 취소 시 물리적 삭제가 아닌 논리적 삭제로 진행하기 -> resvState를 예약 취소로 변경하기 */
@@ -175,6 +173,30 @@ public class BossReservationService {
 
         foundReservation.cancelReservation();
     }
+
+    /* 예약 내역 삭제 - 사장님이 매출에 영향을 끼쳐도 해당 내역을 삭제하고자 한다면 DB에서 물리적 삭제를 진행함 */
+    public void deleteReservation(Integer resvCode){
+
+        /*
+        * 사장이 예약 내역 삭제 버튼 선택 시
+        * 예약 내역을 삭제하면 "해당 내역을 삭제하면 매출에 영향을 미칠 수 있습니다. 삭제하시겠습니까?" 경고창 띄우기
+        * 사장님이 그럼에도 불구하고 삭제한다는 버튼을 선택  / 취소 선택시(삭제 안하겠다) resvCode는 서버로 전달하지 않음
+        * 클라이언트에서 서버로 resvCode 넘기기
+        * 클라이언트에서 받은 resvCode로 해당 내역을 DB에서 삭제
+        */
+        userReservationRepository.deleteById(resvCode);
+    }
+
+    /* 시술 후 사장님이 시술 완료로 상태 변경하면 매출 테이블로 해당 데이터 넘기기(insert) */
+    public void afterProcedure(Integer resvCode){
+        Reservation reservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
+
+        reservation.completeProcedure();
+    }
+
+    /* 노쇼 갯수 반환 - 예약 확정 이면서 날짜가 오늘 이전인 것들 조회 */
+
+    /* 노쇼 처리 메소드 만들기 */
 
 
     /* 테스트용 */
