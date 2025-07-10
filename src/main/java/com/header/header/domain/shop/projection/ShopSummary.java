@@ -1,10 +1,15 @@
 package com.header.header.domain.shop.projection;
 
+import com.header.header.domain.shop.enums.ShopStatus;
+
 public interface ShopSummary {
+
     Integer getShopCode();
     Integer getCategoryCode();
     Integer getAdminCode();
     String getShopName();
+    String getShopPhone();
     String getShopLocation();
-    String getShopStatus();
+    ShopStatus getShopStatus();
+    Boolean getIsActive();
 }

@@ -41,7 +41,7 @@ public class Shop {
         *  Setter가 아니기 때문에 엔티티 내부에 직접 작성하였어도 보안 위협 낮음*/
 
         if (!this.isActive) {
-            throw new ShopExceptionHandler(ShopErrorCode.SHOP_DEACTIVATED);
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_ALREADY_DEACTIVATED);
         }
 
         this.isActive = false;

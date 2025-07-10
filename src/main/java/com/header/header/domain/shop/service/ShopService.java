@@ -2,7 +2,6 @@ package com.header.header.domain.shop.service;
 
 import com.header.header.domain.shop.dto.MapServiceDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
@@ -55,13 +54,13 @@ public class ShopService {
     }
 
     //READ (전체 조회 - 요약정보 조회용 SummaryDTO 사용)
-    public List<ShopSummary> findByAdminCodeAndShopStatusTrue(Integer adminCode) {
+    public List<ShopSummary> findByAdminCodeAndIsActiveTrue(Integer adminCode) {
 
         if (userRepository.findById(adminCode).isEmpty()) {
             throw new ShopExceptionHandler(ShopErrorCode.ADMIN_NOT_FOUND);
         }
 
-        List<ShopSummary> shopSummaryList = shopRepository.findByAdminCodeAndShopStatusTrue(adminCode);
+        List<ShopSummary> shopSummaryList = shopRepository.findByAdminCodeAndIsActiveTrue(adminCode);
 
         if(shopSummaryList.isEmpty()){
             throw new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND);

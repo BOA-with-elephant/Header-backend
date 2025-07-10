@@ -1,7 +1,6 @@
 package com.header.header.domain.shop.service;
 
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopSummary;
@@ -103,18 +102,21 @@ class ShopServiceTest {
     @DisplayName("READ (다수 조회)")
     void testGetShopsByAdminCode() {
         //when
-        List<ShopSummary> foundedShopList = shopService.findByAdminCodeAndShopStatusTrue(testUserId);
+        List<ShopSummary> foundedShopList = shopService.findByAdminCodeAndIsActiveTrue(testUserId);
 
         //then
         assertNotNull(foundedShopList);
-        System.out.println(foundedShopList);
+
+        for (ShopSummary list: foundedShopList) {
+            System.out.println("관리자 코드 : " + list.getAdminCode() + ", 활성 상태 : " + list.getIsActive() + ", 샵 이름 : " + list.getShopName());
+        }
     }
 
     @Test
     @DisplayName("READ 예외: 잘못된 관리자 코드")
     void testWrongAdminCode() {
         //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.findByAdminCodeAndShopStatusTrue(100));
+        assertThrows(ShopExceptionHandler.class, () -> shopService.findByAdminCodeAndIsActiveTrue(100));
     }
 
     @Test

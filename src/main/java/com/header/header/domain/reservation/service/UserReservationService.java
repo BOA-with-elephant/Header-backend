@@ -6,6 +6,7 @@ import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,13 +47,13 @@ public class UserReservationService {
     }
 
     //READ (전체 조회 - UserReservationSummaryDTO)
-    public List<UserReservationSummaryDTO> findUserReservationsByUserCode(Integer userCode) {
+    public List<UserReservationSummary> findUserReservationsByUserCode(Integer userCode) {
 
         if (userRepository.findById(userCode).isEmpty()) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND);
         }
 
-        return userReservationRepository.findReservationSummaryByUserCode(userCode);
+        return userReservationRepository.findByUserCode(userCode);
     }
 
     //DELETE (논리적 삭제)
