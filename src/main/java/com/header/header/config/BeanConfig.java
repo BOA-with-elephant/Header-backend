@@ -1,6 +1,8 @@
 package com.header.header.config;
 
 import com.header.header.domain.menu.dto.MenuCategoryDTO;
+import com.header.header.domain.menu.dto.MenuDTO;
+import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
 import org.modelmapper.ModelMapper;
@@ -17,8 +19,10 @@ public class BeanConfig {
             .setFieldAccessLevel(
                 org.modelmapper.config.Configuration.AccessLevel.PRIVATE
             )
-            .setFieldMatchingEnabled(true);
+            .setFieldMatchingEnabled(true)
+            .setAmbiguityIgnored(true);
 
+        // === 메뉴 카테고리 매핑 설정 ===
         /**
          * MenuCategory 테이블의 복합 기본키 매핑을 위한 TypeMap 설정 추가
          *
@@ -49,6 +53,35 @@ public class BeanConfig {
                     .menuColor(menuCategoryDTO.getMenuColor())
                     .isActive(menuCategoryDTO.getIsActive())
                     .build();
+            });
+
+        // === 메뉴 매핑 설정 ===
+        /**
+         * 3. Menu(Entity) → MenuDTO
+         *    - 연관된 MenuCategory 엔티티의 복합키 및 필드를 분해하여 DTO 필드에 매핑
+         *    - 복합키: categoryCode, shopCode
+         *    - 추가 필드: categoryName, menuColor
+         */
+        modelMapper.createTypeMap(Menu.class, MenuDTO.class)
+            .addMappings(mapper -> {
+                mapper.map(src -> src.getMenuCategory().getId().getCategoryCode(),
+                    MenuDTO::setCategoryCode);
+                mapper.map(src -> src.getMenuCategory().getId().getShopCode(),
+                    MenuDTO::setShopCode);
+                mapper.map(src -> src.getMenuCategory().getCategoryName(),
+                    MenuDTO::setCategoryName);
+                mapper.map(src -> src.getMenuCategory().getMenuColor(), MenuDTO::setMenuColor);
+            });
+
+        /**
+         * 4. MenuDTO → Menu(Entity)
+         *    - menuCategory는 서비스 계층에서 별도로 조회 및 주입하므로 매핑 대상에서 제외
+         *    - ModelMapper가 menuCategory 필드를 건드리지 않도록 후처리(post converter)에서 명시적으로 제외 처리
+         */
+        modelMapper.createTypeMap(MenuDTO.class, Menu.class)
+            .setPostConverter(context -> {
+                Menu menu = context.getDestination();
+                return menu;
             });
 
         return modelMapper;

@@ -3,6 +3,7 @@ package com.header.header.domain.menu.service;
 import com.header.header.domain.menu.dto.MenuCategoryDTO;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
+import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.repository.MenuCategoryRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 메뉴 카테고리 관련 비즈니스 로직을 처리하는 서비스 클래스 모든 기능은 '특정 샵' 중심으로 동작하며, 샵코드를 필수로 받아서 처리
+ * 메뉴 카테고리 관련 비즈니스 로직을 처리하는 서비스 클래스.
+ *
+ * 모든 기능은 '특정 샵' 중심으로 동작하며, 샵코드를 필수로 받아서 처리
  */
 @Service
 @RequiredArgsConstructor
@@ -28,14 +31,12 @@ public class MenuCategoryService {
      * @param shopCode 조회할 샵의 코드 (필수)
      * @return 해당 샵의 모든 메뉴 카테고리 DTO 리스트
      */
-    public List<MenuCategoryDTO> findAllMenuCategoriesByShopCode(int shopCode) {
+    public List<MenuCategoryDTO> findAllMenuCategoriesByShopCode(Integer shopCode) {
 
         List<MenuCategory> categoryList = menuCategoryRepository.findAllByShopCodeOrderByCategoryCodeAsc(
             shopCode);
 
-        return categoryList.stream()
-            .map(menuCategory -> modelMapper.map(menuCategory, MenuCategoryDTO.class))
-            .toList();
+        return toDTOList(categoryList);
     }
 
     /**
@@ -44,17 +45,15 @@ public class MenuCategoryService {
      * @param categoryCode 카테고리 코드
      * @param shopCode     샵 코드
      * @return 조회된 메뉴 카테고리 DTO
-     * @throws IllegalArgumentException 해당 카테고리가 존재하지 않을 때
+     * @throws NotFoundException 해당 카테고리가 존재하지 않을 때
      */
-    public MenuCategoryDTO findMenuCategoryById(int categoryCode, int shopCode) {
+    public MenuCategoryDTO findMenuCategoryById(Integer categoryCode, Integer shopCode) {
 
         MenuCategoryId id = new MenuCategoryId(categoryCode, shopCode);
         MenuCategory menuCategory = menuCategoryRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("해당 카테고리가 존재하지 않습니다. CategoryCode: %d, ShopCode: %d",
-                    categoryCode, shopCode)));
+            .orElseThrow(() -> NotFoundException.category(categoryCode, shopCode));
 
-        return modelMapper.map(menuCategory, MenuCategoryDTO.class);
+        return toDTO(menuCategory);
     }
 
     /**
@@ -63,14 +62,12 @@ public class MenuCategoryService {
      * @param shopCode 조회할 샵의 코드
      * @return 해당 샵의 활성화된 메뉴 카테고리 DTO 리스트
      */
-    public List<MenuCategoryDTO> findActiveMenuCategoriesByShopCode(int shopCode) {
+    public List<MenuCategoryDTO> findActiveMenuCategoriesByShopCode(Integer shopCode) {
 
         List<MenuCategory> menuCategoryList = menuCategoryRepository.findActiveMenuCategoriesByShopCode(
             shopCode);
 
-        return menuCategoryList.stream()
-            .map(menuCategory -> modelMapper.map(menuCategory, MenuCategoryDTO.class))
-            .toList();
+        return toDTOList(menuCategoryList);
     }
 
     /**
@@ -81,14 +78,12 @@ public class MenuCategoryService {
      * @return 검색된 메뉴 카테고리 DTO 리스트
      */
     public List<MenuCategoryDTO> findMenuCategoriesByNameAndShopCode(String categoryName,
-        int shopCode) {
+        Integer shopCode) {
 
         List<MenuCategory> menuCategoryList = menuCategoryRepository.findByCategoryNameContainingAndShopCode(
             categoryName, shopCode);
 
-        return menuCategoryList.stream()
-            .map(menuCategory -> modelMapper.map(menuCategory, MenuCategoryDTO.class))
-            .toList();
+        return toDTOList(menuCategoryList);
     }
 
     /**
@@ -97,23 +92,22 @@ public class MenuCategoryService {
      * @param menuCategoryDTO 생성할 카테고리 정보가 담긴 DTO
      * @param shopCode        카테고리를 생성할 샵의 코드
      * @return 생성된 메뉴 카테고리 DTO
-     * @throws IllegalArgumentException 이미 존재하는 카테고리일 때
+     * @throws IllegalArgumentException 유효성 검사 실패 또는 이미 존재하는 카테고리일 때
      */
     @Transactional
-    public MenuCategoryDTO createMenuCategory(MenuCategoryDTO menuCategoryDTO, int shopCode) {
+    public MenuCategoryDTO createMenuCategory(MenuCategoryDTO menuCategoryDTO, Integer shopCode) {
 
         // DTO에 샵코드 설정
         menuCategoryDTO.setShopCode(shopCode);
 
         // 카테고리 코드가 null이거나 0이면 자동 생성
         if (menuCategoryDTO.getCategoryCode() == null || menuCategoryDTO.getCategoryCode() == 0) {
-            int nextCategoryCode = menuCategoryRepository.findNextCategoryCodeByShopCode(shopCode);
+            Integer nextCategoryCode = menuCategoryRepository.findNextCategoryCodeByShopCode(shopCode);
             menuCategoryDTO.setCategoryCode(nextCategoryCode);
         }
 
         // 중복 확인
-        if (menuCategoryRepository.existsByIdCategoryCodeAndIdShopCode(
-            menuCategoryDTO.getCategoryCode(), shopCode)) {
+        if (menuCategoryRepository.existsByIdCategoryCodeAndIdShopCode(menuCategoryDTO.getCategoryCode(), shopCode)) {
             throw new IllegalArgumentException(
                 String.format("이미 존재하는 카테고리입니다. CategoryCode: %d, ShopCode: %d",
                     menuCategoryDTO.getCategoryCode(), shopCode));
@@ -130,7 +124,7 @@ public class MenuCategoryService {
 
         MenuCategory savedMenuCategory = menuCategoryRepository.save(menuCategory);
 
-        return modelMapper.map(savedMenuCategory, MenuCategoryDTO.class);
+        return toDTO(savedMenuCategory);
     }
 
     /**
@@ -140,17 +134,16 @@ public class MenuCategoryService {
      * @param shopCode        수정할 카테고리가 속한 샵 코드
      * @param menuCategoryDTO 수정할 정보가 담긴 DTO
      * @return 수정된 메뉴 카테고리 DTO
-     * @throws IllegalArgumentException 해당 카테고리가 존재하지 않을 때
+     * @throws NotFoundException 해당 카테고리가 존재하지 않을 때
      */
     @Transactional
-    public MenuCategoryDTO updateMenuCategory(int categoryCode, int shopCode,
+    public MenuCategoryDTO updateMenuCategory(Integer categoryCode, Integer shopCode,
         MenuCategoryDTO menuCategoryDTO) {
 
         MenuCategoryId id = new MenuCategoryId(categoryCode, shopCode);
         MenuCategory existingMenuCategory = menuCategoryRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("해당 카테고리가 존재하지 않습니다. CategoryCode: %d, ShopCode: %d",
-                    categoryCode, shopCode)));
+            .orElseThrow(() -> NotFoundException.category(categoryCode, shopCode));
+
 
         MenuCategory updatedMenuCategory = MenuCategory.builder()
             .id(existingMenuCategory.getId())
@@ -164,7 +157,7 @@ public class MenuCategoryService {
 
         MenuCategory savedMenuCategory = menuCategoryRepository.save(updatedMenuCategory);
 
-        return modelMapper.map(savedMenuCategory, MenuCategoryDTO.class);
+        return toDTO(savedMenuCategory);
     }
 
     /**
@@ -172,18 +165,17 @@ public class MenuCategoryService {
      *
      * @param categoryCode 삭제할 카테고리 코드
      * @param shopCode     삭제할 카테고리가 속한 샵 코드
-     * @throws IllegalArgumentException 해당 카테고리가 존재하지 않을 때
+     * @throws NotFoundException 해당 카테고리가 존재하지 않을 때
      */
     @Transactional
-    public void deleteMenuCategory(int categoryCode, int shopCode) {
+    public void deleteMenuCategory(Integer categoryCode, Integer shopCode) {
 
         MenuCategoryId id = new MenuCategoryId(categoryCode, shopCode);
 
         // 기존 카테고리 조회
         MenuCategory existingMenuCategory = menuCategoryRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("해당 카테고리가 존재하지 않습니다. CategoryCode: %d, ShopCode: %d",
-                    categoryCode, shopCode)));
+            .orElseThrow(() -> NotFoundException.category(categoryCode, shopCode));
+
 
         // isActive를 false로 변경하여 논리적 삭제
         MenuCategory deletedMenuCategory = MenuCategory.builder()
@@ -194,6 +186,23 @@ public class MenuCategoryService {
             .build();
 
         menuCategoryRepository.save(deletedMenuCategory);
+    }
+
+    /* 공통 로직 정리 */
+    /**
+     * 엔티티 → DTO 변환
+     */
+    private MenuCategoryDTO toDTO(MenuCategory menuCategory) {
+        return modelMapper.map(menuCategory, MenuCategoryDTO.class);
+    }
+
+    /**
+     * 엔티티 리스트 → DTO 리스트 변환
+     */
+    private List<MenuCategoryDTO> toDTOList(List<MenuCategory> menuCategoryList) {
+        return menuCategoryList.stream()
+            .map(this::toDTO)
+            .toList();
     }
 
 }
