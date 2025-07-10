@@ -5,6 +5,7 @@ import com.header.header.domain.message.projection.MessageBatchListView;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MessageSendBatchRepository extends JpaRepository<MessageSendBatch, Integer> {
 
@@ -12,5 +13,5 @@ public interface MessageSendBatchRepository extends JpaRepository<MessageSendBat
     List<MessageBatchListView> findByShopCodeOrderByBatchCodeDesc(Integer shopCode);
 
     /* 샵의 배치 리스트 중에서 배치 코드의 전체 엔티티를 조회한다. */
-    MessageSendBatch findByShopCodeAndBatchCode(Integer shopCode, Integer batchCode);
+    Optional<MessageSendBatch> findByShopCodeAndBatchCode(Integer shopCode, Integer batchCode);
 }

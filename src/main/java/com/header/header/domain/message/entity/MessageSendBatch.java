@@ -1,5 +1,6 @@
 package com.header.header.domain.message.entity;
 
+import com.header.header.domain.message.exception.InvalidBatchException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -37,7 +38,7 @@ public class MessageSendBatch {
 
     public void updateBatchResultsCount(Integer successCount,Integer failCount){
         if(totalCount != (successCount + failCount)){
-            throw new RuntimeException("일치하지 않는 결과 카운트"); // todo. 공통 템플릿으로 보내기.
+            throw InvalidBatchException.invalidBatchCode("일치하지 않는 결과 카운트");
         }
         this.successCount = successCount;
         this.failCount = failCount;

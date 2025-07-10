@@ -29,6 +29,10 @@ public class MessageSendBatchService {
      * @return List<MessageBatchListView>
      */
     public List<MessageBatchListView> getBatchListByShop(Integer shopCode){
+        if (shopCode == null) {
+            throw new IllegalArgumentException("shopCode는 필수입니다.");
+        }
+
         // todo. 샵 검증 메서드
 
         return messageSendBatchRepository.findByShopCodeOrderByBatchCodeDesc(shopCode);
@@ -41,11 +45,12 @@ public class MessageSendBatchService {
      * @param batchCode 배치 코드
      * */
     public MessageSendBatchDTO getBatchDetails(Integer shopCode, Integer batchCode) {
-        MessageSendBatch batch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode, batchCode);
-
-        if (batch == null) {
-            throw InvalidBatchException.invalidBatchCode("존재하지 않는 배치 코드 입니다.");
+        if (shopCode == null || batchCode == null) {
+            throw new IllegalArgumentException("shopCode와 batchCode는 필수입니다.");
         }
+
+        MessageSendBatch batch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode, batchCode)
+                .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 배치 코드 입니다."));
 
         return modelMapper.map(batch, MessageSendBatchDTO.class);
     }
@@ -85,7 +90,13 @@ public class MessageSendBatchService {
      * */
     @Transactional
     protected MessageSendBatchDTO updateMessageBatchResults(Integer shopCode, Integer batchCode,int successCount, int failCount){
-        MessageSendBatch foundMessageBatch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode,batchCode);
+        if (shopCode == null || batchCode == null) {
+            throw new IllegalArgumentException("shopCode와 batchCode는 필수입니다.");
+        }
+
+        MessageSendBatch foundMessageBatch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode, batchCode)
+                .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 배치 코드 입니다."));
+
 
         // 결과 업데이트
         foundMessageBatch.updateBatchResultsCount(successCount, failCount);
