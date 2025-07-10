@@ -1,55 +1,34 @@
 package com.header.header.domain.shop.external;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.header.header.domain.shop.dto.MapServiceDTO;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
-
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Service
 public class MapService {
 
-    //yml에 api 코드 추가 후 @Value로 가져옴
-    @Value("${kakao.api-key.rest}")
+    /* 카카오맵 API에서 REST 방식으로 정보를 받아오기 위한 클래스*/
+
     private String REST_API_KEY;
-
-    public Map<String, Double> getCoordinatesFromAddress(String address) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        String url = "https://dapi.kakao.com/v2/local/search/address.json?query=" + UriUtils.encode(address, StandardCharsets.UTF_8);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK " + REST_API_KEY);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.getBody());
-            JsonNode documents = root.path("documents");
-            if (documents.isArray() && documents.size() > 0) {
-                JsonNode location = documents.get(0);
-                double latitude = location.get("y").asDouble();
-                double longitude = location.get("x").asDouble();
-
-                Map<String, Double> result = new HashMap<>();
-                result.put("shopLa", latitude);
-                result.put("shopLong", longitude);
-                return result;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    private final WebClient webClient;
+                                                //yml에 api 코드 추가 후 @Value로 가져옴
+    public MapService(WebClient.Builder webClientBuilder, @Value("${kakao.api-key.rest}") String REST_API_KEY ) {
+        this.webClient = webClientBuilder.baseUrl("https://dapi.kakao.com").build();
+        this.REST_API_KEY = REST_API_KEY;
     }
+
+    //WebClient를 통해 사용자가 입력한 주소(address)를 기준으로 위도, 경도 값이 담긴 문서와 통신
+    public Mono<MapServiceDTO> getCoordinates(String address){
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/v2/local/search/address.json")
+                        .queryParam("query", address)
+                        .build())
+                .header("Authorization", "KakaoAK " + REST_API_KEY)
+                .retrieve()
+                .bodyToMono(MapServiceDTO.class);
+    }
+
 }
