@@ -4,6 +4,7 @@ import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopSummaryDTO;
 import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
+import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.UserRepository;
 import com.header.header.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,7 +103,7 @@ class ShopServiceTest {
     @DisplayName("READ (다수 조회)")
     void testGetShopsByAdminCode() {
         //when
-        List<ShopSummaryDTO> foundedShopList = shopService.findShopsSummaryByAdminCode(testUserId);
+        List<ShopSummary> foundedShopList = shopService.findByAdminCodeAndShopStatusTrue(testUserId);
 
         //then
         assertNotNull(foundedShopList);
@@ -113,7 +114,7 @@ class ShopServiceTest {
     @DisplayName("READ 예외: 잘못된 관리자 코드")
     void testWrongAdminCode() {
         //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.findShopsSummaryByAdminCode(100));
+        assertThrows(ShopExceptionHandler.class, () -> shopService.findByAdminCodeAndShopStatusTrue(100));
     }
 
     @Test

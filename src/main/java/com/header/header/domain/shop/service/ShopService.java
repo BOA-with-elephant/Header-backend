@@ -7,6 +7,7 @@ import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
+import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.shop.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -54,13 +55,19 @@ public class ShopService {
     }
 
     //READ (전체 조회 - 요약정보 조회용 SummaryDTO 사용)
-    public List<ShopSummaryDTO> findShopsSummaryByAdminCode(Integer adminCode) {
+    public List<ShopSummary> findByAdminCodeAndShopStatusTrue(Integer adminCode) {
 
         if (userRepository.findById(adminCode).isEmpty()) {
             throw new ShopExceptionHandler(ShopErrorCode.ADMIN_NOT_FOUND);
         }
 
-        return shopRepository.findShopsSummaryByAdminCode(adminCode);
+        List<ShopSummary> shopSummaryList = shopRepository.findByAdminCodeAndShopStatusTrue(adminCode);
+
+        if(shopSummaryList.isEmpty()){
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND);
+        }
+
+        return shopSummaryList;
     }
 
     //UPDATE
@@ -103,7 +110,7 @@ public class ShopService {
        - CREATE, UPDATE 시에 중복되는 코드라 이곳에 구현함
 
        @param address 변환할 주소
-       @return KakaoApiResponseDto.Document (위도, 경도 포함)
+       @return MapServiceDTO.Document (위도, 경도 포함)
        @throws IllegalArgumentException 주소에 해당하는 좌표를 찾을 수 없을 경우 발생
        */
     private MapServiceDTO.Document getCoordinatesFromAddress(String address){
