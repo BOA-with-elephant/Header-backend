@@ -11,8 +11,8 @@ public enum ApiResponse {
     SUCCESS_REGISTER_USER("회원가입이 완료되었습니다.", HttpStatus.CREATED),
 
     // 에러 응답
-    DUPLICATE_PHONE("이미 존재하는 전화번호입니다.", HttpStatus.BAD_REQUEST),
-    DUPLICATE_ID("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST),
+    DUPLICATE_PHONE("이미 존재하는 전화번호입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_ID("이미 존재하는 아이디입니다.", HttpStatus.CONFLICT),
 
     SAME_PASSWORD("이전 비밀번호와 동일합니다.", HttpStatus.BAD_REQUEST),
     SAME_PHONE("이전 전화번호와 동일합니다.", HttpStatus.BAD_REQUEST),
