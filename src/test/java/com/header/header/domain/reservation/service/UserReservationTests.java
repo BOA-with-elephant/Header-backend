@@ -4,6 +4,7 @@ import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.dto.UserReservationSummaryDTO;
 import com.header.header.domain.reservation.enums.UserReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.reservation.projection.UserReservationSummary;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,10 +74,13 @@ public class UserReservationTests {
         Integer userCode = 1;
 
         //when
-        List<UserReservationSummaryDTO> resvList = userReservationService.findUserReservationsByUserCode(userCode);
+        List<UserReservationSummary> resvList = userReservationService.findByUserCode(userCode);
 
         //then
-        System.out.println(resvList);
+        for (UserReservationSummary resv: resvList) {
+            assert resv.getUserCode() == userCode;
+            System.out.println(resv.getResvCode() + ", 유저코드 : " + resv.getUserCode() + ", 예약 상태 : " + resv.getResvState());
+        }
     }
 
     @Test
@@ -87,7 +91,7 @@ public class UserReservationTests {
         Integer userCode = 100;
 
         //then
-        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findUserReservationsByUserCode(userCode));
+        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findByUserCode(userCode));
 
     }
 
