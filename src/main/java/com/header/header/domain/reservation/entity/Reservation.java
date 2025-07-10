@@ -48,6 +48,6 @@ public class Reservation {
     }
 
     public void completeProcedure() {
-        this.resvState = UserReservationState.PAY_COMPLETED;
+        this.resvState = UserReservationState.FINISH;
     }
 }
