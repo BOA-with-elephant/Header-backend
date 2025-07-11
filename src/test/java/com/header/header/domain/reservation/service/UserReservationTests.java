@@ -1,7 +1,7 @@
 package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.reservation.dto.UserReservationDTO;
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import jakarta.transaction.Transactional;
@@ -41,6 +41,7 @@ public class UserReservationTests {
         resvInfo.setResvDate(Date.valueOf("2022-01-01"));
         resvInfo.setResvTime(Time.valueOf("10:00:00"));
         resvInfo.setUserComment("양상추는 최고급으로 준비해주세요.");
+        resvInfo.setResvState(ReservationState.APPROVE);
 
         //when
         UserReservationDTO createdResv = userReservationService.createUserReservation(resvInfo);
@@ -107,7 +108,7 @@ public class UserReservationTests {
         UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
 
         //then
-        assert userReservationDTO.getResvState() == UserReservationState.CANCEL;
+        assert userReservationDTO.getResvState() == ReservationState.CANCEL;
         System.out.println(userReservationDTO);
     }
 

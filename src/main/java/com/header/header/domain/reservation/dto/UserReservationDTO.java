@@ -1,6 +1,6 @@
 package com.header.header.domain.reservation.dto;
 
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -27,5 +27,5 @@ public class UserReservationDTO {
 
     @Size(max = 255, message = "요청 사항은 최대 255자까지 입력 가능합니다")
     private String userComment;
-    private UserReservationState resvState;
+    private ReservationState resvState;
 }
