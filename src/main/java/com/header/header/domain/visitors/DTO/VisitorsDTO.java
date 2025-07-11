@@ -1,12 +1,14 @@
 package com.header.header.domain.visitors.DTO;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
+@Builder
 @ToString
 public class VisitorsDTO {
 
@@ -16,8 +18,6 @@ public class VisitorsDTO {
     @NotBlank
     private Integer shopCode;
     private String memo;
-    @NotBlank
     private boolean sendable;
-    @NotBlank
     private boolean isActive;
 }

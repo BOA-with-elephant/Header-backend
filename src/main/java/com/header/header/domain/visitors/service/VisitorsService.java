@@ -1,6 +1,8 @@
 package com.header.header.domain.visitors.service;
 
+import com.header.header.domain.user.service.UserService;
 import com.header.header.domain.visitors.DTO.VisitorDetailDTO;
+import com.header.header.domain.visitors.DTO.VisitorsDTO;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
 import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
@@ -17,7 +19,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VisitorsService {
 
+    private final UserService userService;
     private final VisitorsRepository visitorsRepository;
+
 
     /**
      * 샵 고객 리스트 조회
@@ -66,6 +70,35 @@ public class VisitorsService {
                 })
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 샵 고객 리스트 추가
+     * 사장님이 직접 고객을 추가하거나, 샵을 처음 예약한 고객일 경우 비즈니스 로직에 의해 추가된다.
+     * @param shopCode 샵 코드
+     * @param userName 유저 이름
+     * @param userPhone 유저 핸드폰 번호
+     * @param sendable 광고성문자 수신 동의 여부
+     * */
+    public VisitorsDTO createVisitorsByNameAndPhone(Integer shopCode,String userName, String userPhone, Boolean sendable){
+        // 이미 user로 존재하는지 체크
+        Integer userCode = userService.findUserByNameAndPhone(userName, userPhone);
+
+        // 없다면 추가해서 userId를 받아온다.
+        if(userCode == null){
+            userCode = userService.createUserByNameAndPhone(userName, userPhone).getUserCode();
+        }
+
+        // Visitors Table에 생성.
+        return VisitorsDTO.builder()
+                .userCode(userCode)
+                .shopCode(shopCode)
+                .sendable(sendable)
+                .build();
+    }
+
+
+
+    // == helper method ==
 
     /* 방문자 조회 리스트를 Map<회원 코드, 방문 통계 정보>으로 변환 */
     private Map<Integer, VisitStatisticsView> getVisitStatisticsBatch(List<Integer> userCodes) {

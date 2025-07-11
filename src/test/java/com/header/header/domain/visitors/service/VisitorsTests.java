@@ -1,6 +1,8 @@
 package com.header.header.domain.visitors.service;
 
 import com.header.header.domain.visitors.DTO.VisitorDetailDTO;
+import com.header.header.domain.visitors.DTO.VisitorsDTO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,13 @@ public class VisitorsTests {
 
     @Autowired
     private VisitorsService visitorsService;
+
+    @BeforeEach
+    void setUp(){
+        VisitorsDTO visitorsDTO = visitorsService.createVisitorsByNameAndPhone(2, "김예람", "010-2222-9999", true);
+
+        System.out.println(visitorsDTO);
+    }
 
     @Test
     @DisplayName("null shopCode 예외 처리 확인")
