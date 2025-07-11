@@ -2,9 +2,10 @@ package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
+import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
@@ -59,9 +60,9 @@ public class UserReservationService {
         Reservation reservation = userReservationRepository.findById(resvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
 
-        if (reservation.getResvState() == UserReservationState.CANCEL) {
+        if (reservation.getResvState() == ReservationState.CANCEL) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
-        } else if (reservation.getResvState() == UserReservationState.FINISH) {
+        } else if (reservation.getResvState() == ReservationState.FINISH) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
         } else {
             reservation.cancelReservation();

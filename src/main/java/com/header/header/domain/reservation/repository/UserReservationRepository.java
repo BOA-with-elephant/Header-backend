@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.repository;
 
+import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import org.springframework.data.jpa.repository.JpaRepository;

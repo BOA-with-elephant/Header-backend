@@ -1,25 +1,25 @@
 package com.header.header.domain.reservation.converter;
 
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter
-public class UserReservationStateConverter implements AttributeConverter<UserReservationState, String> {
+public class ReservationStateConverter implements AttributeConverter<ReservationState, String> {
     @Override
-    public String convertToDatabaseColumn(UserReservationState userReservationState) {
-        return userReservationState != null ? userReservationState.getDbName() : null;
+    public String convertToDatabaseColumn(ReservationState reservationState) {
+        return reservationState != null ? reservationState.getDbName() : null;
     }
 
     @Override
-    public UserReservationState convertToEntityAttribute(String dbName) {
+    public ReservationState convertToEntityAttribute(String dbName) {
         if (dbName == null) {
             return null;
         }
 
-        for (UserReservationState state : UserReservationState.values()) {
+        for (ReservationState state : ReservationState.values()) {
             if (state.getDbName().equals(dbName)) {
                 return state;
             }
