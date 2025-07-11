@@ -13,7 +13,7 @@ public class Visitors {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private int clientCode;
+    private Integer clientCode;
     private Integer userCode;
     private Integer shopCode;
     private String memo;
