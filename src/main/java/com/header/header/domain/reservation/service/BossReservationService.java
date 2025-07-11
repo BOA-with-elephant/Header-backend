@@ -10,10 +10,10 @@ import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.ReservationState;
+import com.header.header.domain.reservation.projection.BossReservationProjection;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.sales.dto.SalesDTO;
-import com.header.header.domain.sales.repository.SalesRepository;
 import com.header.header.domain.sales.service.SalesService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
@@ -25,11 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +43,7 @@ public class BossReservationService {
     /* 가게 예약 내역 전체 조회하기 */
     public List<BossReservationDTO> findReservationList(Integer shopCode){
 
-        List<BossReservation> reservationList = bossReservationRepository.findByShopCode(shopCode);
+        List<BossReservationProjection> reservationList = bossReservationRepository.findByShopCode(shopCode);
 
         return reservationList.stream()
                 .map(reservation -> modelMapper.map(reservation, BossReservationDTO.class))
@@ -105,7 +102,7 @@ public class BossReservationService {
         * 4. 가져온 값을 다시 DTO에 저장하기
         */
 
-        BasicReservationDTO registDTO = new BasicReservationDTO();
+        BossReservationDTO registDTO = new BossReservationDTO();
 
         // reservationDTO에 입력받은 userName과 userPhone으로 userCode 찾아서 넣기
         User user = userRepository.findByUserNameAndUserPhone(inputDTO.getUserName(), inputDTO.getUserPhone());
@@ -131,7 +128,7 @@ public class BossReservationService {
         registDTO.getMenuInfo().setMenuCode(menu.getMenuCode());
 
         // reservationDTO에 입력받은 resvDate, resvTime, userComment, resvState 넣기
-        registDTO.setShopCode(inputDTO.getShopCode());
+        registDTO.getShopCode().setShopCode(inputDTO.getShopCode());
         registDTO.setResvDate(inputDTO.getResvDate());
         registDTO.setResvTime(inputDTO.getResvTime());
         registDTO.setUserComment(inputDTO.getUserComment());

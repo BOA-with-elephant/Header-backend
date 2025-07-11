@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.dto;
 
+import com.header.header.domain.shop.dto.ShopDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,7 +15,7 @@ public class BossReservationDTO {
 
     private int resvCode;
     private BossResvUserDTO userInfo;
-    private Integer shopCode;
+    private ShopDTO shopCode;
     private BossResvMenuDTO menuInfo;
     private Date resvDate;
     private Time resvTime;

@@ -60,7 +60,7 @@ public class BossReservationRepositoryTests {
     void testReservationListByDate(){
         // given
         java.util.Date utilDate = new java.util.Date();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("2025-07-06");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("2025-07-26");
         String formattedDate = dateFormat.format(utilDate);
         Date selectedDate = Date.valueOf(formattedDate);
 
