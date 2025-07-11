@@ -9,7 +9,7 @@ import lombok.ToString;
 @ToString
 public class BossResvMenuDTO {
 
-    private int menuCode;
+    private Integer menuCode;
     private BossResvMenuCategoryDTO menuCategoryInfo;
     private String menuName;
     private int menuPrice;

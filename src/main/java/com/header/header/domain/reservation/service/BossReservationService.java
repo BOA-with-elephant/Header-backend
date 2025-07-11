@@ -7,7 +7,7 @@ import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.user.dto.UserDTO;
@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -98,7 +97,16 @@ public class BossReservationService {
         * 4. 가져온 값을 다시 DTO에 저장하기
         */
 
-        BasicReservationDTO registDTO = new BasicReservationDTO();
+//        ModelMapper modelMapper = new ModelMapper();
+//        modelMapper.typeMap(BasicReservationDTO.class, BossReservation.class).addMappings(mapper -> {
+//                    mapper.map(dto -> new Menu(dto.getMenuCode()), BossReservation::setMenuInfo);
+//                    mapper.map(dto -> new User(dto.getUserCode()), BossReservation::setUserInfo);
+//
+//                }
+//        );
+
+//        BasicReservationDTO registDTO = new BasicReservationDTO();
+        BossReservationDTO registDTO = new BossReservationDTO();
 
         // reservationDTO에 입력받은 userName과 userPhone으로 userCode 찾아서 넣기
         User user = userRepository.findByUserNameAndUserPhone(inputDTO.getUserName(), inputDTO.getUserPhone());
@@ -106,7 +114,7 @@ public class BossReservationService {
 
         if(user != null){
             // 기존 회원 번호 저장
-            registDTO.setUserCode(user.getUserCode());
+            registDTO.getUserInfo().setUserCode(user.getUserCode());
         } else {
             // 새로운 회원 등록 후 해당 회원의 userCode 저장
             UserDTO userDTO = new UserDTO();
@@ -116,22 +124,22 @@ public class BossReservationService {
             userDTO.setIsLeave(0);
             userRepository.save(modelMapper.map(userDTO, User.class));
             User newUser = userRepository.findByUserNameAndUserPhone(userDTO.getUserName(), userDTO.getUserPhone());
-            registDTO.setUserCode(newUser.getUserCode());
+            registDTO.getUserInfo().setUserCode(newUser.getUserCode());
         }
 
         // reservationDTO에 입력받은 menuName으로 menuCode 찾아서 넣기
         Menu menu = menuRepository.findByMenuName(inputDTO.getMenuName());
-        registDTO.setMenuCode(menu.getMenuCode());
+        registDTO.getMenuInfo().setMenuCode(menu.getMenuCode());
 
         // reservationDTO에 입력받은 resvDate, resvTime, userComment, resvState 넣기
         registDTO.setShopCode(inputDTO.getShopCode());
         registDTO.setResvDate(inputDTO.getResvDate());
         registDTO.setResvTime(inputDTO.getResvTime());
         registDTO.setUserComment(inputDTO.getUserComment());
-        registDTO.setResvState(UserReservationState.APPROVE.name());
+        registDTO.setResvState(ReservationState.APPROVE.name());
 
         // 저장
-        userReservationRepository.save(modelMapper.map(registDTO, Reservation.class));
+        bossReservationRepository.save(modelMapper.map(registDTO, BossReservation.class));
     }
 
     /* 예약 내용 수정하기 */
@@ -148,7 +156,7 @@ public class BossReservationService {
         */
 
         // 1 ~ 2번
-        Reservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
+        BossReservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
 
         // 3번
         Menu menu = menuRepository.findByMenuName(inputDTO.getMenuName());
@@ -171,7 +179,7 @@ public class BossReservationService {
     public void cancelReservation(Integer resvCode){
 
         /* 예약 취소 시 물리적 삭제가 아닌 논리적 삭제로 진행하기 -> resvState를 예약 취소로 변경하기 */
-        Reservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
+        BossReservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
 
         foundReservation.cancelReservation();
     }

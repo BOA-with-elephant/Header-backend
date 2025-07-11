@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public enum UserReservationState {
+public enum ReservationState {
 
     APPROVE("예약확정"),
     CANCEL("예약취소"),

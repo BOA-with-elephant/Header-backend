@@ -1,12 +1,15 @@
 package com.header.header.domain.reservation.entity;
 
 import com.header.header.domain.menu.entity.Menu;
+import com.header.header.domain.reservation.converter.ReservationStateConverter;
+import com.header.header.domain.reservation.dto.BasicReservationDTO;
+import com.header.header.domain.reservation.enums.ReservationState;
+import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Immutable;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -23,23 +26,39 @@ public class BossReservation {
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "userCode")
     private User userInfo;
-    private Integer shopCode;
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @JoinColumn(name = "shopCode")
+    private Shop shopInfo;
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "menuCode")
     private Menu menuInfo;
     private Date resvDate;
     private Time resvTime;
     private String userComment;
-    private String resvState;
 
-    public BossReservation(int resvCode, User userInfo, Integer shopCode, Menu menuInfo, Date resvDate, Time resvTime, String userComment, String resvState) {
+    @Convert(converter = ReservationStateConverter.class)
+    private ReservationState resvState;
+
+    public BossReservation(int resvCode, User userInfo, Shop shopInfo, Menu menuInfo, Date resvDate, Time resvTime, String userComment, ReservationState resvState) {
         this.resvCode = resvCode;
         this.userInfo = userInfo;
-        this.shopCode = shopCode;
+        this.shopInfo = shopInfo;
         this.menuInfo = menuInfo;
         this.resvDate = resvDate;
         this.resvTime = resvTime;
         this.userComment = userComment;
         this.resvState = resvState;
+    }
+
+    public void cancelReservation() {
+
+        this.resvState = ReservationState.CANCEL;
+    }
+
+    public void modifyReservation(BasicReservationDTO reservationDTO){
+        this.menuInfo = new Menu(reservationDTO.getMenuCode());
+        this.resvDate = reservationDTO.getResvDate();
+        this.resvTime = reservationDTO.getResvTime();
+        this.userComment = reservationDTO.getUserComment();
     }
 }

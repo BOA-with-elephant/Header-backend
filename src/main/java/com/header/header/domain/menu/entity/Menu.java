@@ -49,4 +49,9 @@ public class Menu {
         this.isActive = isActive;
     }
 
+    /*Boss Reservation에서 숫자로 메뉴 정보를 조회하는 기능 필요*/
+    public Menu(Integer menuCode) {
+        this.menuCode = menuCode;
+    }
+
 }
