@@ -126,7 +126,7 @@ public class BossReservationRepositoryTests {
     }
 
     private static Stream<Arguments> newReservations(){
-        return Stream.of(Arguments.of("이하나", "010-8899-7766", "젤 네일 프렌치", Date.valueOf("2025-07-11"), Time.valueOf("14:00:00"), "짧은 손톱에 어울리게 해주세요.")
+        return Stream.of(Arguments.of("이하나", "010-8899-7766", "포인트 염색", Date.valueOf("2025-07-11"), Time.valueOf("14:00:00"), "강렬한 색으로 해주세요.")
 //        return Stream.of(Arguments.of("권은지", "010-1002-1002", "브라질리언 왁싱", Date.valueOf("2025-07-15"), Time.valueOf("16:00:00"), "")
                 );
     }

@@ -138,6 +138,7 @@ public class BossReservationService {
         registDTO.setResvState(UserReservationState.APPROVE.name());
 
         // 저장
+
         userReservationRepository.save(modelMapper.map(registDTO, Reservation.class));
     }
 
