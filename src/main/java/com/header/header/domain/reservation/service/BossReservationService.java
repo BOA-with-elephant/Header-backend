@@ -7,9 +7,11 @@ import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.BasicReservationDTO;
 import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
+import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.ReservationState;
+import com.header.header.domain.reservation.mapper.BossReservationMapper;
 import com.header.header.domain.reservation.projection.BossReservationProjection;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
@@ -41,12 +43,12 @@ public class BossReservationService {
     private final ModelMapper modelMapper;
 
     /* 가게 예약 내역 전체 조회하기 */
-    public List<BossReservationDTO> findReservationList(Integer shopCode){
+    public List<BossResvProjectionDTO> findReservationList(Integer shopCode){
 
         List<BossReservationProjection> reservationList = bossReservationRepository.findByShopCode(shopCode);
 
         return reservationList.stream()
-                .map(reservation -> modelMapper.map(reservation, BossReservationDTO.class))
+                .map(reservation -> modelMapper.map(reservation, BossResvProjectionDTO.class))
                 .toList();
     }
 
@@ -128,11 +130,11 @@ public class BossReservationService {
         registDTO.getMenuInfo().setMenuCode(menu.getMenuCode());
 
         // reservationDTO에 입력받은 resvDate, resvTime, userComment, resvState 넣기
-        registDTO.getShopCode().setShopCode(inputDTO.getShopCode());
+        registDTO.setShopCode(inputDTO.getShopCode());
         registDTO.setResvDate(inputDTO.getResvDate());
         registDTO.setResvTime(inputDTO.getResvTime());
         registDTO.setUserComment(inputDTO.getUserComment());
-        registDTO.setResvState(ReservationState.APPROVE.name());
+        registDTO.setResvState(ReservationState.APPROVE);
 
         // 저장
         bossReservationRepository.save(modelMapper.map(registDTO, BossReservation.class));

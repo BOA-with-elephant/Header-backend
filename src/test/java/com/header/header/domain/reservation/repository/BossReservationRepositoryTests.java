@@ -5,6 +5,7 @@ import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.reservation.dto.BasicReservationDTO;
 import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
+import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.service.BossReservationService;
@@ -40,12 +41,12 @@ public class BossReservationRepositoryTests {
     SalesRepository salesRepository;
 
     // 테스트용 샵코드
-    private static final int SHOP_CODE = 1;
+    private static final Integer SHOP_CODE = 1;
 
     @Test
     @DisplayName("가게의 전체 예약 내역 조회하기")
     void testReservationList(){
-        List<BossReservationDTO> reservationDTOList = bossReservationService.findReservationList(SHOP_CODE);
+        List<BossResvProjectionDTO> reservationDTOList = bossReservationService.findReservationList(SHOP_CODE);
 
         assertNotNull(reservationDTOList);
 

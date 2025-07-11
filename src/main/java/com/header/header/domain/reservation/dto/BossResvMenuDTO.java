@@ -14,5 +14,5 @@ public class BossResvMenuDTO {
     private String menuName;
     private int menuPrice;
     private int estTime;  //  예상 소요 시간
-    private int isActive;  // 메뉴 활성 여부
+    private Boolean isActive;  // 메뉴 활성 여부
 }

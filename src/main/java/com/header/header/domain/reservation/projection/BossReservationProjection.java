@@ -18,4 +18,5 @@ public interface BossReservationProjection {
     Time getResvTime();
     String getUserComment();
 
+
 }
