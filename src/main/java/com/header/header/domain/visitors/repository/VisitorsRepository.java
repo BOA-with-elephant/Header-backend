@@ -1,0 +1,55 @@
+package com.header.header.domain.visitors.repository;
+
+import com.header.header.domain.visitors.enitity.Visitors;
+import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
+import com.header.header.domain.visitors.projection.VisitStatisticsView;
+import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
+
+    // (1) 기본 방문자 정보
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "WHERE v.shopCode = :shopCode")
+    List<VisitorWithUserInfoView> findVisitorWithUserInfoByShopCode(@Param("shopCode") Integer shopCode);
+    
+    // (2) 방문 및 결제 통계 및 마지막 방문일 리스트 조회
+    @Query("SELECT r.userCode as userCode, " +
+            "       COUNT(*) as visitCount, " +
+            "       COALESCE(SUM(s.finalAmount), 0) as totalPaymentAmount, " +
+            "       MAX(r.resvDate) as lastVisitDate " +
+            "FROM Reservation r " +
+            "INNER JOIN Sales s ON r.resvCode = s.resvCode " +
+            "WHERE r.userCode IN :userCodes " +  // IN 절 사용
+            "  AND r.resvState = '결제완료' " +
+            "  AND s.finalAmount > 0 " +
+            "GROUP BY r.userCode")
+    List<VisitStatisticsView> getVisitStatisticsBatch(@Param("userCodes") List<Integer> userCodes);
+
+    // (3) 방문 횟수 리스트 조회
+    @Query("SELECT r.userCode as userCode, " +
+            "       r.menuCode as menuCode, " +
+            "       m.menuName as menuName, " +
+            "       COUNT(*) as orderCount " +
+            "FROM Reservation r " +
+            "INNER JOIN Menu m ON r.menuCode = m.menuCode " +
+            "WHERE r.userCode IN :userCodes " +
+            "  AND r.resvState = '결제완료' " +
+            "GROUP BY r.userCode, r.menuCode, m.menuName " +
+            "ORDER BY r.userCode, COUNT(*) DESC")  // userCode별로 정렬, 주문수 내림차순
+    List<UserFavoriteMenuView> getUserFavoriteMenusRaw(@Param("userCodes") List<Integer> userCodes);
+
+
+}
