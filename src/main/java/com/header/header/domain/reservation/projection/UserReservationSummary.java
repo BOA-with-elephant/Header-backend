@@ -1,6 +1,6 @@
 package com.header.header.domain.reservation.projection;
 
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 
 public interface UserReservationSummary {
 
@@ -8,6 +8,6 @@ public interface UserReservationSummary {
     Integer getUserCode();
     Integer getShopCode();
     String getResvDate();
-    UserReservationState getResvState();
+    ReservationState getResvState();
 
 }

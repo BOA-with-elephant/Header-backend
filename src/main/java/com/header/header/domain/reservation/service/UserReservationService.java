@@ -2,9 +2,10 @@ package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
+import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
-import com.header.header.domain.reservation.enums.UserReservationState;
+import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
@@ -29,16 +30,16 @@ public class UserReservationService {
     @Transactional
     public UserReservationDTO createUserReservation(UserReservationDTO resvInfo) {
 
-        Reservation reservation = modelMapper.map(resvInfo, Reservation.class);
+        BossReservation reservation = modelMapper.map(resvInfo, BossReservation.class);
 
-        Reservation savedReservation = userReservationRepository.save(reservation);
+        BossReservation savedReservation = userReservationRepository.save(reservation);
 
         return modelMapper.map(savedReservation, UserReservationDTO.class);
     }
 
     //READ (단건 조회 - 상세 조회)
     public UserReservationDTO getReservationByResvCode(Integer ResvCode) {
-        Reservation reservation = userReservationRepository.findById(ResvCode)
+        BossReservation reservation = userReservationRepository.findById(ResvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
         return modelMapper.map(reservation, UserReservationDTO.class);
     }
@@ -56,12 +57,12 @@ public class UserReservationService {
     //DELETE (논리적 삭제)
     @Transactional
     public UserReservationDTO cancelReservation(Integer resvCode) {
-        Reservation reservation = userReservationRepository.findById(resvCode)
+        BossReservation reservation = userReservationRepository.findById(resvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
 
-        if (reservation.getResvState() == UserReservationState.CANCEL) {
+        if (reservation.getResvState() == ReservationState.CANCEL) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
-        } else if (reservation.getResvState() == UserReservationState.FINISH) {
+        } else if (reservation.getResvState() == ReservationState.FINISH) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
         } else {
             reservation.cancelReservation();

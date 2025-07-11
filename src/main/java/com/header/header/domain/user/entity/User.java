@@ -38,4 +38,5 @@ public class User {
     public void modifyUserName(String newName) {
         this.userName = newName;
     }
+
 }
