@@ -30,16 +30,16 @@ public class UserReservationService {
     @Transactional
     public UserReservationDTO createUserReservation(UserReservationDTO resvInfo) {
 
-        BossReservation reservation = modelMapper.map(resvInfo, BossReservation.class);
+        Reservation reservation = modelMapper.map(resvInfo, Reservation.class);
 
-        BossReservation savedReservation = userReservationRepository.save(reservation);
+        Reservation savedReservation = userReservationRepository.save(reservation);
 
         return modelMapper.map(savedReservation, UserReservationDTO.class);
     }
 
     //READ (단건 조회 - 상세 조회)
     public UserReservationDTO getReservationByResvCode(Integer ResvCode) {
-        BossReservation reservation = userReservationRepository.findById(ResvCode)
+        Reservation reservation = userReservationRepository.findById(ResvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
         return modelMapper.map(reservation, UserReservationDTO.class);
     }
@@ -57,7 +57,7 @@ public class UserReservationService {
     //DELETE (논리적 삭제)
     @Transactional
     public UserReservationDTO cancelReservation(Integer resvCode) {
-        BossReservation reservation = userReservationRepository.findById(resvCode)
+        Reservation reservation = userReservationRepository.findById(resvCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
 
         if (reservation.getResvState() == ReservationState.CANCEL) {

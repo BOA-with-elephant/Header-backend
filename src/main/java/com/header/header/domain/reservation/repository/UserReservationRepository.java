@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface UserReservationRepository extends JpaRepository<BossReservation, Integer> {
+public interface UserReservationRepository extends JpaRepository<Reservation, Integer> {
 
     // 요약 정보(UserReservationSummary)를 위해 Projection Based Interface 방식 사용
     List<UserReservationSummary> findByUserCode(Integer userCode);
