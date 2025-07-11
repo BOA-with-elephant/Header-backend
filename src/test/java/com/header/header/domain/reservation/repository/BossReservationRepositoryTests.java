@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.repository;
 
+import com.header.header.common.exception.GlobalExceptionHandler;
 import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.reservation.dto.BasicReservationDTO;
 import com.header.header.domain.reservation.dto.BossReservationDTO;
@@ -198,26 +199,47 @@ public class BossReservationRepositoryTests {
     }
 
     private static Stream<Arguments> salesInfo(){
-        return Stream.of(Arguments.of(30, 80000, "신용카드", LocalDateTime.of(2025, 7, 7, 11, 0, 0), PaymentStatus.COMPLETED, 0)
+        return Stream.of(Arguments.of(98, 90000, "신용카드", LocalDateTime.now(), PaymentStatus.COMPLETED, 0)
         );
     }
 
     @ParameterizedTest
     @MethodSource("salesInfo")
     @DisplayName("시술 완료 시 매출 테이블에 데이터 넣기")
-    void testAfterProcedure(Integer resvCode, Integer payAmount, String payMetod, LocalDateTime payDateTime, PaymentStatus payStatus, Integer cancelAmount){
+    void testAfterProcedure(Integer resvCode, Integer payAmount, String payMethod, LocalDateTime payDateTime, PaymentStatus payStatus, Integer cancelAmount){
 
         // when
         SalesDTO salesDTO = new SalesDTO();
         salesDTO.setResvCode(resvCode);
         salesDTO.setPayAmount(payAmount);
-        salesDTO.setPayMethod(payMetod);
+        salesDTO.setPayMethod(payMethod);
         salesDTO.setPayDatetime(payDateTime);
         salesDTO.setPayStatus(payStatus);
         salesDTO.setCancelAmount(cancelAmount);
 
+        // when
         bossReservationService.afterProcedure(salesDTO);
 
-        assertNotNull(salesRepository.existsByResvCode(resvCode));
+        // then
+        BossReservationDTO reservation = bossReservationService.findReservationByResvCode(resvCode);
+    }
+
+    @Test
+    @DisplayName("노쇼 리스트 조회")
+    void testNoShowList(){
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        Date today = Date.valueOf(String.valueOf(now));
+        String resvState = "예약 확정";
+
+        // when
+        List<BossReservationDTO> noShowList = bossReservationService.findNoShowList(today, resvState);
+
+        // then
+        assertNotNull(noShowList);
+        assertEquals(noShowList.toArray().length, 33);
+        noShowList.forEach(
+                row -> System.out.println(row)
+        );
     }
 }

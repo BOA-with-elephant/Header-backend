@@ -220,6 +220,14 @@ public class BossReservationService {
     }
 
     /* 노쇼 갯수 반환 - 예약 확정 이면서 날짜가 오늘 이전인 것들 조회 */
+    public List<BossReservationDTO> findNoShowList(Date today, String resvState){
+
+        List<BossReservation> noShowList = bossReservationRepository.findByResvDateAndResvState(today, resvState);
+
+        return noShowList.stream()
+                .map(noShow -> modelMapper.map(noShow, BossReservationDTO.class))
+                .toList();
+    }
 
     /* 노쇼 처리 메소드 만들기 */
 
