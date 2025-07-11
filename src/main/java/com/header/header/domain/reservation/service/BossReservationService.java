@@ -156,7 +156,7 @@ public class BossReservationService {
         */
 
         // 1 ~ 2번
-        BossReservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
+        Reservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
 
         // 3번
         Menu menu = menuRepository.findByMenuName(inputDTO.getMenuName());
@@ -179,7 +179,7 @@ public class BossReservationService {
     public void cancelReservation(Integer resvCode){
 
         /* 예약 취소 시 물리적 삭제가 아닌 논리적 삭제로 진행하기 -> resvState를 예약 취소로 변경하기 */
-        BossReservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
+        Reservation foundReservation = userReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
 
         foundReservation.cancelReservation();
     }
