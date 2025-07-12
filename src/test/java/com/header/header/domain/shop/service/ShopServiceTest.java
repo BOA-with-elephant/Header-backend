@@ -1,22 +1,33 @@
 package com.header.header.domain.shop.service;
 
+import com.header.header.domain.shop.dto.ShopCreationDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
+import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
+import com.header.header.domain.shop.dto.ShopUpdateDTO;
+import com.header.header.domain.shop.entity.Shop;
+import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
+import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
+import com.header.header.domain.shop.repository.ShopCategoryRepository;
+import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.annotation.Commit;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class) //테스트 코드 순서 지정
 class ShopServiceTest {
 
     @Autowired
@@ -25,187 +36,258 @@ class ShopServiceTest {
     @Autowired
     private MainUserRepository userRepository;
 
+    @Autowired
+    private ShopCategoryRepository shopCategoryRepository;
+
+    @Autowired
+    private ShopRepository shopRepository;
+
+    private static Integer testShopCode;
+    private static Integer testCategoryCode;
     private Integer testUserId;
 
+
+    /*테스트용 데이터 세팅*/
     @BeforeEach
+    @Test
     void setUp() {
+
+        ShopCategory category;
+        category = shopCategoryRepository.findById(1).orElseThrow();
+        testCategoryCode = category.getCategoryCode();
+
         User testUser = userRepository.findById(1).orElseThrow();
         testUserId = testUser.getUserCode();
+
+        Shop shop1 = Shop.builder()
+                .shopName("가까우미")
+                .adminInfo(testUser)
+                .shopPhone("010-1111-1111")
+                .shopLocation("서울시 송파구")
+                .shopLong(127.0276)
+                .shopLa(37.2979)
+                .categoryInfo(category)
+                .shopOpen("09:00")
+                .shopClose("18:00")
+                .shopStatus(ShopStatus.OPEN)
+                .isActive(true)
+                .build();
+        shopRepository.save(shop1);
+
+        testShopCode = shop1.getShopCode();
+
+        Shop shop2 = Shop.builder()
+                .shopName("멀리 있는 샵")
+                .adminInfo(testUser)
+                .shopPhone("010-2222-2222")
+                .shopLocation("부산광역시")
+                .shopLong(129.0756)
+                .shopLa(35.1796)
+                .categoryInfo(category)
+                .shopOpen("09:00")
+                .shopClose("18:00")
+                .shopStatus(ShopStatus.OPEN)
+                .isActive(true)
+                .build();
+        shopRepository.save(shop2);
     }
 
     @Test
-    @DisplayName("CREATE")
-    void testCreateShop() {
+    @Order(1)
+    @DisplayName("샵 생성 테스트")
+    void testCreateShopUsingDTO() {
+        ShopCreationDTO dto = new ShopCreationDTO();
+        dto.setCategoryCode(testCategoryCode);
+        dto.setAdminCode(testUserId);
+        dto.setShopName("테스트 샵");
+        dto.setShopPhone("010-1234-5678");
+        dto.setShopOpen("09:00");
+        dto.setShopClose("18:00");
+        dto.setShopStatus("영업중");
+
+        dto.setShopLocation("서울특별시 종로구 세종대로 175");
+
+        ShopDTO createdShop = shopService.createShop(dto);
+
+        testShopCode = createdShop.getShopCode();
+        assertNotNull(testShopCode);
+        System.out.println(createdShop);
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("샵 리스트 거리순 정렬, 페이징 처리 확인")
+    void testSearchShopByLocation() {
+        // 기준 위치: 서울 강남 (사용자 위치)
+        double userLat = 37.4979;
+        double userLong = 127.0276;
+        int categoryCode = testCategoryCode;  // 실제 저장된 카테고리 코드 사용
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+                userLat, userLong, categoryCode, null, pageable
+        );
+
+        List<ShopSummaryResponseDTO> content = result.getContent();
+
+        content.forEach(dto -> {
+            System.out.println(
+                    dto.getShopName() + " / " + dto.getDistance() + "m"
+            );
+        });
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("샵 이름 키워드 검색 테스트")
+    void testSearchShopsByLocationAndKeyword() {
+        double userLat = 37.4979;
+        double userLong = 127.0276;
+        int categoryCode = testCategoryCode;
+
+        Pageable pageable = PageRequest.of(0, 10);
+        String keyword = "멀리";
+
+        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+                userLat, userLong, categoryCode, keyword, pageable
+        );
+
+        List<ShopSummaryResponseDTO> content = result.getContent();
+
+        content.forEach(dto -> {
+            System.out.println(
+                    dto.getShopName() + " / " + dto.getDistance() + "m"
+            );
+        });
+
+        assertNotNull(content);
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("사용자가 위치 권한을 허용을 하지 않았을 경우")
+    void testSearchShopWithoutLocation() {
+
+        int categoryCode = testCategoryCode;  // 실제 저장된 카테고리 코드 사용
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+                null, null, categoryCode, null, pageable
+        );
+
+        List<ShopSummaryResponseDTO> content = result.getContent();
+
+        content.forEach(dto -> {
+            System.out.println(
+                    dto.getShopName() + " / " + dto.getDistance() + "m"
+            );
+        });
+
+        assertNotNull(content);
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("관리자가 본인 샵 리스트 조회 (요약 정보)")
+    void testSearchShopsByAdminCode() {
+        List<ShopSummary> shopSummaries =  shopService.readShopSummaryByAdminCode(testUserId);
+
+        assertNotNull(shopSummaries);
+
+        shopSummaries.forEach(list -> System.out.println(
+                list.getShopName() + " / " + list.getCategoryName() + " / " +
+                list.getShopLocation() + "/" + list.getCategoryName()));
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("사용자 혹은 관리자가 샵을 상세 조회하는 경우")
+    void testGetShopDetail() {
+        //when
+        List<ShopDetailResponse> result = shopService.readShopDetailByShopCode(1);
+        result.forEach(dto -> System.out.println(
+                dto.getShopName() + " / " +
+                        dto.getCategoryName() + " / " +
+                        dto.getShopPhone() + " / " +
+                        dto.getShopLocation() + " / " +
+                        dto.getShopOpen() + " / " +
+                        dto.getShopClose() + " / " +
+                        dto.getMenuCategoryName() + " / " +
+                        dto.getMenuName()+ " / " +
+                        dto.getMenuPrice()+ " / " +
+                        dto.getEstTime()+ " / " +
+                        dto.getShopStatus()
+        ));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("관리자가 샵의 주소를 수정하지 않는 경우")
+    void testUpdateShop() {
         // given
-        ShopDTO shopDTO = new ShopDTO();
-        shopDTO.setShopName("기니의 빡올빡올");
-        shopDTO.setCategoryCode(1);
-        shopDTO.setAdminCode(testUserId);
-        shopDTO.setShopLocation("서울특별시 종로구 세종대로 175");
-        shopDTO.setShopOpen("09:00");
-        shopDTO.setShopClose("18:00");
-        shopDTO.setIsActive(true);
-        shopDTO.setShopPhone("010-1234-5678");
-        shopDTO.setShopStatus(ShopStatus.CLOSED);
+        ShopUpdateDTO dto = new ShopUpdateDTO();
+        dto.setShopCode(testShopCode);
+        dto.setShopName("변경된 샵 이름");
+        dto.setShopPhone("010-9999-9999");
+        dto.setShopLocation("서울시 송파구"); // 기존과 동일
+        dto.setShopOpen("10:00");
+        dto.setShopClose("19:00");
+        dto.setCategoryCode(testCategoryCode); // 기존과 동일
 
         // when
-        ShopDTO createdShop = shopService.createShop(shopDTO);
+        ShopDTO updated = shopService.updateShop(dto);
 
-        //then
-        assertTrue(createdShop.getShopCode() > 0);
-        assertTrue(createdShop.getIsActive());
-        assertEquals(createdShop.getShopLocation(), "서울특별시 종로구 세종대로 175");
-        assertNotNull(createdShop.getShopLa());
-        assertNotNull(createdShop.getShopLong());
-        System.out.println(createdShop);
+        // then
+        assertEquals("변경된 샵 이름", updated.getShopName());
+        assertEquals("010-9999-9999", updated.getShopPhone());
+        assertEquals("10:00", updated.getShopOpen());
+        assertEquals("19:00", updated.getShopClose());
+
+        // 위도/경도는 변경 안됨
+        Shop shop = shopRepository.findById(testShopCode).orElseThrow();
+        assertEquals(127.0276, shop.getShopLong());
+        assertEquals(37.2979, shop.getShopLa());
+        System.out.println(updated);
+        System.out.println(shop.getShopLocation() + "/" + shop.getShopLa() + "/" + shop.getShopLong()
+        +"/" + shop.getShopName() + "/" + shop.getShopPhone() + "/" + shop.getShopOpen() + "/" + shop.getShopClose());
     }
 
-
     @Test
-    @DisplayName("CREATE 예외: 잘못된 주소 입력")
-    void testWrongAddress() {
+    @Order(8)
+    @DisplayName("관리자가 샵의 주소를 수정하는 경우")
+    void testUpdateShopWithLocation() {
         // given
-        ShopDTO shopDTO = new ShopDTO();
-        shopDTO.setShopName("기니의 빡올빡올");
-        shopDTO.setCategoryCode(1);
-        shopDTO.setAdminCode(testUserId);
-        shopDTO.setShopLocation("내 마음은 언제나 텃밭에,,,");
-        shopDTO.setShopOpen("09:00");
-        shopDTO.setShopClose("18:00");
-        shopDTO.setIsActive(true);
-        shopDTO.setShopPhone("010-1234-5678");
-        shopDTO.setShopStatus(ShopStatus.CLOSED);
+        ShopUpdateDTO dto = new ShopUpdateDTO();
+        dto.setShopCode(testShopCode);
+        dto.setShopLocation("서울 강남구 테헤란로 212"); // 다른 주소로 변경
+        dto.setShopName("위치 바뀐 샵");
+        dto.setShopPhone("010-1234-5678");
+        dto.setShopOpen("10:30");
+        dto.setShopClose("20:00");
+        dto.setCategoryCode(testCategoryCode);
 
-        // when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.createShop(shopDTO));
+        ShopDTO updated = shopService.updateShop(dto);
+
+        System.out.println(updated);
+
+        Shop shop = shopRepository.findById(testShopCode).orElseThrow();
+        assertNotEquals(127.0276, shop.getShopLong());
+        assertNotEquals(37.2979, shop.getShopLa());
+        System.out.println(updated);
+        System.out.println(shop.getShopLocation() + "/" + shop.getShopLa() + "/" + shop.getShopLong()
+                +"/" + shop.getShopName() + "/" + shop.getShopPhone() + "/" + shop.getShopOpen() + "/" + shop.getShopClose());
     }
 
     @Test
-    @DisplayName("READ (상세 조회)")
-    void testGetShop() {
-        //when
-        ShopDTO foundedShop = shopService.getShopByShopCode(9);
-
-        //then
-        assertNotNull(foundedShop);
-        System.out.println(foundedShop);
-    }
-
-    @Test
-    @DisplayName("READ 예외: 잘못된 샵 코드")
-    void testWrongShopCode() {
-        //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.getShopByShopCode(777));
-    }
-
-    @Test
-    @DisplayName("READ (다수 조회)")
-    void testGetShopsByAdminCode() {
-        //when
-        List<ShopSummary> foundedShopList = shopService.findByAdminCodeAndIsActiveTrue(testUserId);
-
-        //then
-        assertNotNull(foundedShopList);
-
-        for (ShopSummary list: foundedShopList) {
-            System.out.println("관리자 코드 : " + list.getAdminCode() + ", 활성 상태 : " + list.getIsActive() + ", 샵 이름 : " + list.getShopName());
-        }
-    }
-
-    @Test
-    @DisplayName("READ 예외: 잘못된 관리자 코드")
-    void testWrongAdminCode() {
-        //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.findByAdminCodeAndIsActiveTrue(100));
-    }
-
-    @Test
-    @DisplayName("UPDATE")
-    void testCreateAndUpdateShopStatus() {
-        // given - 새로운 상점 생성 (OPEN 상태로)
-        ShopDTO shopDTO = new ShopDTO();
-        shopDTO.setShopName("상태 테스트 상점");
-        shopDTO.setCategoryCode(1);
-        shopDTO.setAdminCode(testUserId);
-        shopDTO.setShopLocation("서울 강남구 테헤란로 212");
-        shopDTO.setShopOpen("09:00");
-        shopDTO.setShopClose("18:00");
-        shopDTO.setShopPhone("010-9876-5432");
-        shopDTO.setShopStatus(ShopStatus.OPEN);
-
-        // when - 상점 생성
-        ShopDTO createdShop = shopService.createShop(shopDTO);
-
-        // then - 생성된 상점 검증
-        assertNotNull(createdShop);
-        assertEquals(ShopStatus.OPEN, createdShop.getShopStatus());
-        System.out.println(createdShop);
-
-        // given - 상태 업데이트 (OPEN → CLOSE, 주소 변경)
-        Integer shopCode = createdShop.getShopCode();
-        ShopDTO updateDTO = new ShopDTO();
-        updateDTO.setAdminCode(createdShop.getAdminCode());
-        updateDTO.setShopName(createdShop.getShopName());
-        updateDTO.setShopPhone(createdShop.getShopPhone());
-        updateDTO.setCategoryCode(createdShop.getCategoryCode());
-        updateDTO.setShopLocation("서울특별시 종로구 세종대로 175");
-        updateDTO.setShopOpen(createdShop.getShopOpen());
-        updateDTO.setShopClose(createdShop.getShopClose());
-        updateDTO.setShopStatus(ShopStatus.CLOSED);
-
-        // when - 상점 업데이트
-        ShopDTO updatedShop = shopService.updateShop(shopCode, updateDTO);
-
-        // then - 업데이트된 상점 검증
-        assertNotNull(updatedShop);
-        assertEquals(ShopStatus.CLOSED, updatedShop.getShopStatus());
-        assertEquals("서울특별시 종로구 세종대로 175", updatedShop.getShopLocation());
-    }
-
-    @Test
-    @DisplayName("UPDATE 예외: 잘못된 주소")
-    void testWrongAddressWhenUpdateShop() {
-        // given - 새로운 상점 생성 (OPEN 상태로)
-        ShopDTO shopDTO = new ShopDTO();
-        shopDTO.setShopName("상태 테스트 상점");
-        shopDTO.setCategoryCode(1);
-        shopDTO.setAdminCode(testUserId);
-        shopDTO.setShopLocation("서울 강남구 테헤란로 212");
-        shopDTO.setShopOpen("09:00");
-        shopDTO.setShopClose("18:00");
-        shopDTO.setShopPhone("010-9876-5432");
-        shopDTO.setShopStatus(ShopStatus.OPEN);
-
-        // when - 상점 생성
-        ShopDTO createdShop = shopService.createShop(shopDTO);
-
-        // then - 생성된 상점 검증
-        assertNotNull(createdShop);
-        assertEquals(ShopStatus.OPEN, createdShop.getShopStatus());
-        System.out.println(createdShop);
-
-        // given - 상태 업데이트 (OPEN → CLOSE, 잘못된 주소로 변경 시도)
-        Integer shopCode = createdShop.getShopCode();
-        ShopDTO updateDTO = new ShopDTO();
-        updateDTO.setAdminCode(createdShop.getAdminCode());
-        updateDTO.setShopName(createdShop.getShopName());
-        updateDTO.setShopPhone(createdShop.getShopPhone());
-        updateDTO.setCategoryCode(createdShop.getCategoryCode());
-        updateDTO.setShopLocation("양상추가 파릇하지 않네요.");
-        updateDTO.setShopOpen(createdShop.getShopOpen());
-        updateDTO.setShopClose(createdShop.getShopClose());
-        updateDTO.setShopStatus(ShopStatus.CLOSED);
-
-        // when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.updateShop(shopCode, updateDTO));
-    }
-
-
-    @Test
+    @Order(9)
     @DisplayName("DELETE (비활성화)")
+    @Commit
     void testDeleteShop() {
         //given
-        Integer shopCodeToDelete = 13;
+        Integer shopCodeToDelete =  testShopCode;
+        System.out.println("shopCodeToDelete : " + shopCodeToDelete);
 
         //when
         ShopDTO shopToDelete = shopService.deActiveShop(shopCodeToDelete);
@@ -215,20 +297,23 @@ class ShopServiceTest {
     }
 
     @Test
+    @Order(10)
     @DisplayName("DELETE 예외: 잘못된 샵 코드")
     void testWrongShopCodeWhenDelete() {
         //given
-        Integer shopCodeToDelete = 300;
+        Integer shopCodeToDelete = testShopCode + 1000000000;
 
         //when and then
         assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));
     }
 
     @Test
+    @Order(11)
     @DisplayName("DELETE 예외: 재비활성화 시도")
     void testAttemptWhenDelete() {
         //given
-        Integer shopCodeToDelete = 3;
+        Integer shopCodeToDelete = 114;
+        System.out.println("shopCodeToDelete : " + shopCodeToDelete);
 
         //when and then
         assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));

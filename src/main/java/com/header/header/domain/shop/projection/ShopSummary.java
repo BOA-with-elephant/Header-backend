@@ -4,12 +4,10 @@ import com.header.header.domain.shop.enums.ShopStatus;
 
 public interface ShopSummary {
 
-    Integer getShopCode();
-    Integer getCategoryCode();
-    Integer getAdminCode();
     String getShopName();
     String getShopPhone();
     String getShopLocation();
-    ShopStatus getShopStatus();
-    Boolean getIsActive();
+    String getCategoryName();
+
+    // 관리자의 요약 조회 데이터: shop - 샵 이름, 샵 전화번호, 샵 주소, category - 카테고리 이름
 }
