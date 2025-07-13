@@ -24,6 +24,10 @@ public class BossReservationDTO {
     private String userComment;
     private ReservationState resvState;
 
-    public BossReservationDTO(){};
+    public BossReservationDTO() {
+        this.userInfo = new BossResvUserDTO();  // 추가
+        this.menuInfo = new BossResvMenuDTO();
+    }
+
 
 }

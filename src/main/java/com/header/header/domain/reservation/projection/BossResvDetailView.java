@@ -5,7 +5,7 @@ import com.header.header.domain.reservation.enums.ReservationState;
 import java.sql.Date;
 import java.sql.Time;
 
-public interface BossReservationProjection {
+public interface BossResvDetailView {
 
     Integer getResvCode();
     String getUserName();

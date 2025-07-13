@@ -41,4 +41,8 @@ public class Shop {
         this.isActive = false;
     }
 
+    public Shop(Integer shopCode){
+        this.shopCode = shopCode;
+    }
+
 }

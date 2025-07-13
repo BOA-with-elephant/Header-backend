@@ -71,6 +71,7 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
          "GROUP BY m ORDER BY COUNT(ri) DESC")
      List<Menu> findPopularMenusByShop(@Param("shopCode") Integer shopCode, Pageable pageable);*/
 
-    /* 메뉴 이름으로 메뉴 엔티티 조회하기 */
-    Menu findByMenuName(String menuName);
+    /* 메뉴 이름으로 메뉴 엔티티 조회하기 - 주혜 */
+    @Query("SELECT m FROM Menu m WHERE m.menuName = :menuName AND m.menuCategory.id.shopCode = :shopCode")
+    Menu findByMenuNameAndShopCode(@Param("menuName") String menuName, @Param("shopCode") Integer shopCode);
 }

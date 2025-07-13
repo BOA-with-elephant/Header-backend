@@ -15,4 +15,8 @@ public class BossResvMenuDTO {
     private int menuPrice;
     private int estTime;  //  예상 소요 시간
     private Boolean isActive;  // 메뉴 활성 여부
+
+    public BossResvMenuDTO(){
+        this.menuCategoryInfo = new BossResvMenuCategoryDTO();
+    }
 }

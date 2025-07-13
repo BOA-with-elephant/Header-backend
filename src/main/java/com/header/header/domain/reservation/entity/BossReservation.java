@@ -3,6 +3,7 @@ package com.header.header.domain.reservation.entity;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.reservation.converter.ReservationStateConverter;
 import com.header.header.domain.reservation.dto.BasicReservationDTO;
+import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.user.entity.User;
@@ -51,14 +52,34 @@ public class BossReservation {
     }
 
     public void cancelReservation() {
-
         this.resvState = ReservationState.CANCEL;
     }
 
-    public void modifyReservation(BasicReservationDTO reservationDTO){
-        this.menuInfo = new Menu(reservationDTO.getMenuCode());
+    public void modifyReservation(BossReservationDTO reservationDTO, Menu menu){
+        this.menuInfo = menu;
         this.resvDate = reservationDTO.getResvDate();
         this.resvTime = reservationDTO.getResvTime();
         this.userComment = reservationDTO.getUserComment();
+    }
+
+    public void setMenu(Menu menu) {
+        this.menuInfo = menu;
+    }
+
+    public void setUser(User user){
+        this.userInfo = user;
+    }
+
+    public void setShop(Shop shop){
+        this.shopInfo = shop;
+    }
+
+    public void completeProcedure() {
+        this.resvState = ReservationState.FINISH;
+    }
+
+    public void noShowHandling() {
+        this.resvState = ReservationState.CANCEL;
+        this.userComment = "노쇼";
     }
 }
