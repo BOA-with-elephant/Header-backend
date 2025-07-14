@@ -17,7 +17,9 @@ import com.header.header.domain.reservation.repository.BossReservationRepository
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.entity.Shop;
+import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopStatus;
+import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
@@ -58,6 +60,8 @@ public class UserReservationTests {
     private BossReservationRepository bossReservationRepository;
     @Autowired
     private UserReservationRepository userReservationRepository;
+    @Autowired
+    private ShopCategoryRepository shopCategoryRepository;
 
     /*테스트용 데이터 세팅용 상수 - @BeforeEach 에서 초기화*/
     private Integer testUserCode;
@@ -65,6 +69,7 @@ public class UserReservationTests {
     private Integer testMenuCategoryCode;
     private Integer testMenuCode;
     private Integer testResvCode;
+    private Integer testCategoryCode;
 
     @BeforeEach
     @Transactional
@@ -84,21 +89,27 @@ public class UserReservationTests {
         testUserCode = testUser.getUserCode();
 
         /*2. 테스트용 샵*/
-        ShopDTO shopDTO = new ShopDTO();
-        shopDTO.setCategoryCode(1);
-        shopDTO.setAdminCode(1);
-        shopDTO.setShopName("기니샵");
-        shopDTO.setShopPhone("02-123-4567");
-        shopDTO.setShopLocation("서울시 종로구");
-        shopDTO.setShopLong(127.0276);
-        shopDTO.setShopLa(37.4979);
-        shopDTO.setShopStatus(ShopStatus.OPEN);
-        shopDTO.setShopOpen("09:00");
-        shopDTO.setShopClose("18:00");
-        shopDTO.setIsActive(true);
 
-        Shop testShop = modelMapper.map(shopDTO, Shop.class);
+        ShopCategory category;
+        category = shopCategoryRepository.findById(1).orElseThrow();
+        testCategoryCode = category.getCategoryCode();
+
+        Shop testShop = Shop.builder()
+                .shopName("기니샵")
+                .adminInfo(testUser)
+                .shopPhone("02-123-4567")
+                .shopLocation("서울시 종로구")
+                .shopLong(127.0276)
+                .shopLa(37.2979)
+                .categoryInfo(category)
+                .shopOpen("09:00")
+                .shopClose("18:00")
+                .shopStatus(ShopStatus.OPEN)
+                .isActive(true)
+                .build();
+
         shopRepository.save(testShop);
+
         testShopCode = testShop.getShopCode();
 
         /*3. 테스트용 메뉴 카테고리 및 메뉴*/
@@ -106,7 +117,6 @@ public class UserReservationTests {
 
         MenuCategoryId id
                 = new MenuCategoryId(testMenuCategoryCode, testShopCode);
-
 
         MenuCategory menuCategory = MenuCategory.builder()
                 .id(id)
