@@ -105,9 +105,13 @@ public class UserService {
         User foundUser = userRepository.findByUserId(userId);
 
         LoginUserDTO login = modelMapper.map(foundUser, LoginUserDTO.class);
-        if(!Objects.isNull(login)){
+        if (foundUser.getRole() != null) {
+            login.setUserRole(foundUser.getRole());  // ← 수동으로 세팅
+        }
+
+        if (login != null) {
             return login;
-        }else {
+        } else {
             throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원가입 후 로그인 해주십시오.");
         }
     }

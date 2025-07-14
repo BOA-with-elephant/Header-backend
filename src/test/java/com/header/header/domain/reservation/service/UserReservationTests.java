@@ -1,6 +1,6 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
+import com.header.header.auth.common.UserRole;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
@@ -23,6 +23,7 @@ import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.repository.MainUserRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.modelmapper.ModelMapper;
@@ -49,7 +50,7 @@ public class UserReservationTests {
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private AuthUserRepository userRepository;
+    private MainUserRepository userRepository;
     @Autowired
     private ShopRepository shopRepository;
     @Autowired
@@ -79,7 +80,7 @@ public class UserReservationTests {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId("guinea");
         userDTO.setUserPwd("pass123");
-        userDTO.setIsAdmin(0);
+        userDTO.setRole(UserRole.USER);
         userDTO.setUserName("김기니");
         userDTO.setUserPhone("010-1234-5678");
         userDTO.setIsLeave(0);

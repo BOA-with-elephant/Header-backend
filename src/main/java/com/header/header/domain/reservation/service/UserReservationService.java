@@ -1,6 +1,5 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
@@ -15,6 +14,7 @@ import com.header.header.domain.reservation.repository.UserReservationRepository
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.repository.MainUserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -30,7 +30,7 @@ public class UserReservationService {
 
     private final UserReservationRepository userReservationRepository;
     private final ModelMapper modelMapper;
-    private final AuthUserRepository userRepository;
+    private final MainUserRepository userRepository;
     private final ShopRepository shopRepository;
     private final MenuRepository menuRepository;
 

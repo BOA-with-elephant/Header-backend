@@ -1,5 +1,6 @@
 package com.header.header.domain.user.entity;
 
+import com.header.header.auth.common.UserRole;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,11 +18,12 @@ public class User {
     private int userCode;
     private String userId;
     private String userPwd;
-    private boolean isAdmin;
+    //private boolean isAdmin;
     private String userName;
     private String userPhone;
     private Date birthday;
     private boolean isLeave;
+    private UserRole role;
 
     public void modifyUserLeave(boolean isLeave){
         this.isLeave = isLeave;
@@ -39,4 +41,11 @@ public class User {
         this.userName = newName;
     }
 
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
 }
