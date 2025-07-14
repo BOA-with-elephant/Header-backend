@@ -1,8 +1,6 @@
 package com.header.header.domain.shop.entity;
 
 import com.header.header.domain.menu.entity.MenuCategory;
-import com.header.header.domain.shop.converter.ShopStatusConverter;
-import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,9 +33,6 @@ public class Shop {
     private Double shopLong;
     private Double shopLa;
 
-    @Convert(converter = ShopStatusConverter.class)
-    private ShopStatus shopStatus;
-
     private String shopOpen;
     private String shopClose;
     private Boolean isActive;
@@ -60,14 +55,13 @@ public class Shop {
 
     public void updateShopInfo(
             ShopCategory categoryInfo, String shopName, String shopPhone,
-            String shopLocation, Double shopLong, Double shopLa, ShopStatus shopStatus, String shopOpen, String shopClose) {
+            String shopLocation, Double shopLong, Double shopLa, String shopOpen, String shopClose) {
         this.categoryInfo = categoryInfo;
         this.shopName = shopName;
         this.shopPhone = shopPhone;
         this.shopLocation = shopLocation;
         this.shopLong = shopLong;
         this.shopLa = shopLa;
-        this.shopStatus = shopStatus;
         this.shopOpen = shopOpen;
         this.shopClose = shopClose;
     }

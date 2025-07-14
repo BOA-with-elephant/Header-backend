@@ -6,7 +6,6 @@ import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
-import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
@@ -69,12 +68,14 @@ class ShopServiceTest {
                 .categoryInfo(category)
                 .shopOpen("09:00")
                 .shopClose("18:00")
-                .shopStatus(ShopStatus.OPEN)
                 .isActive(true)
                 .build();
         shopRepository.save(shop1);
 
         testShopCode = shop1.getShopCode();
+
+        System.out.println(shop1.getShopLocation() + "/" + shop1.getShopLa() + "/" + shop1.getShopLong()
+        + " / " + shop1.getShopName() + "/" + shop1.getShopPhone() + "/" + shop1.getShopOpen() + "/" + shop1.getShopClose());
 
         Shop shop2 = Shop.builder()
                 .shopName("멀리 있는 샵")
@@ -86,7 +87,6 @@ class ShopServiceTest {
                 .categoryInfo(category)
                 .shopOpen("09:00")
                 .shopClose("18:00")
-                .shopStatus(ShopStatus.OPEN)
                 .isActive(true)
                 .build();
         shopRepository.save(shop2);
@@ -217,8 +217,7 @@ class ShopServiceTest {
                         dto.getMenuCategoryName() + " / " +
                         dto.getMenuName()+ " / " +
                         dto.getMenuPrice()+ " / " +
-                        dto.getEstTime()+ " / " +
-                        dto.getShopStatus()
+                        dto.getEstTime()
         ));
     }
 

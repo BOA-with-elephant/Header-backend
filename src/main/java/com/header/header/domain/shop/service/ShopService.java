@@ -4,7 +4,6 @@ import com.header.header.domain.shop.dto.*;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopErrorCode;
-import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
@@ -64,7 +63,6 @@ public class ShopService {
                 .shopLa(dto.getShopLa())
                 .shopOpen(dto.getShopOpen())
                 .shopClose(dto.getShopClose())
-                .shopStatus(ShopStatus.fromDbName(dto.getShopStatus()))
                 .isActive(true)
                 .build();
 
@@ -153,13 +151,7 @@ public class ShopService {
             shopLong = document.getLongitude();
         }
 
-        /*Converter 사용으로 if 문 처리*/
-        ShopStatus shopStatus = shop.getShopStatus();
-        if (dto.getShopStatus() != null) {
-            shopStatus = ShopStatus.fromDbName(dto.getShopStatus());
-        } else if (!shop.getShopStatus().equals(shopStatus)) {
-            shopStatus = ShopStatus.fromDbName(shop.getShopStatus().getDbName());
-        }
+        /*DB 수정, ShopStatus 삭제로 ShopStatus 처리 제외*/
 
         shop.updateShopInfo(
                 category,
@@ -168,7 +160,6 @@ public class ShopService {
                 shopLocation,
                 shopLong,
                 shopLa,
-                shopStatus,
                 shopOpen,
                 shopClose
         );
