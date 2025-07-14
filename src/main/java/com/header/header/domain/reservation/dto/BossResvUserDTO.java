@@ -11,7 +11,7 @@ import java.sql.Date;
 @ToString
 public class BossResvUserDTO {
 
-    private Integer userCode;
+    private int userCode;
     private String userName;
     private String userPhone;
     private Date birthday;
