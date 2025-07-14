@@ -73,4 +73,10 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
             @Param("endDate") Date endDate
     );
 
+    @Query("""
+    SELECT r 
+    FROM BossReservation r
+    """)
+    Optional<BossReservation> findByResvDate();
+
 }

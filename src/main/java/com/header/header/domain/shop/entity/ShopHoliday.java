@@ -19,7 +19,7 @@ public class ShopHoliday {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_code")
-    private Shop shopCode;
+    private Shop shopInfo;
 
     private Date holStartDate; // not null
     private Date holEndDate; //nullable
