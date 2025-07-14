@@ -22,7 +22,6 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
           , s.shopLocation as shopLocation
           , s.shopOpen as shopOpen
           , s.shopClose as shopClose
-          , s.shopStatus as shopStatus
           , sc.categoryName as categoryName
           , c.categoryName as menuCategoryName
           , m.menuName as menuName

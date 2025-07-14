@@ -1,7 +1,5 @@
 package com.header.header.domain.shop.projection;
 
-import com.header.header.domain.shop.enums.ShopStatus;
-
 public interface ShopSummary {
 
     String getShopName();
