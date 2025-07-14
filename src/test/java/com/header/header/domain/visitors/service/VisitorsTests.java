@@ -1,7 +1,9 @@
 package com.header.header.domain.visitors.service;
 
+import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.visitors.DTO.VisitorDetailDTO;
 import com.header.header.domain.visitors.DTO.VisitorsDTO;
+import com.header.header.domain.visitors.enitity.Visitors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 @Transactional
@@ -21,11 +25,22 @@ public class VisitorsTests {
     @Autowired
     private VisitorsService visitorsService;
 
+    private VisitorsDTO testVisitor;
+
     @BeforeEach
     void setUp(){
-        VisitorsDTO visitorsDTO = visitorsService.createVisitorsByNameAndPhone(2, "김예람", "010-2222-9999", true);
+        VisitorsDTO visitors = visitorsService.createVisitorsByNameAndPhone(2, "김예람", "010-2222-9999", true);
 
-        System.out.println(visitorsDTO);
+        testVisitor = VisitorsDTO.builder()
+                .clientCode(visitors.getClientCode())
+                .userCode(visitors.getUserCode())
+                .shopCode(visitors.getShopCode())
+                .memo("초기 메모입니다.")
+                .sendable(true)
+                .isActive(true)
+                .build();
+
+        System.out.println(testVisitor);
     }
 
     @Test
@@ -79,6 +94,27 @@ public class VisitorsTests {
         } else {
             System.out.println("조회된 방문자가 없습니다. (정상)");
         }
+    }
+
+    @Test
+    @DisplayName("샵 회원 메모 수정")
+    void testShopVisitorMemoUpdate(){
+        String updatememo = "수정된 메모";
+        String originmemo = testVisitor.getMemo();
+        visitorsService.updateShopUserMemo(testVisitor.getShopCode(),testVisitor.getClientCode(),updatememo);
+
+        assertEquals(originmemo, testVisitor.getMemo());
+    }
+
+    @Test
+    @DisplayName("샵 회원 논리적 삭제")
+    void testShopVisitorLogicalDelete(){
+
+        visitorsService.deleteShopUser(testVisitor.getShopCode(),testVisitor.getClientCode());
+
+        Visitors found = visitorsService.findVisitorByClientCode(testVisitor.getClientCode());
+
+        assertFalse(found.isActive());
     }
 
 }

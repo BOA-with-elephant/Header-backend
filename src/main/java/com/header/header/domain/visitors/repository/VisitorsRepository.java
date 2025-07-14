@@ -9,10 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
 
-    // (1) 기본 방문자 정보
+
+
+    // (1) 기본 방문자 정보 리스트
     @Query("SELECT v.clientCode as clientCode, " +
             "       v.userCode as userCode, " +
             "       v.memo as memo, " +
@@ -22,7 +25,8 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "       u.birthday as birthday " +
             "FROM Visitors v " +
             "INNER JOIN User u ON v.userCode = u.userCode " +
-            "WHERE v.shopCode = :shopCode")
+            "WHERE v.shopCode = :shopCode " +
+            "AND v.isActive = true")
     List<VisitorWithUserInfoView> findVisitorWithUserInfoByShopCode(@Param("shopCode") Integer shopCode);
     
     // (2) 방문 및 결제 통계 및 마지막 방문일 리스트 조회
@@ -52,4 +56,6 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
     List<UserFavoriteMenuView> getUserFavoriteMenusRaw(@Param("userCodes") List<Integer> userCodes);
 
 
+    // (4) clientCode로 샵 회원 조회
+    Optional<Visitors> findByClientCode(Integer clientCode);
 }
