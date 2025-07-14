@@ -1,8 +1,7 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
+import com.header.header.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
-import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
 import com.header.header.domain.reservation.enums.ReservationState;

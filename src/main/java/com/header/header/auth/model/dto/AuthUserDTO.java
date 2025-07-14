@@ -1,4 +1,4 @@
-package com.header.header.domain.auth.model.dto;
+package com.header.header.auth.model.dto;
 
 import lombok.*;
 
