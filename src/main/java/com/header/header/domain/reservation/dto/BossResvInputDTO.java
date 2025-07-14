@@ -30,6 +30,11 @@ public class BossResvInputDTO {
         this.userComment = userComment;
     }
 
+    public BossResvInputDTO(String menuName, Date resvDate, Time resvTime, String userComment, Integer shopCode) {
+        this(menuName, resvDate, resvTime, userComment);
+        this.shopCode = shopCode;
+    }
+
     public BossResvInputDTO(String userName, String userPhone, Integer shopCode, String menuName, Date resvDate, Time resvTime, String userComment) {
         this(menuName, resvDate, resvTime, userComment);
         this.userName = userName;

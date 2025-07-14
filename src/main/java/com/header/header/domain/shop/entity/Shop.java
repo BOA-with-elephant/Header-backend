@@ -54,6 +54,10 @@ public class Shop {
         this.isActive = false;
     }
 
+    public Shop(Integer shopCode){
+        this.shopCode = shopCode;
+    }
+
     public void updateShopInfo(
             ShopCategory categoryInfo, String shopName, String shopPhone,
             String shopLocation, Double shopLong, Double shopLa, ShopStatus shopStatus, String shopOpen, String shopClose) {
