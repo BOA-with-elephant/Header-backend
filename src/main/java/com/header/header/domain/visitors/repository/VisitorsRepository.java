@@ -25,7 +25,8 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "       u.birthday as birthday " +
             "FROM Visitors v " +
             "INNER JOIN User u ON v.userCode = u.userCode " +
-            "WHERE v.shopCode = :shopCode")
+            "WHERE v.shopCode = :shopCode " +
+            "AND v.isActive = true")
     List<VisitorWithUserInfoView> findVisitorWithUserInfoByShopCode(@Param("shopCode") Integer shopCode);
     
     // (2) 방문 및 결제 통계 및 마지막 방문일 리스트 조회
