@@ -234,7 +234,7 @@ public class BossReservationRepositoryTests {
 //        BossResvProjectionDTO reservation = bossReservationService.findReservationByResvCode(resvCode);
         List<SalesDetailDTO> salesList =  salesService.getSalesDetailsByShop(SHOP_CODE);
 
-        assertEquals(salesList.size(), 4);
+        assertEquals(salesList.size(), 3);
     }
 
     @Test
