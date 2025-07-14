@@ -7,7 +7,6 @@ public interface ShopDetailResponse {
     String getShopLocation();
     String getShopOpen();
     String getShopClose();
-    String getShopStatus();
     String getCategoryName();
 
 

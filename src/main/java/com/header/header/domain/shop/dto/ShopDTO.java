@@ -1,6 +1,5 @@
 package com.header.header.domain.shop.dto;
 
-import com.header.header.domain.shop.enums.ShopStatus;
 import jakarta.validation.constraints.*; //DTO 단계에서 Validation 검사
 import lombok.*;
 
@@ -31,9 +30,6 @@ public class ShopDTO {
     
     private Double shopLong;
     private Double shopLa;
-    
-    @NotBlank(message = "샵 상태는 비워둘 수 없습니다")
-    private ShopStatus shopStatus;
     
     @NotBlank(message = "영업 시작 시간은 비워둘 수 없습니다")
     private String shopOpen;
