@@ -1,26 +1,16 @@
 package com.header.header.auth.model.service;
 
 import com.header.header.auth.model.AuthDetails;
-import com.header.header.auth.model.dto.AuthUserDTO;
 import com.header.header.auth.model.dto.LoginUserDTO;
-import com.header.header.auth.model.dto.SignupDTO;
-import com.header.header.auth.model.repository.AuthUserRepository;
-import com.header.header.domain.user.entity.User;
-import com.header.header.domain.user.repository.MainUserRepository;
 import com.header.header.domain.user.service.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
 import java.util.Objects;
-
-import static com.header.header.auth.common.ApiResponse.*;
 
 @Service
 @RequiredArgsConstructor

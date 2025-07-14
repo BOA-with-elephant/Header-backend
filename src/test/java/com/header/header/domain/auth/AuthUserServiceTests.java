@@ -1,21 +1,18 @@
 package com.header.header.domain.auth;
 
 import com.header.header.auth.common.ApiResponse;
-import com.header.header.auth.model.dto.AuthUserDTO;
+import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
-import com.header.header.auth.model.repository.AuthUserRepository;
-import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
 import com.header.header.domain.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,6 +26,7 @@ public class AuthUserServiceTests {
     private MainUserRepository userRepository;
 
     @Test
+    @Order(1)
     @DisplayName("회원가입(user 생성) + 중복 체크 테스트")
     void registerNewUserTest() {
         //given1. 기존 정보와 중복 없이 가입할 때
@@ -78,6 +76,7 @@ public class AuthUserServiceTests {
     }
 
     @Test
+    @Order(2)
     @DisplayName("Read 로그인 테스트")
     void loginUserTest() {
         //given
@@ -89,12 +88,14 @@ public class AuthUserServiceTests {
         assertNotNull(checkLoggedIn);
         assertNotNull(checkLoggedIn.getUserCode());
         assertNotNull(checkLoggedIn.getUserName());
-        assertNotNull(checkLoggedIn.getUserRole().getRole());
+        assertNotNull(checkLoggedIn.isAdmin());
 
         assertEquals("leegahyeon", checkLoggedIn.getUserId());
         assertEquals("leegahyeon", checkLoggedIn.getUserPwd());
         assertEquals("이가현", checkLoggedIn.getUserName());
-        assertEquals("USER", checkLoggedIn.getUserRole().getRole());
+        assertFalse(checkLoggedIn.isAdmin());
+        System.out.println("고객 정보 확인: " + checkLoggedIn);
+        //고객 정보 확인: LoginUserDTO(userCode=98, userId=leegahyeon, userPwd=leegahyeon, userName=이가현, isAdmin=false)
 
         //2. 관리자 정보 확인
         //when
@@ -104,12 +105,14 @@ public class AuthUserServiceTests {
         assertNotNull(checkAdmin);
         assertNotNull(checkAdmin.getUserCode());
         assertNotNull(checkAdmin.getUserName());
-        assertNotNull(checkLoggedIn.getUserRole());
+        assertNotNull(checkLoggedIn.isAdmin());
 
         assertEquals("kwoneunji", checkAdmin.getUserId());
         assertEquals("kwoneunji", checkAdmin.getUserPwd());
         assertEquals("권은지", checkAdmin.getUserName());
-        assertEquals("ADMIN", checkLoggedIn.getUserRole().getRole());
+        assertTrue(checkAdmin.isAdmin());
+        System.out.println("관리자 정보 확인: " +checkAdmin);
+        //관리자 정보 확인: LoginUserDTO(userCode=2, userId=kwoneunji, userPwd=kwoneunji, userName=권은지, isAdmin=true)
 
         //3. 존재하지 않는 userCode로 유저 정보 불러오기
         //when
@@ -118,15 +121,16 @@ public class AuthUserServiceTests {
     }
 
     @Test
+    @Order(3)
     @DisplayName("Update 유저 정보 수정-1 비밀번호 수정 시 메세지 반환 확인")
     void modifyUserTest() {
-        User dbuser = userRepository.findById(29).orElseThrow();
+        User dbuser = userRepository.findByUserId("leejeok");
 
-        AuthUserDTO updateDTO = new AuthUserDTO();
+        UserDTO updateDTO = new UserDTO();
         updateDTO.setUserCode(dbuser.getUserCode());
+        updateDTO.setUserId(dbuser.getUserId());
         updateDTO.setUserPwd(dbuser.getUserPwd());
         System.out.println("original: " + updateDTO);
-        //original: AuthUserDTO(userCode=29, userId=null, userPwd=pwd29, isAdmin=false, userName=null, userPhone=null, birthday=null, isLeave=false)
 
         // when1. 동일한 정보로 수정 시도
         String result = userService.modifyUser(updateDTO);
@@ -148,23 +152,25 @@ public class AuthUserServiceTests {
     }
 
     @Test
+    @Order(4)
     @DisplayName("Update 유저 정보 수정-2 전화번호 수정 시 메세지 반환 및 중복 전화번호 확인")
     void modifyUserTest2() {
         // given: 기존 사용자 정보 조회
-        User dbuser = userRepository.findById(29).orElseThrow();
+        User dbuser = userRepository.findByUserId("parkshinhye");
 
-        AuthUserDTO updateDTO2 = new AuthUserDTO();
+        UserDTO updateDTO2 = new UserDTO();
         updateDTO2.setUserCode(dbuser.getUserCode());
+        updateDTO2.setUserId(dbuser.getUserId());
         updateDTO2.setUserPhone(dbuser.getUserPhone());
         System.out.println("original: " + updateDTO2);
-        //original: AuthUserDTO(userCode=29, userId=null, userPwd=null, isAdmin=false, userName=null, userPhone=010-1029-1029, birthday=null, isLeave=false)
+        //original: UserDTO(userCode=35, userId=parkshinhye, userPwd=null, isAdmin=0, userName=null, userPhone=010-1035-1035, birthday=null, isLeave=0)
 
         // when1. 동일한 정보로 수정 시도
         String result2 = userService.modifyUser(updateDTO2);
 
         // then: 동일한 값에 대한 경고 메시지 확인
         System.out.println("Same modifying result: " + result2);
-        //Same modifying result: 010-1029-1029(은)는 이전 전화번호와 동일합니다.
+        //Same modifying result: 010-1035-1035(은)는 이전 전화번호와 동일합니다.
 
         assertTrue(result2.contains(ApiResponse.SAME_PHONE.getMessage()));
         //result2에 SAME_PHONE의 msg값이 들어가 있는지 확인
@@ -178,20 +184,21 @@ public class AuthUserServiceTests {
         System.out.println("전화번호 수정 성공 메시지: " + successResult);
         //전화번호 수정 성공 메시지: 회원 정보가 성공적으로 수정되었습니다.
         System.out.println("After modify phone: " + updateDTO2);
-        //After modify phone: AuthUserDTO(userCode=29, userId=null, userPwd=null, isAdmin=false, userName=null, userPhone=010-1234-2222, birthday=null, isLeave=false)
+        //After modify phone: UserDTO(userCode=35, userId=parkshinhye, userPwd=null, isAdmin=0, userName=null, userPhone=010-1234-2222, birthday=null, isLeave=0))
     }
 
     @Test
+    @Order(5)
     @DisplayName("Update 유저 정보 수정-3 이름 수정 시 메세지 반환 확인")
     void modifyUserTest3() {
         // given: 기존 사용자 정보 조회
-        User dbuser = userRepository.findById(29).orElseThrow();
+        User dbuser = userRepository.findByUserId("suzy");
 
-        AuthUserDTO updateDTO3 = new AuthUserDTO();
+        UserDTO updateDTO3 = new UserDTO();
         updateDTO3.setUserCode(dbuser.getUserCode());
         updateDTO3.setUserName(dbuser.getUserName());
         System.out.println("original: " + updateDTO3);
-        //original: AuthUserDTO(userCode=29, userId=null, userPwd=null, isAdmin=false, userName=수지, userPhone=null, birthday=null, isLeave=false)
+        //original: UserDTO(userCode=29, userId=null, userPwd=null, isAdmin=false, userName=수지, userPhone=null, birthday=null, isLeave=false)
 
         // when1. 동일한 정보로 수정 시도
         String result = userService.modifyUser(updateDTO3);
@@ -200,7 +207,7 @@ public class AuthUserServiceTests {
         assertTrue(result.contains(ApiResponse.SAME_NAME.getMessage()));
 
         System.out.println("ModifyUser result: " + result);
-        //ModifyUser result: 이전 이름과 동일합니다.
+        //ModifyUser result: 수지(은)는 이전 이름과 동일합니다.
 
         // when2. 다른 값으로 바꾸는 경우
         updateDTO3.setUserName("배수지");
@@ -210,29 +217,28 @@ public class AuthUserServiceTests {
         assertEquals(ApiResponse.SUCCESS_MODIFY_USER.getMessage(), successResult);
         System.out.println("이름 수정 성공 메시지: " + successResult);
         System.out.println("After modify name: " + updateDTO3);
-        //After modify name: AuthUserDTO(userCode=29, userId=null, userPwd=null, isAdmin=false, userName=배수지, userPhone=null, birthday=null, isLeave=false)
+        //이름 수정 성공 메시지: 회원 정보가 성공적으로 수정되었습니다.
+        //After modify name: UserDTO(userCode=29, userId=null, userPwd=null, isAdmin=0, userName=배수지, userPhone=null, birthday=null, isLeave=0)
     }
 
     @Test
+    @Order(6)
     @DisplayName("deleteUser() - 논리적 삭제(isLeave=true) 확인 테스트")
     void deleteUserTest() {
         // given
-        int userCode = 30;
-        AuthUserDTO dto = new AuthUserDTO();
-        dto.setUserCode(userCode);
+        String userId = "kimgurae";
+        UserDTO dto = new UserDTO();
+        dto.setUserId(userId);
         System.out.println("original:" + dto);
-        //original:AuthUserDTO(userCode=30, userId=null, userPwd=null, isAdmin=false, userName=null, userPhone=null, birthday=null, isLeave=false)
+        //original:UserDTO(userCode=0, userId=kimgurae, userPwd=null, isAdmin=0, userName=null, userPhone=null, birthday=null, isLeave=0)
 
         // when
         userService.deleteUser(dto);
 
         // then: DB에서 다시 꺼내서 isLeave가 true로 바뀌었는지 확인
-        User updatedUser = userRepository.findById(userCode)
-                .orElseThrow(() -> new NoSuchElementException("회원이 존재하지 않습니다"));
-
-        assertTrue(updatedUser.isLeave());  // 논리 삭제되었는지 확인
+        User updatedUser = userRepository.findByUserId(userId);
+        assertTrue(updatedUser.isLeave(), "이미 탈퇴한 회원입니다");
         System.out.println("isLeave 값: " + updatedUser.isLeave());
         //isLeave 값: true
     }
-
 }

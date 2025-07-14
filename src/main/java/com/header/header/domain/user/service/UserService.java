@@ -1,9 +1,7 @@
 package com.header.header.domain.user.service;
 
-import com.header.header.auth.model.dto.AuthUserDTO;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
-import com.header.header.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
 import static com.header.header.auth.common.ApiResponse.*;
 import static com.header.header.auth.common.ApiResponse.SUCCESS_MODIFY_USER;
@@ -93,35 +90,28 @@ public class UserService {
      * @return modelMapper
      * @throws IllegalAccessError */
     /*Spring-data-jpa: findById (Repository에서 제공해주는 메소드) 이용하는 방법*/
-//    public LoginUserDTO findByUserId(String userId){
-//        LoginUserDTO login = userRepository.findByUserId(userId);
-//        if(!Objects.isNull(login)){
-//            return login;
-//        }else {
-//            throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원가입 후 로그인 해주십시오.");
-//        }
-//    }
     public LoginUserDTO findByUserId(String userId) {
         User foundUser = userRepository.findByUserId(userId);
 
-        LoginUserDTO login = modelMapper.map(foundUser, LoginUserDTO.class);
-        if (foundUser.getRole() != null) {
-            login.setUserRole(foundUser.getRole());  // ← 수동으로 세팅
+        if (foundUser == null) {
+            throw new UsernameNotFoundException("해당하는 회원이 없습니다.");
         }
 
-        if (login != null) {
-            return login;
-        } else {
-            throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원가입 후 로그인 해주십시오.");
-        }
+        // Entity → DTO 매핑
+        LoginUserDTO login = modelMapper.map(foundUser, LoginUserDTO.class);
+
+//        // isAdmin 설정
+//        login.isAdmin().setIsAdmin(foundUser.isAdmin() ? 0 : 1);
+
+        return login;
     }
 
     /*Update : Modify user information
      *
      * @param authUserDTO
      * @throws IllegalArgumentException */
-    @jakarta.transaction.Transactional
-    public String modifyUser(AuthUserDTO authUserDTO){
+    @Transactional
+    public String modifyUser(UserDTO authUserDTO){
         // 1. 기존 유저 엔티티 조회 (예시로 userCode 또는 userId 기준으로 조회)
         User user = userRepository.findById(authUserDTO.getUserCode())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
@@ -157,12 +147,21 @@ public class UserService {
      -> deleteById() 말고
      실제론 Update가 사용되어야 함
      isLeave = true 형태로
-     @param autuUserDTO
+     @param userDTO
      */
-    @jakarta.transaction.Transactional
-    public void deleteUser(AuthUserDTO authUserDTO) {
-        User user = userRepository.findById(authUserDTO.getUserCode())
-                .orElseThrow(() -> new NoSuchElementException("이미 탈퇴한 회원입니다"));
+//    @Transactional
+//    public void deleteUser(UserDTO userDTO) {
+//        User user = userRepository.findById(userDTO.getUserCode())
+//                .orElseThrow(() -> new NoSuchElementException("이미 탈퇴한 회원입니다"));
+//        user.modifyUserLeave(true);
+//    }
+    @Transactional
+    public void deleteUser(UserDTO userDTO) {
+        User user = userRepository.findByUserId(userDTO.getUserId());
+        if (user.isLeave()) {
+            throw new NoSuchElementException("이미 탈퇴한 회원입니다");
+        }
         user.modifyUserLeave(true);
     }
+
 }

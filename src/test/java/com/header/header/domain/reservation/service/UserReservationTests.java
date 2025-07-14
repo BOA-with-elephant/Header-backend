@@ -1,6 +1,5 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.auth.common.UserRole;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
@@ -15,7 +14,6 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
-import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopStatus;
@@ -80,7 +78,7 @@ public class UserReservationTests {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId("guinea");
         userDTO.setUserPwd("pass123");
-        userDTO.setRole(UserRole.USER);
+        userDTO.setIsAdmin(0);
         userDTO.setUserName("김기니");
         userDTO.setUserPhone("010-1234-5678");
         userDTO.setIsLeave(0);

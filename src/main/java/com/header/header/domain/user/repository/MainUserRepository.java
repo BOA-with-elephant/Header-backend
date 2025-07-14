@@ -14,8 +14,6 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
     /* 고객 아이디를 통해 고객 정보 불러오기 - 정아 */
     User findByUserId(String userId);
 
-    String userId(String userId);
-
     boolean existsByUserId(String userId);
 
     boolean existsByUserPhone(String userPhone);

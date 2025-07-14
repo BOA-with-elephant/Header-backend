@@ -1,12 +1,10 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.common.exception.GlobalExceptionHandler;
 import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.*;
 import com.header.header.domain.reservation.entity.BossReservation;
-import com.header.header.domain.reservation.entity.Reservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.projection.BossResvDetailView;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
