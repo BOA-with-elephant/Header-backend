@@ -7,9 +7,7 @@ import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -18,6 +16,7 @@ import java.sql.Time;
 @Table(name="tbl_reservation")
 @Getter
 @NoArgsConstructor( access = AccessLevel.PROTECTED)
+@Builder
 public class BossReservation {
 
     @Id

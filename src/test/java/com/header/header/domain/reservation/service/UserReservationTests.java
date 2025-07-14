@@ -1,136 +1,393 @@
 package com.header.header.domain.reservation.service;
 
+import com.header.header.domain.auth.model.repository.AuthUserRepository;
+import com.header.header.domain.menu.entity.Menu;
+import com.header.header.domain.menu.entity.MenuCategory;
+import com.header.header.domain.menu.entity.MenuCategoryId;
+import com.header.header.domain.menu.repository.MenuCategoryRepository;
+import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
+import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
+import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
+import com.header.header.domain.reservation.repository.BossReservationRepository;
+import com.header.header.domain.reservation.repository.UserReservationRepository;
+import com.header.header.domain.shop.dto.ShopDTO;
+import com.header.header.domain.shop.entity.Shop;
+import com.header.header.domain.shop.enums.ShopStatus;
+import com.header.header.domain.shop.repository.ShopRepository;
+import com.header.header.domain.user.dto.UserDTO;
+import com.header.header.domain.user.entity.User;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
 @Transactional
 public class UserReservationTests {
 
+    /*테스트용 데이터 세팅용 Autowired*/
     @Autowired
     private UserReservationService userReservationService;
+    @Autowired
+    private ModelMapper modelMapper;
+    @Autowired
+    private AuthUserRepository userRepository;
+    @Autowired
+    private ShopRepository shopRepository;
+    @Autowired
+    private MenuCategoryRepository menuCategoryRepository;
+    @Autowired
+    private MenuRepository menuRepository;
+    @Autowired
+    private BossReservationRepository bossReservationRepository;
+    @Autowired
+    private UserReservationRepository userReservationRepository;
 
+    /*테스트용 데이터 세팅용 상수 - @BeforeEach 에서 초기화*/
+    private Integer testUserCode;
+    private Integer testShopCode;
+    private Integer testMenuCategoryCode;
+    private Integer testMenuCode;
+    private Integer testResvCode;
+
+    @BeforeEach
+    @Transactional
     @Test
-    @DisplayName("CREATE")
-    @Commit
-    public void testCreateUserReservation() {
+    void setUp() {
+        /*1. 테스트용 유저*/
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId("guinea");
+        userDTO.setUserPwd("pass123");
+        userDTO.setIsAdmin(0);
+        userDTO.setUserName("김기니");
+        userDTO.setUserPhone("010-1234-5678");
+        userDTO.setIsLeave(0);
 
-        //given
-        Integer userCode = 1;
-        Integer shopCode = 1;
+        User testUser = modelMapper.map(userDTO, User.class);
+        userRepository.save(testUser);
+        testUserCode = testUser.getUserCode();
 
-        UserReservationDTO resvInfo = new UserReservationDTO();
+        /*2. 테스트용 샵*/
+        ShopDTO shopDTO = new ShopDTO();
+        shopDTO.setCategoryCode(1);
+        shopDTO.setAdminCode(1);
+        shopDTO.setShopName("기니샵");
+        shopDTO.setShopPhone("02-123-4567");
+        shopDTO.setShopLocation("서울시 종로구");
+        shopDTO.setShopLong(127.0276);
+        shopDTO.setShopLa(37.4979);
+        shopDTO.setShopStatus(ShopStatus.OPEN);
+        shopDTO.setShopOpen("09:00");
+        shopDTO.setShopClose("18:00");
+        shopDTO.setIsActive(true);
 
-        resvInfo.setUserCode(userCode);
-        resvInfo.setShopCode(shopCode);
-        resvInfo.setMenuCode(1);
-        resvInfo.setResvDate(Date.valueOf("2022-01-01"));
-        resvInfo.setResvTime(Time.valueOf("10:00:00"));
-        resvInfo.setUserComment("양상추는 최고급으로 준비해주세요.");
-        resvInfo.setResvState(ReservationState.APPROVE);
+        Shop testShop = modelMapper.map(shopDTO, Shop.class);
+        shopRepository.save(testShop);
+        testShopCode = testShop.getShopCode();
 
-        //when
-        UserReservationDTO createdResv = userReservationService.createUserReservation(resvInfo);
+        /*3. 테스트용 메뉴 카테고리 및 메뉴*/
+        testMenuCategoryCode = 5; // 두피케어
 
-        //then
-        assert createdResv.getUserCode() == userCode;
-        System.out.println(createdResv);
+        MenuCategoryId id
+                = new MenuCategoryId(testMenuCategoryCode, testShopCode);
+
+
+        MenuCategory menuCategory = MenuCategory.builder()
+                .id(id)
+                .categoryName("기니피그 전용 메뉴")
+                .menuColor("#FFFFFF")
+                .isActive(true)
+                .build();
+
+        menuCategoryRepository.save(menuCategory);
+        testMenuCategoryCode = menuCategory.getCategoryCode();
+
+        Menu menu = Menu.builder()
+                .menuName("기니피기 손님용 특별케어")
+                .menuPrice(1000)
+                .estTime(300)
+                .isActive(true)
+                .menuCategory(menuCategory)
+                .build();
+
+        menuRepository.save(menu);
+        testMenuCode = menu.getMenuCode();
+
+        /*4. 테스트용 예약*/
+        BossReservation bossReservation = BossReservation
+                .builder()
+                .userInfo(testUser)
+                .shopInfo(testShop)
+                .menuInfo(menuRepository.findById(testMenuCode).orElseThrow())
+                .resvDate(new Date(2025, 7, 31))
+                .resvTime(new Time(14, 0, 0))
+                .userComment("푸들처럼 볶아주세요")
+                .resvState(ReservationState.APPROVE)
+                .build();
+
+        bossReservationRepository.save(bossReservation);
+        testResvCode = bossReservation.getResvCode();
     }
 
     @Test
-    @DisplayName("단건 조회 - 상세 조회")
-    public void testGetReservationByResvCode() {
+    @Order(1)
+    @DisplayName("예약 정보의 상세 조회")
+    void testReadReservationDetail() {
+        // when
+        Optional<UserReservationDetail> result
+                = userReservationService.readDetailByUserCodeAndResvCode(
+                testUserCode, testResvCode
+        );
 
-        //given
-        Integer resvCode = 1;
-
-        //when
-        UserReservationDTO resvInfo = userReservationService.getReservationByResvCode(resvCode);
-
-        //then
-        assert resvInfo.getResvCode() == resvCode;
-        System.out.println(resvInfo);
+        // then
+        assertTrue(result.isPresent()); //Optional<>이 값을 가지고 있으면 true 리턴
+        assertEquals("김기니", result.get().getUserName());
+        assertEquals("기니샵", result.get().getShopName());
+        System.out.println(
+                result.get().getResvDate() + " / "
+                + result.get().getResvTime() + " / "
+                + result.get().getResvState() + " / "
+                + result.get().getUserComment() + " / "
+                + result.get().getShopName() + " / "
+                + result.get().getShopLocation() + " / "
+                + result.get().getMenuName() + " / "
+                + result.get().getUserName() + " / "
+                + result.get().getUserPhone()
+        );
     }
 
     @Test
-    @DisplayName("전체 조회 - userCode로 조회")
-    public void testFindUserReservationsByUserCode() {
-
-        //given
-        Integer userCode = 1;
-
-        //when
-        List<UserReservationSummary> resvList = userReservationService.findByUserCode(userCode);
-
-        //then
-        for (UserReservationSummary resv: resvList) {
-            assert resv.getUserCode() == userCode;
-            System.out.println(resv.getResvCode() + ", 유저코드 : " + resv.getUserCode() + ", 예약 상태 : " + resv.getResvState());
-        }
+    @Order(2)
+    @DisplayName("잘못된 유저 코드로 상세 조회하는 경우")
+    void testReadReservationDetailWrongUserCode() {
+        // when & then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.readDetailByUserCodeAndResvCode(99999, testResvCode);
+        });
     }
 
     @Test
-    @DisplayName("전체 조회 예외 : 존재하지 않는 userCode로 조회")
-    public void testUserNotFound() {
-
-        //given
-        Integer userCode = 200;
-
-        //then
-        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.findByUserCode(userCode));
-
-    }
-
-
-
-    @Test
-    @DisplayName("DELETE")
-    @Commit
-    public void testCancelUserReservation() {
-        //given
-        Integer resvCode = 18;
-
-        //when
-        UserReservationDTO userReservationDTO = userReservationService.cancelReservation(resvCode);
-
-        //then
-        assert userReservationDTO.getResvState() == ReservationState.CANCEL;
-        System.out.println(userReservationDTO);
+    @Order(3)
+    @DisplayName("잘못된 예약 코드로 상세 조회하는 경우")
+    void testReadReservationDetailWrongResvCode() {
+        // when & then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.readDetailByUserCodeAndResvCode(testUserCode, 99999);
+        });
     }
 
     @Test
-    @DisplayName("DELETE 예외 : 결제 완료된 예약 취소 시도")
-    public void testCancelPaidReservation() {
+    @Order(4)
+    @DisplayName("자신이 예약한 내역들을 요약 조회")
+    void testFindReservationSummaryByUserCode() {
         //given
-        Integer resvCode = 99;
+        UserReservationSearchConditionDTO conditionDTO = new UserReservationSearchConditionDTO();
+        conditionDTO.setUserCode(3);
+        conditionDTO.setStartDate(null);
+        conditionDTO.setEndDate(null);
+
+        //when & then
+        List<UserReservationSummary> results = userReservationService.findResvSummaryByUserCode(conditionDTO);
+
+        assertNotEquals(0, results.size());
+        results.forEach(r -> {
+            System.out.println(
+                            r.getResvDate() + " / " +
+                            r.getResvTime() + " / " +
+                            r.getResvState() + " / " +
+                                    r.getShopName() + " / " +
+                                    r.getShopLocation() + " / " +
+                                            r.getMenuName()
+            );
+        });
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("잘못된 유저 코드로 요약 조회")
+    void testFindReservationSummaryWrongUserCode() {
+        //given
+        UserReservationSearchConditionDTO conditionDTO = new UserReservationSearchConditionDTO();
+        conditionDTO.setUserCode(999999);
+        conditionDTO.setStartDate(null);
+        conditionDTO.setEndDate(null);
 
         //when and then
-        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.findResvSummaryByUserCode(conditionDTO);
+        });
     }
 
     @Test
-    @DisplayName("DELETE 예외 : 시술 완료된 예약 취소 시도")
-    public void testCancelWrongAttempt() {
+    @Order(6)
+    @DisplayName("탈퇴한 유저 코드로 요약 조회")
+    void testFindReservationSummaryLeftUserCode() {
         //given
-        Integer resvCode = 8;
+        UserReservationSearchConditionDTO conditionDTO = new UserReservationSearchConditionDTO();
+        conditionDTO.setUserCode(5);
+        conditionDTO.setStartDate(null);
+        conditionDTO.setEndDate(null);
 
         //when and then
-        assertThrows(UserReservationExceptionHandler.class, () -> userReservationService.cancelReservation(resvCode));
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.findResvSummaryByUserCode(conditionDTO);
+        });
     }
-    
-    
+
+    @Test
+    @Order(7)
+    @DisplayName("기간 필터 요약 조회")
+    void testFindReservationSummaryByDate() throws ParseException {
+        //given
+        UserReservationSearchConditionDTO conditionDTO = new UserReservationSearchConditionDTO();
+        conditionDTO.setUserCode(3);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        conditionDTO.setStartDate(Date.valueOf("2025-06-01"));
+        conditionDTO.setEndDate(Date.valueOf("2025-07-31"));
+
+        //when and then
+        List<UserReservationSummary> results
+                = userReservationService.findResvSummaryByUserCode(conditionDTO);
+
+        assertNotEquals(0, results.size());
+
+        results.forEach(r -> {
+            System.out.println(
+                    r.getResvDate() + " / " +
+                            r.getResvTime() + " / " +
+                            r.getResvState() + " / " +
+                            r.getShopName() + " / " +
+                            r.getShopLocation() + " / " +
+                            r.getMenuName()
+            );
+        });
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("조회 시작 날짜가 조회 종료 날짜보다 이후일 경우")
+    void testFindReservationSummaryWrongDate() {
+        //given
+        UserReservationSearchConditionDTO conditionDTO = new UserReservationSearchConditionDTO();
+        conditionDTO.setUserCode(3);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        conditionDTO.setStartDate(Date.valueOf("2025-08-01"));
+        conditionDTO.setEndDate(Date.valueOf("2025-07-31"));
+
+        //when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.findResvSummaryByUserCode(conditionDTO);
+        });
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("새로운 예약을 생성 후 상세정보를 조회")
+    @Transactional
+    void testCreateReservation() {
+        // given
+
+        Date stringTypeDate = Date.valueOf("2025-07-31");
+
+        UserReservationDTO dto = new UserReservationDTO();
+        dto.setUserCode(testUserCode);
+        dto.setShopCode(testShopCode);
+        dto.setMenuCode(testMenuCode);
+        dto.setResvDate(Date.valueOf("2025-07-31"));
+        dto.setResvTime(Time.valueOf("14:30:00"));
+        dto.setUserComment("예약 테스트입니다.");
+
+        // when
+        Optional<UserReservationDetail> result =
+                userReservationService.createReservation(dto);
+
+        // then
+        assertTrue(result.isPresent());
+        UserReservationDetail detail = result.get();
+
+        assertEquals("2025-07-31", detail.getResvDate());
+        assertEquals("14:30:00", detail.getResvTime());
+
+        System.out.println(result.get().getResvDate() + " / "
+                + result.get().getResvTime() + " / "
+                + result.get().getResvState() + " / "
+                + result.get().getShopName() + " / "
+                + result.get().getShopLocation() + " / "
+                + result.get().getMenuName() + " / "
+                + result.get().getUserName() + " / "
+                + result.get().getUserPhone()
+        );
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("잘못된 메뉴로 예약 생성 시도")
+    void testCreateReservationWrongMenu() {
+        // given
+        Date stringTypeDate = Date.valueOf("2025-07-31");
+
+        UserReservationDTO dto = new UserReservationDTO();
+        dto.setUserCode(testUserCode);
+        dto.setShopCode(testShopCode);
+        dto.setMenuCode(99999);
+        dto.setResvDate(Date.valueOf("2025-07-31"));
+        dto.setResvTime(Time.valueOf("14:30:00"));
+        dto.setUserComment("예약 테스트입니다.");
+
+        //when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.createReservation(dto);
+        });
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("사용자 예약 논리적 삭제")
+    void testCancelReservation() {
+        //when and then
+        userReservationService.cancelReservation(testUserCode, testResvCode);
+
+        BossReservation reservation = userReservationRepository.findById(testResvCode).get();
+
+        assertNotNull(reservation);
+        assertEquals(ReservationState.CANCEL, reservation.getResvState());
+
+        System.out.println(
+                reservation.getResvCode() + " / " +
+                        reservation.getUserInfo().getUserName() + " / " +
+                        reservation.getShopInfo().getShopName() + " / " +
+                        reservation.getMenuInfo().getMenuName() + " / " +
+                        reservation.getResvDate() + " / " +
+                        reservation.getResvTime() + " / " +
+                        reservation.getUserComment() + " / " +
+                        reservation.getResvState());
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("잘못된 예약 코드 삭제 시도")
+    void testCancelReservationWrongResvCode() {
+        //when and then
+        assertThrows(
+                UserReservationExceptionHandler.class,
+                () -> {userReservationService.cancelReservation(testUserCode, 99999);});
+    }
 }

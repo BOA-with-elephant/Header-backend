@@ -73,4 +73,14 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
 
     /* 메뉴 이름으로 메뉴 엔티티 조회하기 */
     Menu findByMenuName(String menuName);
+
+    /* 메뉴 코드, 샵 코드로 엔티티 조회하기 - 사용자 예약 생성 시 메뉴 유효성 체크 로직에서 사용*/
+    @Query("""
+           SELECT m 
+           FROM Menu m 
+           WHERE m.menuCode = :menuCode 
+           AND m.menuCategory.id.shopCode = :shopCode
+           AND m.isActive = true 
+           """)
+    Menu findByMenuCodeAndShopCodeAndIsActiveTrue(Integer menuCode, Integer shopCode);
 }
