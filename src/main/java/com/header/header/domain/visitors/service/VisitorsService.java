@@ -1,14 +1,17 @@
 package com.header.header.domain.visitors.service;
 
+import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.user.service.UserService;
 import com.header.header.domain.visitors.DTO.VisitorDetailDTO;
 import com.header.header.domain.visitors.DTO.VisitorsDTO;
+import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
 import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
 import com.header.header.domain.visitors.repository.VisitorsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -94,6 +97,22 @@ public class VisitorsService {
                 .shopCode(shopCode)
                 .sendable(sendable)
                 .build();
+    }
+
+    /**
+     * 샵 고객에 대한 메모를 수정
+     *
+     * @param shopCode 샵 코드
+     * @param clientCode 샵 방문자 코드( PK이기 때문에 clientCode로 검색해야 INDEXING 가능 )
+     * @param memo 수정할 메모
+     * */
+    @Transactional              // todo. shopCode, clientCode INDEXING을 고려한 매개변수 선정
+    public void updateShopUserMemo(Integer shopCode, Integer clientCode, String memo){
+        // Visitor에서 visitor코드로
+        Visitors found = visitorsRepository.findByClientCode(clientCode)
+                .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 클라이언트 코드 입니다."));
+
+        found.modifyClientMemo(memo); // Entity Update
     }
 
 
