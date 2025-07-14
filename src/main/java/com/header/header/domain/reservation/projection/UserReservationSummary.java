@@ -1,13 +1,14 @@
 package com.header.header.domain.reservation.projection;
 
-import com.header.header.domain.reservation.enums.ReservationState;
-
 public interface UserReservationSummary {
 
-    Integer getResvCode();
-    Integer getUserCode();
-    Integer getShopCode();
+    /*사용자가 자신이 예약한 다수의 예약들을 요약 조회하는 프로젝션*/
+
     String getResvDate();
-    ReservationState getResvState();
+    String getResvTime();
+    String getResvState();
+    String getShopName();
+    String getShopLocation();
+    String getMenuName();
 
 }

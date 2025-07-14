@@ -18,9 +18,9 @@ public class MapServiceDTO {
     @Getter
     @NoArgsConstructor
     public static class Document {
-        @JsonProperty("x")
-        private double latitude;
-        @JsonProperty("y")
+        @JsonProperty("x") //경도
         private double longitude;
+        @JsonProperty("y") //위도
+        private double latitude;
     }
 }
