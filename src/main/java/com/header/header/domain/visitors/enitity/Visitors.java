@@ -24,4 +24,8 @@ public class Visitors {
     public void modifyClientMemo(String memo){
         this.memo = memo;
     }
+
+    public void deleteLogical(){
+        this.isActive = false;
+    }
 }

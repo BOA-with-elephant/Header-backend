@@ -108,16 +108,31 @@ public class VisitorsService {
      * */
     @Transactional              // todo. shopCode, clientCode INDEXING을 고려한 매개변수 선정
     public void updateShopUserMemo(Integer shopCode, Integer clientCode, String memo){
-        // Visitor에서 visitor코드로
-        Visitors found = visitorsRepository.findByClientCode(clientCode)
-                .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 클라이언트 코드 입니다."));
+        Visitors found = findVisitorByClientCode(clientCode);
 
         found.modifyClientMemo(memo); // Entity Update
+    }
+
+    /**
+     * 샵 고객 논리적 삭제
+     *
+     * @param shopCode 샵 코드
+     * @param clientCode 샵 방문자 코드( PK이기 때문에 clientCode로 검색해야 INDEXING 가능 )
+     * */
+    @Transactional
+    public void deleteShopUser(Integer shopCode, Integer clientCode, String memo){
+        Visitors found = findVisitorByClientCode(clientCode);
+
+        found.deleteLogical(); // 논리적 삭제 isActive = false
     }
 
 
 
     // == helper method ==
+    private Visitors findVisitorByClientCode(Integer clientCode){
+        return visitorsRepository.findByClientCode(clientCode)
+                .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 클라이언트 코드 입니다."));
+    }
 
     /* 방문자 조회 리스트를 Map<회원 코드, 방문 통계 정보>으로 변환 */
     private Map<Integer, VisitStatisticsView> getVisitStatisticsBatch(List<Integer> userCodes) {
