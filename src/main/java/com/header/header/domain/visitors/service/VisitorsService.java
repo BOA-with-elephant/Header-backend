@@ -10,8 +10,10 @@ import com.header.header.domain.visitors.projection.VisitStatisticsView;
 import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
 import com.header.header.domain.visitors.repository.VisitorsRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,8 @@ public class VisitorsService {
 
     private final UserService userService;
     private final VisitorsRepository visitorsRepository;
+    private final ModelMapper modelMapper;
+    private final RestClient.Builder builder;
 
 
     /**
@@ -82,6 +86,7 @@ public class VisitorsService {
      * @param userPhone 유저 핸드폰 번호
      * @param sendable 광고성문자 수신 동의 여부
      * */
+    @Transactional
     public VisitorsDTO createVisitorsByNameAndPhone(Integer shopCode,String userName, String userPhone, Boolean sendable){
         // 이미 user로 존재하는지 체크
         Integer userCode = userService.findUserByNameAndPhone(userName, userPhone);
@@ -91,11 +96,21 @@ public class VisitorsService {
             userCode = userService.createUserByNameAndPhone(userName, userPhone).getUserCode();
         }
 
-        // Visitors Table에 생성.
-        return VisitorsDTO.builder()
+        VisitorsDTO visitorsDTO = VisitorsDTO.builder()
                 .userCode(userCode)
                 .shopCode(shopCode)
                 .sendable(sendable)
+                .build();
+
+        Visitors visitors = visitorsRepository.save(modelMapper.map(visitorsDTO, Visitors.class));
+
+        // Visitors Table에 생성.
+        return VisitorsDTO.builder()
+                .clientCode(visitors.getClientCode())
+                .userCode(visitors.getUserCode())
+                .shopCode(visitors.getShopCode())
+                .memo(visitors.getMemo())
+                .sendable(visitors.isSendable())
                 .build();
     }
 
@@ -120,7 +135,7 @@ public class VisitorsService {
      * @param clientCode 샵 방문자 코드( PK이기 때문에 clientCode로 검색해야 INDEXING 가능 )
      * */
     @Transactional
-    public void deleteShopUser(Integer shopCode, Integer clientCode, String memo){
+    public void deleteShopUser(Integer shopCode, Integer clientCode){
         Visitors found = findVisitorByClientCode(clientCode);
 
         found.deleteLogical(); // 논리적 삭제 isActive = false
@@ -129,7 +144,8 @@ public class VisitorsService {
 
 
     // == helper method ==
-    private Visitors findVisitorByClientCode(Integer clientCode){
+    // Test를 위해 public으로 변경
+    public Visitors findVisitorByClientCode(Integer clientCode){
         return visitorsRepository.findByClientCode(clientCode)
                 .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 클라이언트 코드 입니다."));
     }
