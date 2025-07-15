@@ -81,10 +81,11 @@ public class ShopMessageHistoryService {
         ShopMessageHistory foundMessageHistory = shopMessageHistoryRepository.findByHistoryCode(historyCode)
                 .orElseThrow(() -> InvalidBatchException.invalidBatchCode("유효하지않은 히스토리 코드"));
 
-        if(errorMessage != null){
-            foundMessageHistory.markAsFailed(errorMessage);
-        }else{
+        if(errorMessage == null || errorMessage.trim().isEmpty()){
             foundMessageHistory.markAsSuccess();
+        }else{
+            foundMessageHistory.markAsFailed(errorMessage);
+
         }
 
         return modelMapper.map(foundMessageHistory, ShopMessageHistoryDTO.class);

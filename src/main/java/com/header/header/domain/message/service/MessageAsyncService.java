@@ -117,8 +117,7 @@ public class MessageAsyncService {
         try {
             log.info("✅ [{}] SMS 전송 성공", taskId);
 
-            history.updateStatus(MessageStatus.SUCCESS, "전송 완료");
-            shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(),"");
+            shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(),null);
 
         } catch (Exception e) {
             log.error("[{}] 성공 처리 중 오류", taskId, e);
@@ -129,7 +128,6 @@ public class MessageAsyncService {
         try {
             log.error("❌ [{}] SMS 전송 실패 - Error: {}", taskId, error.getMessage());
 
-            history.updateStatus(MessageStatus.FAIL, error.getMessage());
             shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(),error.getMessage());
 
         } catch (Exception e) {
