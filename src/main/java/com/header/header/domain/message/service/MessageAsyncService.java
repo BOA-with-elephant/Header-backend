@@ -12,18 +12,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
 @Slf4j
-@Transactional
 @RequiredArgsConstructor
 public class MessageAsyncService {
 
     private final CoolSmsService coolSmsService;
     private final ShopMessageHistoryService shopMessageHistoryService;
+    private final MessageSendBatchService messageSendBatchService;
     private final UserService userService;
 
     /**
@@ -56,9 +57,11 @@ public class MessageAsyncService {
                 .subject(request.getSubject())
                 .build();
 
+        MessageSendBatchDTO createdBatchDTO = messageSendBatchService.createMessageBatch(batchDTO);
+
         // history 저장
         ShopMessageHistoryDTO historyDTO = ShopMessageHistoryDTO.builder()
-                .batchCode(batchDTO.getBatchCode())
+                .batchCode(createdBatchDTO.getBatchCode())
                 .userCode(request.getTo())
                 .msgContent(request.getText())
                 .sendStatus(MessageStatus.PENDING.toString())
