@@ -1,10 +1,10 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
+import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
@@ -17,6 +17,7 @@ import com.header.header.domain.shop.entity.ShopHoliday;
 import com.header.header.domain.shop.repository.ShopHolidayRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
