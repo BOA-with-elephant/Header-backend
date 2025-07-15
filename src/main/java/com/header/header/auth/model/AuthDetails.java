@@ -1,6 +1,6 @@
-package com.header.header.domain.auth.model;
+package com.header.header.auth.model;
 
-import com.header.header.domain.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.LoginUserDTO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

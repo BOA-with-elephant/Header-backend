@@ -1,6 +1,5 @@
 package com.header.header.domain.reservation.service;
 
-import com.header.header.domain.auth.model.repository.AuthUserRepository;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
@@ -18,6 +17,7 @@ import com.header.header.domain.shop.entity.ShopHoliday;
 import com.header.header.domain.shop.repository.ShopHolidayRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class UserReservationService {
 
     private final UserReservationRepository userReservationRepository;
     private final ModelMapper modelMapper;
-    private final AuthUserRepository userRepository;
+    private final MainUserRepository userRepository;
     private final ShopRepository shopRepository;
     private final MenuRepository menuRepository;
     private final ShopHolidayRepository shopHolidayRepository;
@@ -79,6 +79,7 @@ public class UserReservationService {
                 throw new UserReservationExceptionHandler(UserReservationErrorCode.INPUT_DATE_WRONG);
             }
         }
+
 
         /*사용자 정보가 존재하지 않을 경우 예외*/
         User user = userRepository.findById(userCode)
