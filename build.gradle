@@ -48,6 +48,9 @@ dependencies {
     //카카오맵 API용 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-webflux'  // WebClient 사용
     implementation 'com.fasterxml.jackson.core:jackson-databind'           // JSON 파싱
+
+    //CoolSMS SDK
+    implementation 'net.nurigo:sdk:4.2.7'
 }
 
 tasks.named('test') {
