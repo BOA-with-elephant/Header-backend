@@ -51,6 +51,10 @@ dependencies {
 
     //CoolSMS SDK
     implementation 'net.nurigo:sdk:4.2.7'
+
+    // 테스트용 Lombok 추가
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
