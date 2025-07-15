@@ -22,7 +22,7 @@ class MessageIntegrationTest {
     private MessageAsyncService messageAsyncService;
 
     @Test
-    //@Disabled("수동 실행 - 실제 SMS 전송됨! 💸")
+    @Disabled("수동 실행 - 실제 SMS 전송됨! 💸")
     @DisplayName("실제 SMS 전송 테스트")
     void realSmsTest() throws InterruptedException {
 
