@@ -1,6 +1,7 @@
 package com.header.header.domain.shop.repository;
 
 import com.header.header.domain.shop.entity.ShopHoliday;
+import com.header.header.domain.shop.projection.ShopHolidayInfo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,4 +38,29 @@ public interface ShopHolidayRepository extends JpaRepository<ShopHoliday, Intege
             AND :dateToScan >= h.holStartDate      
         """)
     List<ShopHoliday> findRegHoliday (@Param("shopCode") Integer shopCode, @Param("dateToScan") Date dateToScan);
+
+    /*각각의 샵이 가진 휴일 정보를 불러옴
+    * 데이터: 휴일 시작일, 휴일 종료일, 반복 여부 (단기 휴일인지 정기 휴일인지 판단)
+    * 정렬: 휴일 시작 날짜 오름 차순
+    * */
+    @Query("""
+           SELECT 
+            h.holStartDate AS holStartDate,
+            h.holEndDate AS holEndDate,
+            h.isHolRepeat AS isHolRepeat
+            FROM ShopHoliday h
+            WHERE (h.shopInfo.shopCode = :shopCode AND h.holEndDate >= :today) 
+               OR (h.shopInfo.shopCode = :shopCode AND h.holEndDate IS NULL)
+            ORDER BY h.holStartDate ASC 
+            """)
+    List<ShopHolidayInfo> getShopHolidayInfo(@Param("shopCode") Integer shopCode, @Param("today") Date today);
+
+    // 그 샵에 해당하는 휴일 정보가 맞는지 검증 (삭제시 사용)
+    @Query("""
+           SELECT COUNT(h) = 1 
+           FROM ShopHoliday h
+           WHERE h.shopInfo.shopCode = :shopCode
+           AND h.shopHolCode = :shopHolCode
+           """)
+    boolean isHolReal(@Param("shopCode") Integer shopCode, @Param("shopHolCode") Integer shopHolCode);
 }
