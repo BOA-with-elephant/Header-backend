@@ -19,7 +19,7 @@ public class ShopHoliday {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_code")
-    private Shop shopCode;
+    private Shop shopInfo;
 
     private Date holStartDate; // not null
     private Date holEndDate; //nullable
@@ -28,5 +28,13 @@ public class ShopHoliday {
     /* 휴일 반복 여부
        1) true: startDate + 7 한 값을 곱해줌, endDate null 허용
        2) false: endDate null 불허 */
+
+    public void updateHolidayInfo(
+            Date startDate, Date endDate, Boolean isHolRepeat
+    ) {
+        this.holStartDate = startDate;
+        this.holEndDate = endDate;
+        this.isHolRepeat = isHolRepeat;
+    }
 
 }
