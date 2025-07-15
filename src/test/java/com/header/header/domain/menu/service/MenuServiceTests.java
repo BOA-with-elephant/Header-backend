@@ -30,6 +30,8 @@ public class MenuServiceTests {
     private static final Integer TEST_MENU_PRICE = 20000;
     private static final Integer TEST_EST_TIME = 100;
     private static final boolean TEST_ISACTIVE = true;
+    @Autowired
+    private MenuCategoryService menuCategoryService;
 
     @Test
     @Order(1)
@@ -195,17 +197,62 @@ public class MenuServiceTests {
     void testDeleteMenu() {
         // given
         int menuCode = 45;
-        assertNotNull(menuCode, "먼저 메뉴가 생성되어야 합니다.");
 
-        // When
+        // 먼저 메뉴가 활성화 상태인지 확인
+        MenuDTO existingMenu = menuService.getMenu(menuCode);
+        assertNotNull(existingMenu, "먼저 메뉴가 생성되어야 합니다.");
+        assertTrue(existingMenu.getIsActive(), "삭제 전 메뉴는 활성화 상태여야 합니다.");
+
+        System.out.println("삭제 전 메뉴 상태: " + existingMenu);
+
+        // When - 메뉴 삭제 (소프트 삭제)
         menuService.deleteMenu(menuCode);
 
         // Then - 메뉴는 존재하지만 비활성화 상태여야 함
         MenuDTO deletedMenu = menuService.getMenu(menuCode);
-        assertNotNull(deletedMenu);
-        assertFalse(deletedMenu.getIsActive());
+        assertNotNull(deletedMenu, "소프트 삭제된 메뉴는 여전히 존재해야 합니다.");
+        assertFalse(deletedMenu.getIsActive(), "삭제된 메뉴는 비활성화 상태여야 합니다.");
 
         System.out.println("소프트 삭제된 메뉴: " + deletedMenu);
+    }
+
+    // 카테고리 삭제 시 메뉴도 함께 삭제되는 테스트
+    @Test
+    @Order(10)
+    @DisplayName("카테고리 삭제 시 해당 메뉴들도 함께 비활성화 테스트")
+    @Commit
+    void testDeleteMenuCategoryWithMenus() {
+        // given
+        int categoryCode = 1;  // 테스트할 카테고리 코드
+        int shopCode = 1;      // 샵 코드
+
+        // 해당 카테고리의 활성화된 메뉴들 조회
+        List<MenuDTO> activeMenusBeforeDelete = menuService.getActiveMenusByCategory(categoryCode, shopCode);
+        assertFalse(activeMenusBeforeDelete.isEmpty(), "테스트할 카테고리에 활성화된 메뉴가 있어야 합니다.");
+
+        System.out.println("삭제 전 카테고리의 활성 메뉴 개수: " + activeMenusBeforeDelete.size());
+        activeMenusBeforeDelete.forEach(menu ->
+            System.out.println("- 메뉴: " + menu.getMenuName() + " (활성: " + menu.getIsActive() + ")")
+        );
+
+        // When - 카테고리 삭제 (벌크 업데이트 방식)
+        menuCategoryService.deleteMenuCategoryWithBulkUpdate(categoryCode, shopCode);
+
+        // Then - 카테고리와 해당 메뉴들이 모두 비활성화되어야 함
+
+        // 1. 해당 카테고리의 활성화된 메뉴가 없어야 함
+        List<MenuDTO> activeMenusAfterDelete = menuService.getActiveMenusByCategory(categoryCode, shopCode);
+        assertTrue(activeMenusAfterDelete.isEmpty(), "카테고리 삭제 후 활성화된 메뉴가 없어야 합니다.");
+
+        // 2. 개별 메뉴들이 비활성화 상태인지 확인
+        for (MenuDTO originalMenu : activeMenusBeforeDelete) {
+            MenuDTO updatedMenu = menuService.getMenu(originalMenu.getMenuCode());
+            assertNotNull(updatedMenu, "메뉴는 여전히 존재해야 합니다.");
+            assertFalse(updatedMenu.getIsActive(), "메뉴는 비활성화 상태여야 합니다.");
+            System.out.println("비활성화된 메뉴: " + updatedMenu.getMenuName() + " (활성: " + updatedMenu.getIsActive() + ")");
+        }
+
+        System.out.println("카테고리 삭제 및 연관 메뉴 비활성화 테스트 완료");
     }
 
     @Test

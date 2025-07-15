@@ -12,6 +12,8 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.shop.entity.Shop;
+import com.header.header.domain.shop.entity.ShopHoliday;
+import com.header.header.domain.shop.repository.ShopHolidayRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
@@ -21,6 +23,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date; // util.Date -> 날짜 및 시간 (1970 기준 밀리초 포함), 오래된 범용 타입, 사용 지양
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +36,7 @@ public class UserReservationService {
     private final MainUserRepository userRepository;
     private final ShopRepository shopRepository;
     private final MenuRepository menuRepository;
+    private final ShopHolidayRepository shopHolidayRepository;
 
     /*사용자가 자신의 예약 내역을 상세 조회할 경우*/
     public Optional<UserReservationDetail> readDetailByUserCodeAndResvCode(Integer userCode, Integer resvCode) {
@@ -163,6 +167,31 @@ public class UserReservationService {
         }
 
         userReservationRepository.save(reservation);
+    }
+
+    /*사용자가 접근하려는 날짜가 휴일인지 검증하는 메소드
+     * */
+    public boolean isHoliday(Integer shopCode, Date dateToScan) {
+
+        /*임시 휴일 확인 - 단 하루만 검사하는 쿼리 */
+        if (shopHolidayRepository.isTempHoliday(shopCode, dateToScan)) return true;
+
+        /*정기 휴일 확인 - 스캔하려는 날짜보다 이전에 설정된 휴일이 있는지 확인 */
+        List<ShopHoliday> repeatHols = shopHolidayRepository.findRegHoliday(shopCode, dateToScan);
+
+        /* 반환된 값이 비어있지 않을 때만 검증 */
+        if (!repeatHols.isEmpty()) {
+            /*java.time의 요일 계산 클래스*/
+            DayOfWeek day = dateToScan.toLocalDate().getDayOfWeek();
+            for (ShopHoliday hol : repeatHols) {
+                if (hol.getHolStartDate().toLocalDate().getDayOfWeek() == day) {
+                    return true;
+                }
+            }
+        }
+
+        /* 휴일 아님 false 반환*/
+        return false;
     }
 
 }

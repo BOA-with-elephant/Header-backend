@@ -20,4 +20,12 @@ public class Visitors {
     private boolean sendable;
     private boolean isActive;
 
+
+    public void modifyClientMemo(String memo){
+        this.memo = memo;
+    }
+
+    public void deleteLogical(){
+        this.isActive = false;
+    }
 }

@@ -16,7 +16,6 @@ import com.header.header.domain.reservation.repository.BossReservationRepository
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
-import com.header.header.domain.shop.enums.ShopStatus;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.dto.UserDTO;
@@ -103,7 +102,6 @@ public class UserReservationTests {
                 .categoryInfo(category)
                 .shopOpen("09:00")
                 .shopClose("18:00")
-                .shopStatus(ShopStatus.OPEN)
                 .isActive(true)
                 .build();
 
