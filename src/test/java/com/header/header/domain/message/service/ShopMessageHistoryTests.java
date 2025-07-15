@@ -8,6 +8,7 @@ import com.header.header.domain.message.projection.MessageHistoryListView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,8 @@ public class ShopMessageHistoryTests {
     private ShopMessageHistoryDTO testHistory;
     private ShopMessageHistoryDTO testReservedHistory;
 
+    private ModelMapper modelMapper;
+
     @BeforeEach
     void setUp(){
         // PENDING 상태 히스토리 생성
@@ -37,7 +40,7 @@ public class ShopMessageHistoryTests {
                 .sendStatus(String.valueOf(MessageStatus.PENDING))
                 .build();
 
-        testHistory = shopMessageHistoryService.createMessageHistory(createDTO);
+        testHistory = modelMapper.map(shopMessageHistoryService.createMessageHistory(createDTO), ShopMessageHistoryDTO.class);
 
         // RESERVED 상태 히스토리 생성 (추가 테스트용)
         ShopMessageHistoryDTO reservedDTO = ShopMessageHistoryDTO.builder()
@@ -47,7 +50,7 @@ public class ShopMessageHistoryTests {
                 .sendStatus(String.valueOf(MessageStatus.RESERVED))
                 .build();
 
-        testReservedHistory = shopMessageHistoryService.createMessageHistory(reservedDTO);
+        testReservedHistory = modelMapper.map(shopMessageHistoryService.createMessageHistory(reservedDTO), ShopMessageHistoryDTO.class);
     }
 
     @Test
@@ -143,7 +146,7 @@ public class ShopMessageHistoryTests {
                 .build();
 
         // when
-        ShopMessageHistoryDTO result = shopMessageHistoryService.createMessageHistory(newHistoryDTO);
+        ShopMessageHistoryDTO result = modelMapper.map(shopMessageHistoryService.createMessageHistory(newHistoryDTO), ShopMessageHistoryDTO.class);
 
         // then
         assertNotNull(result);

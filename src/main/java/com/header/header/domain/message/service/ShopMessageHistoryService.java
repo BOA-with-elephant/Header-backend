@@ -59,12 +59,12 @@ public class ShopMessageHistoryService {
      * @return ShopMessageHistoryDTO
      */
     @Transactional
-    public ShopMessageHistoryDTO createMessageHistory(ShopMessageHistoryDTO historyDTO){
+    public ShopMessageHistory createMessageHistory(ShopMessageHistoryDTO historyDTO){
         /* todo. 유효성 검사 */
 
         ShopMessageHistory result = shopMessageHistoryRepository.save(modelMapper.map(historyDTO, ShopMessageHistory.class));
 
-        return modelMapper.map(result, ShopMessageHistoryDTO.class);
+        return result;
     }
 
     /* Update */

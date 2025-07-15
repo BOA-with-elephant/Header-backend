@@ -1,16 +1,16 @@
 package com.header.header.domain.message.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-@Setter
-@Getter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 public class MessageSendBatchDTO {
 
