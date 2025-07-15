@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Entity
 @Table(name="tbl_shop_msg_history")
 @Getter
-@NoArgsConstructor( access = AccessLevel.PROTECTED)
+@NoArgsConstructor // ( access = AccessLevel.PROTECTED)
 public class ShopMessageHistory {
 
     @Id
@@ -40,9 +40,7 @@ public class ShopMessageHistory {
             this.sentAt = new Timestamp(System.currentTimeMillis());
             this.errorMessage = null; // 에러 메시지 초기화
         }
-
-        // 실패 시 에러 메시지 설정
-        if (newStatus == MessageStatus.FAIL) {
+        else if (newStatus == MessageStatus.FAIL) {
             this.errorMessage = errorMessage;
         }
 
@@ -67,5 +65,20 @@ public class ShopMessageHistory {
         updateStatus(MessageStatus.FAIL, errorMessage);
     }
 
+    // test setter
+    public void setMsgContent(String msgContent) {
+        this.msgContent = msgContent;
+    }
 
+    public void setUserCode(Integer userCode) {
+        this.userCode = userCode;
+    }
+
+    public void setSendStatus(MessageStatus sendStatus) {
+        this.sendStatus = sendStatus;
+    }
+
+    public void setSentAt(Timestamp sentAt) {
+        this.sentAt = sentAt;
+    }
 }

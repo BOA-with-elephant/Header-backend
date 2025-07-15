@@ -13,6 +13,11 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
     @Query( value = "SELECT u FROM User u WHERE u.userName LIKE CONCAT('%', :userName, '%') AND u.userPhone = :userPhone")
     User findByUserNameAndUserPhone(@Param("userName") String userName, @Param("userPhone") String userPhone);
 
+    @Query("SELECT u.userPhone " +
+            "FROM User u " +
+            "WHERE u.userCode = :userCode")
+    String findPhoneByUserCode(Integer userCode);
+
     /* 고객 아이디를 통해 고객 정보 불러오기 - 정아 */
     User findByUserId(String userId);
 

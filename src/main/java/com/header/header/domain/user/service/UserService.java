@@ -52,12 +52,15 @@ public class UserService {
         return find != null ? find.getUserCode() : null;
     }
 
+    public String getPhoneByUserCode(Integer userCode){
+        return userRepository.findPhoneByUserCode(userCode);
+    }
 
     /** save : registerNewUser
     -> SignupDTO 사용
     @param signupDTO 생성할 user 정보가 담긴 DTO
     @return 생성된 signupDTO(user관련 DTO)
-    @throws ApiResponse 이미 존재하는 아이디나 전화번호일 때 */
+     이미 존재하는 아이디나 전화번호일 때 */ /* @throws ApiResponse 이 부분 없는데 써서 오류나서 지웠어요 - 예람*/
     @Transactional
     public String registerNewUser(SignupDTO signupDTO) {
         //중복확인 1 : userId

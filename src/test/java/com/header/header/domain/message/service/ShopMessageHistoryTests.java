@@ -8,6 +8,7 @@ import com.header.header.domain.message.projection.MessageHistoryListView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,25 +28,29 @@ public class ShopMessageHistoryTests {
     private ShopMessageHistoryDTO testHistory;
     private ShopMessageHistoryDTO testReservedHistory;
 
+    private ModelMapper modelMapper;
+
     @BeforeEach
     void setUp(){
         // PENDING 상태 히스토리 생성
-        ShopMessageHistoryDTO createDTO = new ShopMessageHistoryDTO();
-        createDTO.setBatchCode(2);
-        createDTO.setUserCode(2);
-        createDTO.setMsgContent("개별 메세지 내용입니다.");
-        createDTO.setSendStatus(String.valueOf(MessageStatus.PENDING));
+        ShopMessageHistoryDTO createDTO = ShopMessageHistoryDTO.builder()
+                .batchCode(2)
+                .userCode(2)
+                .msgContent("개별 메세지 내용입니다.")
+                .sendStatus(String.valueOf(MessageStatus.PENDING))
+                .build();
 
-        testHistory = shopMessageHistoryService.createMessageHistory(createDTO);
+        testHistory = modelMapper.map(shopMessageHistoryService.createMessageHistory(createDTO), ShopMessageHistoryDTO.class);
 
         // RESERVED 상태 히스토리 생성 (추가 테스트용)
-        ShopMessageHistoryDTO reservedDTO = new ShopMessageHistoryDTO();
-        reservedDTO.setBatchCode(2);
-        reservedDTO.setUserCode(3);
-        reservedDTO.setMsgContent("예약 메세지 내용입니다.");
-        reservedDTO.setSendStatus(String.valueOf(MessageStatus.RESERVED));
+        ShopMessageHistoryDTO reservedDTO = ShopMessageHistoryDTO.builder()
+                .batchCode(2)
+                .userCode(3)
+                .msgContent("예약 메세지 내용입니다.")
+                .sendStatus(String.valueOf(MessageStatus.RESERVED))
+                .build();
 
-        testReservedHistory = shopMessageHistoryService.createMessageHistory(reservedDTO);
+        testReservedHistory = modelMapper.map(shopMessageHistoryService.createMessageHistory(reservedDTO), ShopMessageHistoryDTO.class);
     }
 
     @Test
@@ -133,14 +138,15 @@ public class ShopMessageHistoryTests {
     @DisplayName("메세지 히스토리 생성 테스트 성공")
     void createMessageHistory_Success() {
         // given
-        ShopMessageHistoryDTO newHistoryDTO = new ShopMessageHistoryDTO();
-        newHistoryDTO.setBatchCode(3);
-        newHistoryDTO.setUserCode(4);
-        newHistoryDTO.setMsgContent("새로운 메세지 내용");
-        newHistoryDTO.setSendStatus(String.valueOf(MessageStatus.PENDING));
+        ShopMessageHistoryDTO newHistoryDTO = ShopMessageHistoryDTO.builder()
+                .batchCode(3)
+                .userCode(4)
+                .msgContent("새로운 메세지 내용")
+                .sendStatus(String.valueOf(MessageStatus.PENDING))
+                .build();
 
         // when
-        ShopMessageHistoryDTO result = shopMessageHistoryService.createMessageHistory(newHistoryDTO);
+        ShopMessageHistoryDTO result = modelMapper.map(shopMessageHistoryService.createMessageHistory(newHistoryDTO), ShopMessageHistoryDTO.class);
 
         // then
         assertNotNull(result);
