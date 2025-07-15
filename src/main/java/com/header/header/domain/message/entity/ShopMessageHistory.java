@@ -40,9 +40,7 @@ public class ShopMessageHistory {
             this.sentAt = new Timestamp(System.currentTimeMillis());
             this.errorMessage = null; // 에러 메시지 초기화
         }
-
-        // 실패 시 에러 메시지 설정
-        if (newStatus == MessageStatus.FAIL) {
+        else if (newStatus == MessageStatus.FAIL) {
             this.errorMessage = errorMessage;
         }
 
