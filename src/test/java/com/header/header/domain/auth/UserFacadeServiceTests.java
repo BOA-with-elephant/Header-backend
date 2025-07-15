@@ -1,44 +1,29 @@
 package com.header.header.domain.auth;
 
 import com.header.header.auth.common.ApiResponse;
-import com.header.header.domain.menu.dto.MenuCategoryDTO;
-import com.header.header.domain.reservation.service.BossReservationService;
-import com.header.header.domain.sales.service.SalesService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.facade.UserFacadeService;
 import com.header.header.domain.user.repository.MainUserRepository;
-import com.header.header.domain.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import org.springframework.security.access.AccessDeniedException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional // 테스트 후 데이터 롤백
-public class AuthUserServiceTests {
-    @Autowired
-    private UserService userService;
+public class UserFacadeServiceTests {
 
     @Autowired
     private UserFacadeService facadeService;
 
     @Autowired
     private MainUserRepository userRepository;
-
-    @Autowired
-    private BossReservationService bossReservationService;
-
-    @Autowired
-    private SalesService salesService;
-    private UserDTO updateDTO;
 
     @Test
     @DisplayName("회원가입(user 생성) + 중복 체크 테스트")
@@ -260,155 +245,4 @@ public class AuthUserServiceTests {
         System.out.println("isLeave 값: " + updatedUser.isLeave());
         //isLeave 값: true
     }
-
-    @Test
-    @DisplayName("Authorization test - BossReservation")
-    void adminReservationAuthTest () {
-        // given
-        setSecurityContext("kwoneunji", true);
-
-        LoginUserDTO admin1 = facadeService.login("kwoneunji");
-        LoginUserDTO admin2 = facadeService.login("hwangkyungmi");
-
-        LoginUserDTO normal = facadeService.login("iu1234");
-        LoginUserDTO normal2 = facadeService.login("limyoona");
-
-        // when1: 관리자는 예외 없이 접근 가능해야 함
-        assertDoesNotThrow(() -> facadeService.findReservationListForAdmin(admin1));
-        assertDoesNotThrow(() -> facadeService.adminRetrieveReservation(admin2));
-
-        // when2: 일반 사용자는 예외 발생해야 함
-        Exception exception1 = assertThrows(AccessDeniedException.class, () -> {
-            facadeService.adminRetrieveReservation(normal);
-        });
-        Exception exception2 = assertThrows(AccessDeniedException.class, () -> {
-            facadeService.adminRetrieveReservation(normal2);
-        });
-
-        // then
-        assertEquals("관리자 예약 페이지는 관리자만 접근 가능합니다.", exception1.getMessage());
-        assertEquals("관리자 예약 페이지는 관리자만 접근 가능합니다.", exception2.getMessage());
-        System.out.println("일반 유저1 접근 시 에러 메시지: " + exception1.getMessage());
-        System.out.println("일반 유저2 접근 시 에러 메시지: " + exception2.getMessage());
-        //일반 유저1 접근 시 에러 메시지: 관리자 예약 페이지는 관리자만 접근 가능합니다.
-        //일반 유저2 접근 시 에러 메시지: 관리자 예약 페이지는 관리자만 접근 가능합니다.
-    }
-
-    @Test
-    @DisplayName("Admin authorization2 - Sales")
-    void adminSalesAuthorize() {
-        // given
-        LoginUserDTO admin1 = facadeService.login("kwoneunji");
-        LoginUserDTO admin2 = facadeService.login("hwangkyungmi");
-        LoginUserDTO normal = facadeService.login("jungyumi");
-
-        // when1: 관리자 접근 가능 (예외 발생 x)
-        assertDoesNotThrow(() -> facadeService.adminSalesLookup(admin1));
-        assertDoesNotThrow(() -> facadeService.adminSalesLookup(admin2));
-
-        // when2: 일반 사용자는 예외 발생해야 함
-        Exception exception = assertThrows(AccessDeniedException.class, () -> {
-            facadeService.adminSalesLookup(normal);
-        });
-
-        // then
-        assertEquals("매출 관리는 관리자만 접근 가능합니다.", exception.getMessage());
-        System.out.println("일반 유저 접근 시 에러 메시지: " + exception.getMessage());
-        //일반 유저 접근 시 에러 메시지: 매출 관리는 관리자만 접근 가능합니다.
-    }
-
-    @Test
-    @DisplayName("Admin Authorization3 - message1 : MessageSendBatch")
-    void adminMSBauthorize () {
-        //given
-        LoginUserDTO admin1 = facadeService.login("kwoneunji");
-        LoginUserDTO admin2 = facadeService.login("hwangkyungmi");
-        LoginUserDTO normal = facadeService.login("najaeemin");
-
-        // when1: 관리자 접근 가능(예외 발생x)
-        assertDoesNotThrow(() -> facadeService.adminMsgAuthorize(admin1));
-        assertDoesNotThrow(() -> facadeService.adminMsgAuthorize(admin2));
-
-        // when2: 일반 사용자는 예외 발생해야 함
-        Exception exception = assertThrows(AccessDeniedException.class, () -> {
-            facadeService.adminMsgAuthorize(normal);
-        });
-
-        //then
-        assertEquals("이 페이지는 관리자만 접근 가능합니다.", exception.getMessage());
-        System.out.println("Exception msg: " + exception.getMessage());
-        //Exception msg: 이 페이지는 관리자만 접근 가능합니다.
-    }
-
-    @Test
-    @DisplayName("Admin Authorization3 - message2 : MessageTemplate")
-    void adminMsgTemplateAuthorize () {
-        //given
-        LoginUserDTO admin1 = facadeService.login("kwoneunji");
-        LoginUserDTO admin2 = facadeService.login("hwangkyungmi");
-        LoginUserDTO normal = facadeService.login("kwaneunbi");
-
-        // when1: 관리자 접근 가능(예외 발생x)
-        assertDoesNotThrow(() -> facadeService.adminMsgTemplateAuthorize(admin1));
-        assertDoesNotThrow(() -> facadeService.adminMsgTemplateAuthorize(admin2));
-
-        // when2: 일반 사용자는 예외 발생해야 함
-        Exception exception = assertThrows(AccessDeniedException.class, () -> {
-            facadeService.adminMsgTemplateAuthorize(normal);
-        });
-
-        //then
-        assertEquals("이 페이지는 관리자만 접근 가능합니다.", exception.getMessage());
-        System.out.println("MsgTemplate Exception: " + exception.getMessage());
-        //MsgTemplate Exception: 이 페이지는 관리자만 접근 가능합니다.
-    }
-
-    @Test
-    @DisplayName("Admin Authorization4 - message3 : ShopMessageHistory")
-    void adminShopMsgHistoryAuthorize () {
-        //given
-        LoginUserDTO admin1 = facadeService.login("kwoneunji");
-        LoginUserDTO admin2 = facadeService.login("hwangkyungmi");
-        LoginUserDTO normal = facadeService.login("leekyunggyu");
-
-        // when1: 관리자 접근 가능(예외 발생x)
-        assertDoesNotThrow(() -> facadeService.(admin1));
-        assertDoesNotThrow(() -> facadeService.(admin2));
-
-        // when2: 일반 사용자는 예외 발생해야 함
-        Exception exception = assertThrows(AccessDeniedException.class, () -> {
-            facadeService.adminMsgTemplateAuthorize(normal);
-        });
-
-        //then
-        assertEquals("이 페이지는 관리자만 접근 가능합니다.", exception.getMessage());
-        System.out.println("MsgHistory Exception: " + exception.getMessage());
-        //
-    }
-
-    @Test
-    @DisplayName("Admin Authorization5 - createMenuCategory 권한 검사")
-    void createMenuCategoryAuthorizationTest() {
-        // given
-        LoginUserDTO admin = facadeService.login("kwoneunji");
-        LoginUserDTO normal = facadeService.login("kwaneunbi");
-
-        MenuCategoryDTO dto = new MenuCategoryDTO();
-        dto.setCategoryName("디저트");
-        dto.setMenuColor("#FFAA00");
-
-        Integer shopCode = 101;
-
-        // when - admin은 예외 없이 실행
-        assertDoesNotThrow(() -> facadeService.authCreateMenuCategory(admin, dto, shopCode));
-
-        // when - 일반 사용자는 예외 발생
-        Exception exception = assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> {
-            facadeService.authCreateMenuCategory(normal, dto, shopCode);
-        });
-
-        // then
-        assertEquals("관리자만 접근가능한 페이지입니다.", exception.getMessage());
-    }
-
 }

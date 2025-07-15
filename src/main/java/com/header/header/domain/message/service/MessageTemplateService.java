@@ -171,11 +171,4 @@ public class MessageTemplateService {
         }
 
     }
-
-    // 관리자 authorization
-    public void accessMsgTemplate(User user) {
-        if (!user.isAdmin()) {
-            throw new AccessDeniedException("이 페이지는 관리자만 접근 가능합니다.");
-        }
-    }
 }

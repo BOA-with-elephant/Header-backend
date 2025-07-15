@@ -380,17 +380,4 @@ public class SalesService {
             .map(this::toDTO)
             .collect(Collectors.toList());
     }
-
-    /**
-    * isAdmin=true인 user만 접근 가능
-    * (이 메소드는 UserFacadeService를 통해
-     * AuthUserServiceTests - adminSalesAuthorize에서 사용됩니다)
-    *
-    * @param user 
-    * @throw AccessDeniedException */
-    public void accessSales(User user) {
-        if (!user.isAdmin()) {
-            throw new AccessDeniedException("매출 관리는 관리자만 접근 가능합니다.");
-        }
-    }
 }

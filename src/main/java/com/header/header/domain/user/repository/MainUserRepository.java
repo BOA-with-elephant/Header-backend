@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface MainUserRepository extends JpaRepository<User, Integer> {
 
     /* 예약자명과 예약자 번호를 통해 userCode 가져오기 - 주혜 */
@@ -19,4 +21,6 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
     boolean existsByUserPhone(String userPhone);
 
     boolean existsByUserPhoneAndUserCodeNot(String userPhone, int userCode);
+
+    List<User> findUserByUserId(String userId);
 }

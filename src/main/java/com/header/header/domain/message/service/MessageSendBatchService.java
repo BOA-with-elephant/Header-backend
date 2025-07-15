@@ -108,18 +108,4 @@ public class MessageSendBatchService {
 
     /* DELETE ❌*/
 
-
-    /* Authorization */
-    /**
-     * isAdmin=true인 user만 접근 가능
-     * (이 메소드는 UserFacadeService를 통해
-     * AuthUserServiceTests - adminMSBauthorize에서 사용됩니다)
-     *
-     * @param user
-     * @throw AccessDeniedException */
-    public void accessMSB(User user) {
-        if (!user.isAdmin()) {
-            throw new AccessDeniedException("이 페이지는 관리자만 접근 가능합니다.");
-        }
-    }
 }
