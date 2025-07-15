@@ -41,4 +41,8 @@ public class UserService {
 
         return find != null ? find.getUserCode() : null;
     }
+
+    public String getPhoneByUserCode(Integer userCode){
+        return userRepository.findPhoneByUserCode(userCode);
+    }
 }
