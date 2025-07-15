@@ -8,6 +8,7 @@ import com.header.header.domain.menu.repository.MenuCategoryRepository;
 import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
+import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
@@ -15,7 +16,6 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
-import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
@@ -69,6 +69,8 @@ public class UserReservationTests {
     private Integer testMenuCode;
     private Integer testResvCode;
     private Integer testCategoryCode;
+    private final Integer SHOP_CODE = 1;
+    private final Integer USER_CODE = 1;
 
     @BeforeEach
     @Transactional
@@ -246,9 +248,9 @@ public class UserReservationTests {
     @Order(6)
     @DisplayName("탈퇴한 유저 코드로 요약 조회")
     void testFindReservationSummaryLeftUserCode() {
-        //given
+        //given 100번, 아무도 탈퇴 안 해서 내 DB에서만 조정
         UserReservationSearchConditionDTO conditionDTO = new UserReservationSearchConditionDTO();
-        conditionDTO.setUserCode(5);
+        conditionDTO.setUserCode(100);
         conditionDTO.setStartDate(null);
         conditionDTO.setEndDate(null);
 
@@ -313,14 +315,15 @@ public class UserReservationTests {
     void testCreateReservation() {
         // given
 
-        Date stringTypeDate = Date.valueOf("2025-07-31");
+        String dateString = "2027-08-10"; // 테스트 성공하려면 이전에 없던 예약으로 해야 함 -> 연도 1년 단위로 바꾸는 거 추천
+        Date testDate = Date.valueOf(dateString);
 
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(testUserCode);
         dto.setShopCode(testShopCode);
         dto.setMenuCode(testMenuCode);
-        dto.setResvDate(Date.valueOf("2025-07-31"));
-        dto.setResvTime(Time.valueOf("14:30:00"));
+        dto.setResvDate(testDate);
+        dto.setResvTime(Time.valueOf("15:00:00"));
         dto.setUserComment("예약 테스트입니다.");
 
         // when
@@ -331,8 +334,8 @@ public class UserReservationTests {
         assertTrue(result.isPresent());
         UserReservationDetail detail = result.get();
 
-        assertEquals("2025-07-31", detail.getResvDate());
-        assertEquals("14:30:00", detail.getResvTime());
+        assertEquals(dateString, detail.getResvDate());
+        assertEquals("15:00:00", detail.getResvTime());
 
         System.out.println(result.get().getResvDate() + " / "
                 + result.get().getResvTime() + " / "
@@ -397,5 +400,101 @@ public class UserReservationTests {
         assertThrows(
                 UserReservationExceptionHandler.class,
                 () -> {userReservationService.cancelReservation(testUserCode, 99999);});
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("가게 임시 휴무인 날짜에 예약 시도")
+    void testTemptMakeRevInShioHoliday() {
+        // shopCode 1에 6월 18일, 정기휴일(토) 8월 2일
+        //given
+        UserReservationDTO dto = new UserReservationDTO();
+        dto.setUserCode(testUserCode);
+        dto.setShopCode(SHOP_CODE);
+        dto.setMenuCode(testMenuCode);
+        dto.setResvDate(Date.valueOf("2025-06-18"));
+        dto.setResvTime(Time.valueOf("14:30:00"));
+        dto.setUserComment("예약 테스트입니다.");
+
+        // when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.createReservation(dto);
+        });
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("가게 정기 요일인 날짜에 예약 시도")
+    void testTemptMakeRevInShopRegHoliday() {
+        // shopCode 1에 6월 18일, 정기휴일(토) 8월 2일
+        //given
+        UserReservationDTO dto = new UserReservationDTO();
+        dto.setUserCode(testUserCode);
+        dto.setShopCode(SHOP_CODE);
+        dto.setMenuCode(testMenuCode);
+        dto.setResvDate(Date.valueOf("2025-08-02"));
+        dto.setResvTime(Time.valueOf("14:30:00"));
+        dto.setUserComment("예약 테스트입니다.");
+
+        // when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.createReservation(dto);
+        });
+    }
+
+    @Test
+    @Order(15)
+    @DisplayName("이미 다른 사람에 의해 예약된 날짜에 또 예약 시도")
+    void testTemptMakeRevInAlreadyTakenDate() {
+        // 7월 27일 14:30
+        //given
+        UserReservationDTO dto = new UserReservationDTO();
+        dto.setUserCode(testUserCode);
+        dto.setShopCode(SHOP_CODE);
+        dto.setMenuCode(testMenuCode);
+        dto.setResvDate(Date.valueOf("2025-07-27"));
+        dto.setResvTime(Time.valueOf("14:30:00"));
+        dto.setUserComment("예약 테스트입니다.");
+
+        // when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.createReservation(dto);
+        });
+
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("예약을 시도하는 유저가 이미 그 시간에 다른 예약이 있는 경우")
+    void testTemptMakeRevInAlreadyTakenSchedule() {
+        // 7월 6일 17:00
+        //given
+        UserReservationDTO dto = new UserReservationDTO();
+        dto.setUserCode(USER_CODE);
+        dto.setShopCode(testShopCode);
+        dto.setMenuCode(testMenuCode);
+        dto.setResvDate(Date.valueOf("2025-07-06"));
+        dto.setResvTime(Time.valueOf("17:00:00"));
+        dto.setUserComment("예약 테스트입니다.");
+
+        // when and then
+        assertThrows(UserReservationExceptionHandler.class, () -> {
+            userReservationService.createReservation(dto);
+        });
+
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("프론트에 샵별 예약 가능한 날짜와 시간을 모아서 보내주는 테스트")
+    void testMakeAvailableScheduleList() {
+        List<UserResvAvailableScheduleDTO> result = userReservationService.getAvailableSchedule(SHOP_CODE, 30);
+
+        assertNotNull(result);
+
+        result.forEach(r -> {
+            System.out.println(r.getTargetDate() + " / " +
+                    r.getAvailableTimes().toString());
+        });
     }
 }

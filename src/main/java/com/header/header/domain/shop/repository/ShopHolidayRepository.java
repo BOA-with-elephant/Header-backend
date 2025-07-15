@@ -55,7 +55,7 @@ public interface ShopHolidayRepository extends JpaRepository<ShopHoliday, Intege
             """)
     List<ShopHolidayInfo> getShopHolidayInfo(@Param("shopCode") Integer shopCode, @Param("today") Date today);
 
-    // 그 샵에 해당하는 휴일 정보가 맞는지 검증 (삭제시 사용)
+    // 그 샵에 해당하는 휴일 정보가 맞는지 검증 (휴일 삭제시 사용)
     @Query("""
            SELECT COUNT(h) = 1 
            FROM ShopHoliday h

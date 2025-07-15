@@ -1,7 +1,6 @@
 package com.header.header.domain.reservation.repository;
 
 import com.header.header.domain.reservation.entity.BossReservation;
-import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import org.apache.ibatis.annotations.Param;
@@ -9,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
-import java.time.LocalDate;
+import java.sql.Time;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,5 +100,32 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
             @Param("resvDate") Date resvDate
     );
 
+    /*예약 시도 날짜, 시간이 이미 예약상에 존재하는지 검증 - 예약 생성시 사용*/
+    @Query("""
+           SELECT COUNT (r) = 0
+           FROM BossReservation r
+           WHERE r.shopInfo.shopCode = :shopCode
+           AND r.resvDate = :resvDate
+           AND r.resvTime = :resvTime
+           """)
+    boolean isAvailableSchedule(
+            @Param("shopCode") Integer shopCode,
+            @Param("resvDate") Date resvDate,
+            @Param("resvTime") Time resvTime
+    );
 
+    /*해당 유저가 이미 그 날짜, 그 시간에 예약이 있는 경우,
+    * 같은 시간에 예약하는 것 및 노쇼 방어용 */
+    @Query("""
+          SELECT COUNT (r) > 0 
+          FROM BossReservation r
+          WHERE r.userInfo.userCode = :userCode
+          AND r.resvDate = :resvDate
+          AND r.resvTime = :resvTime
+          """)
+    boolean isUserHasReservationInThisSchedule(
+            @Param("userCode") Integer userCode,
+            @Param("resvDate") Date resvDate,
+            @Param("resvTime") Time resvTime
+    );
 }
