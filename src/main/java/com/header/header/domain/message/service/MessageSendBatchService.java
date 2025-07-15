@@ -5,11 +5,13 @@ import com.header.header.domain.message.entity.MessageSendBatch;
 import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.message.projection.MessageBatchListView;
 import com.header.header.domain.message.repository.MessageSendBatchRepository;
+import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.util.Date;
 import java.util.List;
 
@@ -105,6 +107,5 @@ public class MessageSendBatchService {
     }
 
     /* DELETE ❌*/
-
 
 }

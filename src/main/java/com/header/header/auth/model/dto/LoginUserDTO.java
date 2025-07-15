@@ -1,11 +1,9 @@
-package com.header.header.domain.auth.model.dto;
+package com.header.header.auth.model.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
 
 @Getter
 @Setter
@@ -15,5 +13,6 @@ public class LoginUserDTO {
     private String userId;
     private String userPwd;
     private String userName;
+    private String userPhone;
     private boolean isAdmin;
 }

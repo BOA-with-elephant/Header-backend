@@ -1,4 +1,4 @@
-package com.header.header.domain.auth.common;
+package com.header.header.auth.common;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

@@ -6,12 +6,14 @@ import com.header.header.domain.sales.dto.SalesDetailDTO;
 import com.header.header.domain.sales.entity.Sales;
 import com.header.header.domain.sales.enums.PaymentStatus;
 import com.header.header.domain.sales.repository.SalesRepository;
+import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

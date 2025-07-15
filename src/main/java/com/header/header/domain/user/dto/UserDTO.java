@@ -19,7 +19,7 @@ public class UserDTO {
     private String userPhone;
     private Date birthday;
     private int isLeave;
-    
+
     public UserDTO(){}
 
     public UserDTO(int userCode, String userId, String userPwd, int isAdmin, String userName, String userPhone, Date birthday, int isLeave) {
