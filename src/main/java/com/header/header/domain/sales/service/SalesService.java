@@ -6,12 +6,14 @@ import com.header.header.domain.sales.dto.SalesDetailDTO;
 import com.header.header.domain.sales.entity.Sales;
 import com.header.header.domain.sales.enums.PaymentStatus;
 import com.header.header.domain.sales.repository.SalesRepository;
+import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -377,5 +379,18 @@ public class SalesService {
         return salesList.stream()
             .map(this::toDTO)
             .collect(Collectors.toList());
+    }
+
+    /**
+    * isAdmin=true인 user만 접근 가능
+    * (이 메소드는 UserFacadeService를 통해
+     * AuthUserServiceTests - adminSalesAuthorize에서 사용됩니다)
+    *
+    * @param user 
+    * @throw AccessDeniedException */
+    public void accessSales(User user) {
+        if (!user.isAdmin()) {
+            throw new AccessDeniedException("매출 관리는 관리자만 접근 가능합니다.");
+        }
     }
 }

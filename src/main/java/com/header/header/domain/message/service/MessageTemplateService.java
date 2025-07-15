@@ -7,11 +7,13 @@ import com.header.header.domain.message.exception.InvalidTemplateException;
 import com.header.header.domain.message.exception.ValidationResult;
 import com.header.header.domain.message.repository.MessageTemplateRepository;
 import com.header.header.domain.message.validator.TemplateValidator;
+import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 
 @Service
@@ -170,4 +172,10 @@ public class MessageTemplateService {
 
     }
 
+    // 관리자 authorization
+    public void accessMsgTemplate(User user) {
+        if (!user.isAdmin()) {
+            throw new AccessDeniedException("이 페이지는 관리자만 접근 가능합니다.");
+        }
+    }
 }

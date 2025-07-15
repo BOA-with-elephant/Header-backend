@@ -13,5 +13,6 @@ public class LoginUserDTO {
     private String userId;
     private String userPwd;
     private String userName;
+    private String userPhone;
     private boolean isAdmin;
 }
