@@ -5,6 +5,7 @@ import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
 import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.repository.MenuCategoryRepository;
+import com.header.header.domain.menu.repository.MenuRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -23,6 +24,7 @@ public class MenuCategoryService {
 
     // final 선언 -> 불변성 보장 및 의존성 주입 시 필수 요소로 지정
     private final MenuCategoryRepository menuCategoryRepository;
+    private final MenuRepository menuRepository;
     private final ModelMapper modelMapper;
 
     /**
@@ -162,22 +164,26 @@ public class MenuCategoryService {
 
     /**
      * 메뉴 카테고리 삭제 (논리적 삭제 - isActive를 false로 변경)
+     * 해당 카테고리의 모든 메뉴들도 함께 비활성화 (벌크 업데이트 방식)
      *
      * @param categoryCode 삭제할 카테고리 코드
      * @param shopCode     삭제할 카테고리가 속한 샵 코드
      * @throws NotFoundException 해당 카테고리가 존재하지 않을 때
      */
     @Transactional
-    public void deleteMenuCategory(Integer categoryCode, Integer shopCode) {
+    public void deleteMenuCategoryWithBulkUpdate(Integer categoryCode, Integer shopCode) {
 
         MenuCategoryId id = new MenuCategoryId(categoryCode, shopCode);
 
-        // 기존 카테고리 조회
+        // 1. 기존 카테고리 조회
         MenuCategory existingMenuCategory = menuCategoryRepository.findById(id)
             .orElseThrow(() -> NotFoundException.category(categoryCode, shopCode));
 
+        // 2. 해당 카테고리의 모든 활성화된 메뉴들을 한 번에 비활성화 (벌크 업데이트)
+        int updatedMenuCount = menuRepository.updateActiveStatusByCategoryCodeAndShopCode(
+            false, categoryCode, shopCode, true); // 마지막 파라미터는 현재 활성화된 메뉴들만 대상
 
-        // isActive를 false로 변경하여 논리적 삭제
+        // 3. 카테고리를 false로 변경하여 논리적 삭제
         MenuCategory deletedMenuCategory = MenuCategory.builder()
             .id(id)
             .categoryName(existingMenuCategory.getCategoryName())
@@ -187,6 +193,7 @@ public class MenuCategoryService {
 
         menuCategoryRepository.save(deletedMenuCategory);
     }
+
 
     /* 공통 로직 정리 */
     /**

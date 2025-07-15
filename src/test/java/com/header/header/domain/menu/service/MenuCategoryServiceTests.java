@@ -180,7 +180,7 @@ public class MenuCategoryServiceTests {
 
     @Test
     @Order(8)
-    @DisplayName("특정 샵의 메뉴카테고리 삭제 - 논리적 삭제")
+    @DisplayName("특정 샵의 메뉴 카테고리 삭제 시 해당 카테고리의 모든 메뉴도 벌크 업데이트로 함께 비활성화 - 논리적 삭제")
     @Transactional
     void testDeleteMenuCategory() {
         // given
@@ -191,7 +191,7 @@ public class MenuCategoryServiceTests {
         assertTrue(menuCategoryRepository.existsById(categoryId));
 
         // when
-        menuCategoryService.deleteMenuCategory(categoryCodeToDelete, TEST_SHOP_CODE);
+        menuCategoryService.deleteMenuCategoryWithBulkUpdate(categoryCodeToDelete, TEST_SHOP_CODE);
 
         // then - 논리적 삭제 성공 여부 확인
         // 1. 물리적으로는 여전히 존재해야 함

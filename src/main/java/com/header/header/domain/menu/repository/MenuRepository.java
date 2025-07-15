@@ -2,6 +2,7 @@ package com.header.header.domain.menu.repository;
 
 import com.header.header.domain.menu.entity.Menu;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -86,4 +87,22 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
            AND m.isActive = true 
            """)
     Menu findByMenuCodeAndShopCodeAndIsActiveTrue(Integer menuCode, Integer shopCode);
+
+    /**
+     * 특정 카테고리의 메뉴들 활성화 상태 벌크 업데이트
+     *
+     * @param isActive 설정할 활성화 상태
+     * @param categoryCode 카테고리 코드
+     * @param shopCode 샵 코드
+     * @param currentIsActive 현재 활성화 상태 (이 상태인 메뉴들만 업데이트)
+     * @return 업데이트된 레코드 수
+     */
+    @Modifying
+    @Query("UPDATE Menu m SET m.isActive = :isActive WHERE m.menuCategory.id.categoryCode = :categoryCode AND m.menuCategory.id.shopCode = :shopCode AND m.isActive = :currentIsActive")
+    int updateActiveStatusByCategoryCodeAndShopCode(
+        @Param("isActive") Boolean isActive,
+        @Param("categoryCode") Integer categoryCode,
+        @Param("shopCode") Integer shopCode,
+        @Param("currentIsActive") Boolean currentIsActive);
+
 }
