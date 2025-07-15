@@ -13,6 +13,6 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT u.userPhone " +
             "FROM User u " +
-            "WHERE u.userCode == :userCode ")
+            "WHERE u.userCode = :userCode")
     String findPhoneByUserCode(Integer userCode);
 }
