@@ -2,6 +2,7 @@ package com.header.header.domain.visitors.service;
 
 import com.header.header.domain.visitors.dto.VisitorDetailDTO;
 import com.header.header.domain.visitors.dto.VisitorsDTO;
+import com.header.header.domain.visitors.dto.VisitorDetailResponse;
 import com.header.header.domain.visitors.enitity.Visitors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +59,7 @@ public class VisitorsTests {
         Integer nonExistentShopCode = 99999;
 
         // when
-        List<VisitorDetailDTO> result = visitorsService.getShopVisitorsList(nonExistentShopCode);
+        List<VisitorDetailResponse> result = visitorsService.getShopVisitorsList(nonExistentShopCode);
 
         // then
         assertThat(result).isNotNull();
@@ -71,7 +72,7 @@ public class VisitorsTests {
         Integer shopCode = 1; // 실제 DB에 있는 shopCode 사용
 
         // when
-        List<VisitorDetailDTO> result = visitorsService.getShopVisitorsList(shopCode);
+        List<VisitorDetailResponse> result = visitorsService.getShopVisitorsList(shopCode);
 
         // then
         assertThat(result).isNotNull();
@@ -79,15 +80,15 @@ public class VisitorsTests {
         // 데이터가 있으면 검증, 없어도 OK
         if (!result.isEmpty()) {
             System.out.println("=== 조회된 방문자 목록 ===");
-            for (VisitorDetailDTO visitor : result) {
+            for (VisitorDetailResponse visitor : result) {
                 System.out.println("사용자: " + visitor.getUserName() +
-                        ", 전화번호: " + visitor.getUserPhone() +
+                        ", 전화번호: " + visitor.getPhone() +
                         ", 방문횟수: " + visitor.getVisitCount() +
                         ", 총결제액: " + visitor.getTotalPaymentAmount() +
                         ", 선호메뉴: " + visitor.getFavoriteMenuName());
 
                 // 기본적인 필드들이 null이 아닌지만 확인
-                assertThat(visitor.getUserCode()).isNotNull();
+                assertThat(visitor.getClientCode()).isNotNull();
                 assertThat(visitor.getUserName()).isNotNull();
             }
         } else {
