@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("api/v1/my-shops/{shopId}")
 public abstract class MyShopBaseController {
 
-    protected Long shopId;
+    protected Integer shopId;
 
     @ModelAttribute
-    public void setShopId(@PathVariable("shopId") Long shopId){
+    public void setShopId(@PathVariable("shopId") Integer shopId){
         this.shopId = shopId;
     }
 }
