@@ -13,6 +13,8 @@ import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.service.ShopService;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,12 +59,13 @@ public class ShopController {
     ) {
 
         // 기본 로딩 개수는 10개
-        Pageable pageable = PageRequest.of(page, 10);
+
+        try {
+            Pageable pageable = PageRequest.of(page, 10);
             // 응답 헤더 설정
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-        try {
             Page<ShopSummaryResponseDTO> shopsWithPaging
                     = shopService.findShopsByCondition(
                     latitude,
@@ -80,19 +84,8 @@ public class ShopController {
             return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
         } catch (ShopExceptionHandler e) {
 
-            // Custom 에러 정보를 담음
-            ShopErrorCode errorInfo = e.getShopErrorCode();
-
-            // 에러 정보에서 메시지와 안내 문구를 담음
-            ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
-
-            // 에러 정보를 Map에 담음
-            Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("error", error);
-
-            // 정보를 담은 ResponseMessage 생성
-            ResponseMessage responseMessage = new ResponseMessage(400, "조회 실패", responseMap);
-            return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+            // 최하단에 설정된 에러 코드용 메소드 리턴
+            return getErrorCode(e);
         }
     }
 
@@ -100,46 +93,54 @@ public class ShopController {
     @GetMapping("/{shopCode}")
     public ResponseEntity<ResponseMessage> selectShopsDetail(
             @PathVariable Integer shopCode) {
-        List<ShopDetailResponse> shopDetail
-                = shopService.readShopDetailByShopCode(shopCode);
 
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            // 응답 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shop-detail", shopDetail);
+            List<ShopDetailResponse> shopDetail
+                    = shopService.readShopDetailByShopCode(shopCode);
 
-        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
+            // 응답 데이터 설정
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("shop-detail", shopDetail);
 
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+            ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
 
+            return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+        } catch (ShopExceptionHandler e) {
+            return getErrorCode(e);
+        }
     }
 
     /*🐭 Post 새로운 예약 생성 */
     @PostMapping("/{shopCode}")
-    public ModelAndView createReservation(
+    public ResponseEntity<ResponseMessage> createReservation(
             @PathVariable Integer shopCode,
             @RequestBody @Valid UserReservationDTO dto,
-            ModelAndView mv ){
+            HttpServletRequest req){
 
-        Optional<UserReservationDetail> reservationResult
-                = userReservationService.createReservation(shopCode, dto);
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            // HttpServletRequest에 있는 사용자가 이전에 있던 페이지
+            String referer = req.getHeader("Referer");
+            // HttpServletRequest에 담긴 정보와 함께 header 구성
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setLocation(URI.create(referer));
+            // 응답 데이터 설정
+            Map<String, Object> responseMap = new HashMap<>();
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("reservation-result", reservationResult);
+        try {
+            Optional<UserReservationDetail> reservationResult
+                    = userReservationService.createReservation(shopCode, dto);
 
-        ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
+            responseMap.put("reservation-result", reservationResult);
+        } catch (ShopExceptionHandler e) {
 
-        mv.addObject(responseMessage);
-        mv.setViewName("redirect:/shops/{shopCode}"); //반환할 뷰
+        }
+            ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
+            return new ResponseEntity<>(responseMessage, headers, HttpStatus.CREATED);
 
-        return mv;
     }
 
     /*🐭 회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
@@ -215,6 +216,22 @@ public class ShopController {
         ResponseMessage responseMessage = new ResponseMessage(204, "예약 취소 성공", responseMap);
 
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+    }
+
+    public ResponseEntity<ResponseMessage> getErrorCode(ShopExceptionHandler e) {
+        // Custom 에러 정보를 담음
+        ShopErrorCode errorInfo = e.getShopErrorCode();
+
+        // 에러 정보에서 메시지와 안내 문구를 담음
+        ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
+
+        // 에러 정보를 Map에 담음
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("error", error);
+
+        // 정보를 담은 ResponseMessage 생성
+        ResponseMessage responseMessage = new ResponseMessage(400, "조회 실패", responseMap);
+        return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
     }
 
 }
