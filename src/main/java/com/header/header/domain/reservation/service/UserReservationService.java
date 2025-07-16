@@ -96,11 +96,10 @@ public class UserReservationService {
     /* 새로운 예약 생성, 반환값은 상세조회 프로젝션 인터페이스 사용 */
     @Transactional
     public Optional<UserReservationDetail> createReservation(
-            UserReservationDTO dto
+            Integer shopCode, UserReservationDTO dto
     ) {
         /* DTO 에서 어노테이션 유효성 검사 끝낸 값들 가져오기*/
         Integer userCode = dto.getUserCode();
-        Integer shopCode = dto.getShopCode();
         Integer menuCode = dto.getMenuCode();
         Date resvDate = dto.getResvDate();
         Time resvTime = dto.getResvTime();

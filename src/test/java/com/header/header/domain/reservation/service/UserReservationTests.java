@@ -328,7 +328,7 @@ public class UserReservationTests {
 
         // when
         Optional<UserReservationDetail> result =
-                userReservationService.createReservation(dto);
+                userReservationService.createReservation(testShopCode, dto);
 
         // then
         assertTrue(result.isPresent());
@@ -365,7 +365,7 @@ public class UserReservationTests {
 
         //when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(testShopCode, dto);
         });
     }
 
@@ -418,7 +418,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(SHOP_CODE, dto);
         });
     }
 
@@ -438,7 +438,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(SHOP_CODE, dto);
         });
     }
 
@@ -458,7 +458,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(SHOP_CODE, dto);
         });
 
     }
@@ -479,7 +479,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(testShopCode, dto);
         });
 
     }
