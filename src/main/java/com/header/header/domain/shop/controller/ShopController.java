@@ -166,4 +166,8 @@ public class ShopController {
 
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
+
+    /*예약을 취소할 경우*/
+//    @PatchMapping("reservation/{resvCode}")
+
 }
