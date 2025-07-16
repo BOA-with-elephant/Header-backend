@@ -11,25 +11,27 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import retrofit2.http.DELETE;
 
 @Repository
 public interface SalesRepository extends JpaRepository<Sales, Integer> {
 
     /**
-     * 매출 상세 정보 조회 (모든 관련 테이블 JOIN)
-     * Sales + BossReservation + User + Menu + Shop 정보를 한번에 조회
+     * 매출 상세 정보 조회 (모든 관련 테이블 JOIN) Sales + BossReservation + User + Menu + MenuCategory 정보를 한번에 조회
      */
     @Query("SELECT new com.header.header.domain.sales.dto.SalesDetailDTO(" +
         "s.salesCode, s.resvCode, s.payAmount, s.payMethod, s.payDatetime, " +
         "s.payStatus, s.cancelAmount, s.cancelDatetime, s.cancelReason, s.finalAmount, " +
-        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, " +
-        "br.userInfo.userName, br.menuInfo.menuName, br.menuInfo.menuPrice) " +
+        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, br.userComment, "
+        +
+        "br.userInfo.userName, br.userInfo.userPhone, br.menuInfo.menuName, br.menuInfo.menuPrice, "
+        +
+        "mc.menuColor, mc.categoryName) " +
         "FROM Sales s " +
         "JOIN BossReservation br ON s.resvCode = br.resvCode " +
+        "JOIN br.menuInfo.menuCategory mc " +
         "WHERE s.salesCode = :salesCode")
     Optional<SalesDetailDTO> findSalesDetailById(@Param("salesCode") Integer salesCode);
-
-    // 그 외 쿼리에도 적용 완료
 
     /**
      * 예약 코드로 매출 상세 정보 조회
@@ -37,10 +39,14 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
     @Query("SELECT new com.header.header.domain.sales.dto.SalesDetailDTO(" +
         "s.salesCode, s.resvCode, s.payAmount, s.payMethod, s.payDatetime, " +
         "s.payStatus, s.cancelAmount, s.cancelDatetime, s.cancelReason, s.finalAmount, " +
-        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, " +
-        "br.userInfo.userName, br.menuInfo.menuName, br.menuInfo.menuPrice) " +
+        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, br.userComment, "
+        +
+        "br.userInfo.userName, br.userInfo.userPhone, br.menuInfo.menuName, br.menuInfo.menuPrice, "
+        +
+        "mc.menuColor, mc.categoryName) " +
         "FROM Sales s " +
         "JOIN BossReservation br ON s.resvCode = br.resvCode " +
+        "JOIN br.menuInfo.menuCategory mc " +
         "WHERE s.resvCode = :resvCode")
     Optional<SalesDetailDTO> findSalesDetailByResvCode(@Param("resvCode") Integer resvCode);
 
@@ -50,13 +56,39 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
     @Query("SELECT new com.header.header.domain.sales.dto.SalesDetailDTO(" +
         "s.salesCode, s.resvCode, s.payAmount, s.payMethod, s.payDatetime, " +
         "s.payStatus, s.cancelAmount, s.cancelDatetime, s.cancelReason, s.finalAmount, " +
-        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, " +
-        "br.userInfo.userName, br.menuInfo.menuName, br.menuInfo.menuPrice) " +
+        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, br.userComment, "
+        +
+        "br.userInfo.userName, br.userInfo.userPhone, br.menuInfo.menuName, br.menuInfo.menuPrice, "
+        +
+        "mc.menuColor, mc.categoryName) " +
         "FROM Sales s " +
         "JOIN BossReservation br ON s.resvCode = br.resvCode " +
+        "JOIN br.menuInfo.menuCategory mc " +
         "WHERE br.shopInfo.shopCode = :shopCode " +
         "ORDER BY s.payDatetime DESC")
     List<SalesDetailDTO> findSalesDetailsByShop(@Param("shopCode") Integer shopCode);
+
+    /**
+     * 특정 샵의 활성 매출 상세 목록 조회 (삭제 제외)
+     *
+     * @param shopCode 샵 코드
+     * @return 활성 매출 상세 목록
+     */
+    @Query("SELECT new com.header.header.domain.sales.dto.SalesDetailDTO(" +
+        "s.salesCode, s.resvCode, s.payAmount, s.payMethod, s.payDatetime, " +
+        "s.payStatus, s.cancelAmount, s.cancelDatetime, s.cancelReason, s.finalAmount, " +
+        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, br.userComment, "
+        +
+        "br.userInfo.userName, br.userInfo.userPhone, br.menuInfo.menuName, br.menuInfo.menuPrice, "
+        +
+        "mc.menuColor, mc.categoryName) " +
+        "FROM Sales s " +
+        "JOIN BossReservation br ON s.resvCode = br.resvCode " +
+        "JOIN br.menuInfo.menuCategory mc " +
+        "WHERE br.shopInfo.shopCode = :shopCode " +
+        "AND s.payStatus != com.header.header.domain.sales.enums.PaymentStatus.DELETED " +
+        "ORDER BY s.payDatetime DESC")
+    List<SalesDetailDTO> findActiveSalesDetailsByShop(@Param("shopCode") Integer shopCode);
 
     /**
      * 특정 샵의 특정 상태 매출 상세 정보 조회
@@ -64,10 +96,14 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
     @Query("SELECT new com.header.header.domain.sales.dto.SalesDetailDTO(" +
         "s.salesCode, s.resvCode, s.payAmount, s.payMethod, s.payDatetime, " +
         "s.payStatus, s.cancelAmount, s.cancelDatetime, s.cancelReason, s.finalAmount, " +
-        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, " +
-        "br.userInfo.userName, br.menuInfo.menuName, br.menuInfo.menuPrice) " +
+        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, br.userComment, "
+        +
+        "br.userInfo.userName, br.userInfo.userPhone, br.menuInfo.menuName, br.menuInfo.menuPrice, "
+        +
+        "mc.menuColor, mc.categoryName) " +
         "FROM Sales s " +
         "JOIN BossReservation br ON s.resvCode = br.resvCode " +
+        "JOIN br.menuInfo.menuCategory mc " +
         "WHERE br.shopInfo.shopCode = :shopCode AND s.payStatus = :payStatus " +
         "ORDER BY s.payDatetime DESC")
     List<SalesDetailDTO> findSalesDetailsByShopAndStatus(@Param("shopCode") Integer shopCode,
@@ -79,10 +115,14 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
     @Query("SELECT new com.header.header.domain.sales.dto.SalesDetailDTO(" +
         "s.salesCode, s.resvCode, s.payAmount, s.payMethod, s.payDatetime, " +
         "s.payStatus, s.cancelAmount, s.cancelDatetime, s.cancelReason, s.finalAmount, " +
-        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, " +
-        "br.userInfo.userName, br.menuInfo.menuName, br.menuInfo.menuPrice) " +
+        "br.shopInfo.shopCode, br.userInfo.userCode, br.menuInfo.menuCode, br.resvDate, br.resvTime, br.userComment, "
+        +
+        "br.userInfo.userName, br.userInfo.userPhone, br.menuInfo.menuName, br.menuInfo.menuPrice, "
+        +
+        "mc.menuColor, mc.categoryName) " +
         "FROM Sales s " +
         "JOIN BossReservation br ON s.resvCode = br.resvCode " +
+        "JOIN br.menuInfo.menuCategory mc " +
         "WHERE br.shopInfo.shopCode = :shopCode " +
         "AND s.payDatetime BETWEEN :startDate AND :endDate " +
         "ORDER BY s.payDatetime DESC")
@@ -177,9 +217,12 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
     /**
      * 특정 샵의 특정 기간 매출 합계
      */
-    @Query("SELECT SUM(s.finalAmount) FROM Sales s JOIN BossReservation br ON s.resvCode = br.resvCode " +
-        "WHERE br.shopInfo.shopCode = :shopCode AND s.payDatetime BETWEEN :startDate AND :endDate " +
-        "AND s.payStatus != :deletedStatus")
+    @Query(
+        "SELECT SUM(s.finalAmount) FROM Sales s JOIN BossReservation br ON s.resvCode = br.resvCode "
+            +
+            "WHERE br.shopInfo.shopCode = :shopCode AND s.payDatetime BETWEEN :startDate AND :endDate "
+            +
+            "AND s.payStatus != :deletedStatus")
     Long calculateTotalSalesByShopBetween(@Param("shopCode") Integer shopCode,
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate,
@@ -188,8 +231,10 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
     /**
      * 특정 샵의 특정 기간 취소 금액 합계
      */
-    @Query("SELECT SUM(s.cancelAmount) FROM Sales s JOIN BossReservation br ON s.resvCode = br.resvCode " +
-        "WHERE br.shopInfo.shopCode = :shopCode AND s.cancelDatetime BETWEEN :startDate AND :endDate")
+    @Query(
+        "SELECT SUM(s.cancelAmount) FROM Sales s JOIN BossReservation br ON s.resvCode = br.resvCode "
+            +
+            "WHERE br.shopInfo.shopCode = :shopCode AND s.cancelDatetime BETWEEN :startDate AND :endDate")
     Long calculateTotalCancelAmountByShopBetween(@Param("shopCode") Integer shopCode,
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate);
@@ -262,4 +307,6 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
      * 예약 코드로 결제 존재 여부 확인
      */
     boolean existsByResvCode(Integer resvCode);
+
+
 }
