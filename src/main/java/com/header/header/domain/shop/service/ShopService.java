@@ -81,6 +81,9 @@ public class ShopService {
             lon = 127.1067; //사용자가 위치를 허용하지 않았을 때의 기본값, 송파구 중심 좌표
         }
 
+        ShopCategory category = shopCategoryRepository.findById(categoryCode)
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
+
         return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
     }
 

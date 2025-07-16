@@ -5,9 +5,12 @@ import com.header.header.domain.reservation.dto.UserReservationSearchConditionDT
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
+import com.header.header.domain.shop.common.ErrorResponseMessage;
 import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.dto.ShopUserCodeDTO;
+import com.header.header.domain.shop.enums.ShopErrorCode;
+import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.service.ShopService;
 import jakarta.validation.Valid;
@@ -54,27 +57,43 @@ public class ShopController {
 
         // 기본 로딩 개수는 10개
         Pageable pageable = PageRequest.of(page, 10);
+            // 응답 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Page<ShopSummaryResponseDTO> shopsWithPaging
-                = shopService.findShopsByCondition(
-                latitude,
-                longitude,
-                category,
-                keyword,
-                pageable
-        );
+        try {
+            Page<ShopSummaryResponseDTO> shopsWithPaging
+                    = shopService.findShopsByCondition(
+                    latitude,
+                    longitude,
+                    category,
+                    keyword,
+                    pageable
+            );
 
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            // 응답 데이터 설정
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("shops", shopsWithPaging.getContent());
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shops", shopsWithPaging.getContent());
+            ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
 
-        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
+            return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+        } catch (ShopExceptionHandler e) {
 
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+            // Custom 에러 정보를 담음
+            ShopErrorCode errorInfo = e.getShopErrorCode();
+
+            // 에러 정보에서 메시지와 안내 문구를 담음
+            ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
+
+            // 에러 정보를 Map에 담음
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("error", error);
+
+            // 정보를 담은 ResponseMessage 생성
+            ResponseMessage responseMessage = new ResponseMessage(400, "조회 실패", responseMap);
+            return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+        }
     }
 
     /*🐭 샵 상세조회*/
@@ -173,7 +192,7 @@ public class ShopController {
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 
-    /*예약을 취소할 경우*/
+    /*🐭 예약을 취소할 경우*/
     @PatchMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> cancelReservation(
             @RequestBody ShopUserCodeDTO userCodeDTO,
