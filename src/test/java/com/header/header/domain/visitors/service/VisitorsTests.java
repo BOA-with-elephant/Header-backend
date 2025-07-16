@@ -1,8 +1,7 @@
 package com.header.header.domain.visitors.service;
 
-import com.header.header.domain.message.exception.InvalidBatchException;
-import com.header.header.domain.visitors.DTO.VisitorDetailDTO;
-import com.header.header.domain.visitors.DTO.VisitorsDTO;
+import com.header.header.domain.visitors.dto.VisitorDetailDTO;
+import com.header.header.domain.visitors.dto.VisitorsDTO;
 import com.header.header.domain.visitors.enitity.Visitors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

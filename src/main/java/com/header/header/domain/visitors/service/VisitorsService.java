@@ -2,8 +2,8 @@ package com.header.header.domain.visitors.service;
 
 import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.user.service.UserService;
-import com.header.header.domain.visitors.DTO.VisitorDetailDTO;
-import com.header.header.domain.visitors.DTO.VisitorsDTO;
+import com.header.header.domain.visitors.dto.VisitorDetailDTO;
+import com.header.header.domain.visitors.dto.VisitorsDTO;
 import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
