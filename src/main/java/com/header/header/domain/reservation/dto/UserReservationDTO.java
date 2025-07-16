@@ -18,9 +18,6 @@ public class UserReservationDTO {
     @NotBlank(message = "유효하지 않은 로그인 정보입니다.")
     private Integer userCode;
 
-    @NotBlank(message = "유효하지 않은 샵 정보입니다.")
-    private Integer shopCode;
-
     @NotBlank(message = "시술 메뉴 선택은 필수입니다")
     private Integer menuCode;
 
