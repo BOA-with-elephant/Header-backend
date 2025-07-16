@@ -80,7 +80,6 @@ public class UserReservationService {
             }
         }
 
-
         /*사용자 정보가 존재하지 않을 경우 예외*/
         User user = userRepository.findById(userCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));

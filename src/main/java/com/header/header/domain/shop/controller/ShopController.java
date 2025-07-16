@@ -1,7 +1,9 @@
 package com.header.header.domain.shop.controller;
 
 import com.header.header.domain.reservation.dto.UserReservationDTO;
+import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
+import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
@@ -39,6 +41,7 @@ public class ShopController {
 
     private final UserReservationService userReservationService;
 
+    /*전체 샵 조회 (거리순, 이름/위치 조회*/
     @GetMapping("")
     public ResponseEntity<ResponseMessage> selectShopsWithPaging(
             @RequestParam(required = false) Double latitude,
@@ -73,6 +76,7 @@ public class ShopController {
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 
+    /*샵 상세조회*/
     @GetMapping("/{shopCode}")
     public ResponseEntity<ResponseMessage> selectShopsDetail(
             @PathVariable Integer shopCode) {
@@ -93,7 +97,7 @@ public class ShopController {
 
     }
 
-    /*새로운 예약 생성 ... 테스트 어케함 */
+    /*Post 새로운 예약 생성 ... 테스트 어케함 */
     @PostMapping("/{shopCode}")
     public ModelAndView createReservation(
             @PathVariable Integer shopCode,
@@ -117,5 +121,49 @@ public class ShopController {
         mv.setViewName("redirect:/{shopCode}"); //반환할 뷰
 
         return mv;
+    }
+
+    /*회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
+    @GetMapping("/reservation")
+    public ResponseEntity<ResponseMessage> selectReservations(
+            @RequestBody @Valid UserReservationSearchConditionDTO condition
+    ) {
+        List<UserReservationSummary> reservationSummaryList
+                = userReservationService.findResvSummaryByUserCode(condition);
+
+        // 응답 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 응답 데이터 설정
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("shop-detail", reservationSummaryList);
+
+        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
+
+        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+    }
+
+    /*특정 예약 내역을 상세조회할 경우*/
+    @GetMapping("reservation/{resvCode}")
+    public ResponseEntity<ResponseMessage> getReservationDetail(
+            @RequestBody Integer userCode,
+            @PathVariable Integer resvCode
+    ) {
+
+        Optional<UserReservationDetail> resvDetail
+                = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
+
+        // 응답 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 응답 데이터 설정
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("shop-detail", resvDetail);
+
+        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
+
+        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 }
