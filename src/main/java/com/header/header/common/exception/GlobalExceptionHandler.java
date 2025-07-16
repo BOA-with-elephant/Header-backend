@@ -14,7 +14,10 @@ import org.springframework.web.context.request.WebRequest;
  * - NotFoundException을 주로 사용하여 리소스 찾기 실패 처리
  * - 적절한 HTTP 상태 코드와 함께 구조화된 에러 정보 반환
  */
-@RestControllerAdvice(basePackages = "com.header.header")
+@RestControllerAdvice(basePackages = {
+        "com.header.header.domain.sales",
+        "com.header.header.domain.menu"
+})
 @Slf4j
 public class GlobalExceptionHandler {
 
