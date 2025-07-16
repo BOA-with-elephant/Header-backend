@@ -1,4 +1,4 @@
-package com.header.header.domain.shop.controller;
+package com.header.header.domain.shop.common;
 
 import java.util.Map;
 

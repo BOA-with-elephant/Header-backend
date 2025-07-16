@@ -5,6 +5,7 @@ import com.header.header.domain.reservation.dto.UserReservationSearchConditionDT
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
+import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.service.ShopService;
@@ -20,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
 import java.util.List;
@@ -102,7 +102,6 @@ public class ShopController {
     public ModelAndView createReservation(
             @PathVariable Integer shopCode,
             @RequestBody @Valid UserReservationDTO dto,
-            RedirectAttributes rttr, // 상태값과 함께 redirect 하기 위해 사용
             ModelAndView mv ){
 
         Optional<UserReservationDetail> reservationResult
@@ -118,7 +117,7 @@ public class ShopController {
         ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
 
         mv.addObject(responseMessage);
-        mv.setViewName("redirect:/{shopCode}"); //반환할 뷰
+        mv.setViewName("redirect:/shops/{shopCode}"); //반환할 뷰
 
         return mv;
     }
@@ -168,6 +167,31 @@ public class ShopController {
     }
 
     /*예약을 취소할 경우*/
-//    @PatchMapping("reservation/{resvCode}")
+    @PatchMapping("reservation/{resvCode}")
+    public ModelAndView cancelReservation(
+            @RequestBody Integer userCode,
+            @PathVariable Integer resvCode,
+            ModelAndView mv
+    ) {
+
+        userReservationService.cancelReservation(userCode, resvCode);
+
+        String message = "예약 정상 취소";
+
+        // 응답 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 응답 데이터 설정
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("reservation-result", message);
+
+        ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
+
+        mv.addObject(responseMessage);
+        mv.setViewName("redirect:/shops/reservation"); //반환할 뷰
+
+        return mv;
+    }
 
 }
