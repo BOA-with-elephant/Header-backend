@@ -7,6 +7,7 @@ import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
+import com.header.header.domain.shop.dto.ShopUserCodeDTO;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.service.ShopService;
 import jakarta.validation.Valid;
@@ -41,7 +42,7 @@ public class ShopController {
 
     private final UserReservationService userReservationService;
 
-    /*전체 샵 조회 (거리순, 이름/위치 조회*/
+    /*🐭 전체 샵 조회 (거리순, 이름/위치 조회*/
     @GetMapping("")
     public ResponseEntity<ResponseMessage> selectShopsWithPaging(
             @RequestParam(required = false) Double latitude,
@@ -76,7 +77,7 @@ public class ShopController {
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 
-    /*샵 상세조회*/
+    /*🐭 샵 상세조회*/
     @GetMapping("/{shopCode}")
     public ResponseEntity<ResponseMessage> selectShopsDetail(
             @PathVariable Integer shopCode) {
@@ -97,7 +98,7 @@ public class ShopController {
 
     }
 
-    /*Post 새로운 예약 생성 ... 테스트 어케함 */
+    /*🐭 Post 새로운 예약 생성 */
     @PostMapping("/{shopCode}")
     public ModelAndView createReservation(
             @PathVariable Integer shopCode,
@@ -122,7 +123,7 @@ public class ShopController {
         return mv;
     }
 
-    /*회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
+    /*🐭 회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
     @GetMapping("/reservation")
     public ResponseEntity<ResponseMessage> selectReservations(
             @RequestBody @Valid UserReservationSearchConditionDTO condition
@@ -146,9 +147,11 @@ public class ShopController {
     /*특정 예약 내역을 상세조회할 경우*/
     @GetMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> getReservationDetail(
-            @RequestBody Integer userCode,
+            @RequestBody ShopUserCodeDTO userCodeDTO,
             @PathVariable Integer resvCode
     ) {
+
+        Integer userCode = userCodeDTO.getUserCode();
 
         Optional<UserReservationDetail> resvDetail
                 = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
@@ -169,14 +172,15 @@ public class ShopController {
     /*예약을 취소할 경우*/
     @PatchMapping("reservation/{resvCode}")
     public ModelAndView cancelReservation(
-            @RequestBody Integer userCode,
+            @RequestBody ShopUserCodeDTO userCodeDTO,
             @PathVariable Integer resvCode,
             ModelAndView mv
     ) {
 
-        userReservationService.cancelReservation(userCode, resvCode);
+        Integer userCode = userCodeDTO.getUserCode();
 
-        String message = "예약 정상 취소";
+        userReservationService.cancelReservation(userCode, resvCode);
+        // 취소는 정상적으로 되는데 서버 응답이 안됨...해결 요함
 
         // 응답 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -184,7 +188,8 @@ public class ShopController {
 
         // 응답 데이터 설정
         Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("reservation-result", message);
+        String message = "예약 정상 취소";
+        responseMap.put("cancel", message);
 
         ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
 
@@ -192,6 +197,7 @@ public class ShopController {
         mv.setViewName("redirect:/shops/reservation"); //반환할 뷰
 
         return mv;
+//        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 
 }
