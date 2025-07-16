@@ -4,6 +4,7 @@ import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.user.service.UserService;
 import com.header.header.domain.visitors.dto.VisitorDetailDTO;
 import com.header.header.domain.visitors.dto.VisitorsDTO;
+import com.header.header.domain.visitors.dto.VisitorDetailResponse;
 import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
@@ -34,9 +35,9 @@ public class VisitorsService {
      * 샵 고객 리스트 조회
      *
      * @param shopCode 어떤 샵의 고객 리스트를 가져올지
-     * @return List<VisitorDetailDTO>
+     * @return List<VisitorDetailResponse>
      */
-    public List<VisitorDetailDTO> getShopVisitorsList(Integer shopCode){
+    public List<VisitorDetailResponse> getShopVisitorsList(Integer shopCode){
         if(shopCode == null){
             throw new IllegalArgumentException("shopCode는 필수입니다.");
         }
@@ -58,7 +59,8 @@ public class VisitorsService {
                     VisitStatisticsView stats = statisticsMap.get(visitor.getUserCode());
                     String favoriteMenu = favoriteMenuMap.get(visitor.getUserCode());
 
-                    return VisitorDetailDTO.builder()
+                    return  VisitorDetailResponse.from(
+                            VisitorDetailDTO.builder()
                             .clientCode(visitor.getClientCode())
                             .userCode(visitor.getUserCode())
                             .memo(visitor.getMemo())
@@ -73,7 +75,7 @@ public class VisitorsService {
                             .lastVisitDate(stats != null ? stats.getLastVisitDate().toLocalDate() : null)
                             // 선호 메뉴
                             .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
-                            .build();
+                            .build());
                 })
                 .collect(Collectors.toList());
     }
