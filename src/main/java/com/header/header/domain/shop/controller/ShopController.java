@@ -128,6 +128,10 @@ public class ShopController {
     public ResponseEntity<ResponseMessage> selectReservations(
             @RequestBody @Valid UserReservationSearchConditionDTO condition
     ) {
+
+        //시작 날짜, 종료 날짜 둘 다 있/없은 괜찮은데 둘 중 하나만 없으면 오류
+        //프론트에서 시작날짜/종료날짜가 있어야 재요청 보낼 수 있도록 막는 작업 필요
+
         List<UserReservationSummary> reservationSummaryList
                 = userReservationService.findResvSummaryByUserCode(condition);
 
@@ -144,14 +148,14 @@ public class ShopController {
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 
-    /*특정 예약 내역을 상세조회할 경우*/
+    /*🐭 특정 예약 내역을 상세조회할 경우*/
     @GetMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> getReservationDetail(
-            @RequestBody ShopUserCodeDTO userCodeDTO,
+            @RequestBody ShopUserCodeDTO dto,
             @PathVariable Integer resvCode
     ) {
 
-        Integer userCode = userCodeDTO.getUserCode();
+        Integer userCode = dto.getUserCode();
 
         Optional<UserReservationDetail> resvDetail
                 = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
@@ -171,16 +175,14 @@ public class ShopController {
 
     /*예약을 취소할 경우*/
     @PatchMapping("reservation/{resvCode}")
-    public ModelAndView cancelReservation(
+    public ResponseEntity<ResponseMessage> cancelReservation(
             @RequestBody ShopUserCodeDTO userCodeDTO,
-            @PathVariable Integer resvCode,
-            ModelAndView mv
+            @PathVariable Integer resvCode
     ) {
 
         Integer userCode = userCodeDTO.getUserCode();
 
         userReservationService.cancelReservation(userCode, resvCode);
-        // 취소는 정상적으로 되는데 서버 응답이 안됨...해결 요함
 
         // 응답 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -191,13 +193,9 @@ public class ShopController {
         String message = "예약 정상 취소";
         responseMap.put("cancel", message);
 
-        ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
+        ResponseMessage responseMessage = new ResponseMessage(204, "예약 취소 성공", responseMap);
 
-        mv.addObject(responseMessage);
-        mv.setViewName("redirect:/shops/reservation"); //반환할 뷰
-
-        return mv;
-//        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
     }
 
 }
