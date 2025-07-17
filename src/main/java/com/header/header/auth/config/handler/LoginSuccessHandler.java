@@ -58,14 +58,5 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 응답 본문에 JSON 데이터를 작성합니다.
         objectMapper.writeValue(response.getWriter(), responseBody);
-
-        // 클라이언트가 JWT를 쿠키에 저장하도록 하려면 다음 라인을 활성화하고,
-        // HttpOnly 및 Secure 설정을 추가하여 보안을 강화할 수 있습니다.
-        // Cookie jwtCookie = new Cookie("jwt_token", jwtToken);
-        // jwtCookie.setHttpOnly(true); // JavaScript 접근 방지
-        // jwtCookie.setSecure(true); // HTTPS 에서만 전송
-        // jwtCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-        // jwtCookie.setMaxAge((int) (JwtTokenProvider.getExpiration() / 1000)); // 만료 시간 설정 (초 단위)
-        // response.addCookie(jwtCookie);
     }
 }
