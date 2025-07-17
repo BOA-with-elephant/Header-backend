@@ -6,6 +6,7 @@ import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.visitors.dto.VisitorCreateRequest;
 import com.header.header.domain.visitors.dto.VisitorCreateResponse;
 import com.header.header.domain.visitors.dto.VisitorDetailResponse;
+import com.header.header.domain.visitors.dto.VisitorHistoryResponse;
 import com.header.header.domain.visitors.service.VisitorsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,22 @@ public class VisitorsController extends MyShopBaseController {
         VisitorCreateResponse visitor = visitorsService.createVisitorsByNameAndPhone(shopId ,requestBody);
 
         return ResponseEntity.ok(ApiResponse.success(visitor));
+    }
+
+    /**
+     * 샵 회원에 대한 히스토리를 조회합니다.
+     * @param shopId 등록할 샵의 아이디
+     * @param customerId 샵 회원 아이디
+     * @return ResponseEntity<ApiResponse<VisitorCreateResponse>>
+     */
+    @GetMapping("/customers/{customerId}")
+    public ResponseEntity<ApiResponse<List<VisitorHistoryResponse>>> searchVisitorsHistory(
+            @PathVariable Integer shopId,
+            @PathVariable Integer customerId)
+    {
+        List<VisitorHistoryResponse> historyResponseList = visitorsService.getShopVisitorsHistory(shopId , customerId);
+
+        return ResponseEntity.ok(ApiResponse.success(historyResponseList));
     }
 
     /**

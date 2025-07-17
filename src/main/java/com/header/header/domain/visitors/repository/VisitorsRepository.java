@@ -3,6 +3,7 @@ package com.header.header.domain.visitors.repository;
 import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
+import com.header.header.domain.visitors.projection.VisitorHistoryView;
 import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
-
-
 
     // (1) 기본 방문자 정보 리스트
     @Query("SELECT v.clientCode as clientCode, " +
@@ -55,7 +54,18 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "ORDER BY r.userCode, COUNT(*) DESC")  // userCode별로 정렬, 주문수 내림차순
     List<UserFavoriteMenuView> getUserFavoriteMenusRaw(@Param("userCodes") List<Integer> userCodes);
 
-
-    // (4) clientCode로 샵 회원 조회
+    // (4) 샵 회원 히스토리 리스트 조회
+    @Query("SELECT  r.resvDate as visitDate, " +
+            "       m.menuName as menuName " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "INNER JOIN Reservation r ON u.userCode = r.userCode " +
+            "INNER JOIN Menu m ON r.menuCode = m.menuCode " +
+            "WHERE v.clientCode = :clientCode " +
+            "  AND r.resvState = '결제완료' " +
+            "ORDER BY r.resvDate DESC")
+    List<VisitorHistoryView> getVisitHistoryByClientCode(@Param("clientCode") Integer clientCode);
+    
+    // (5) clientCode로 샵 회원 조회
     Optional<Visitors> findByClientCode(Integer clientCode);
 }

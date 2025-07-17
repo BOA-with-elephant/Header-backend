@@ -6,6 +6,7 @@ import com.header.header.domain.visitors.dto.*;
 import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
+import com.header.header.domain.visitors.projection.VisitorHistoryView;
 import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
 import com.header.header.domain.visitors.repository.VisitorsRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -74,6 +76,29 @@ public class VisitorsService {
                             // 선호 메뉴
                             .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
                             .build());
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 샵 회원 히스토리 리스트 조회
+     * @param clientCode 샵 회원 코드
+     * @return List<VisitorHistoryResponse>
+     */
+    public List<VisitorHistoryResponse> getShopVisitorsHistory(Integer shopCode ,Integer clientCode){ // todo. INDEXING을 위한 shopCode
+
+        List<VisitorHistoryView> historyViewList = visitorsRepository.getVisitHistoryByClientCode(clientCode);
+
+        return historyViewList.stream()
+                .map( history -> {
+                    LocalDate visitDate = history.getVisitDate();
+                    String menuName = history.getMenuName();
+
+                    return VisitorHistoryResponse.builder()
+                            .visitDate(visitDate)
+                            .menuName(menuName)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }
