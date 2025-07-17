@@ -24,8 +24,10 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
         JOIN r.menuInfo m
         JOIN m.menuCategory mc
         WHERE s.shopCode = :shopCode
+          AND r.resvDate >= :startDate
+          AND r.resvDate <= :endDate
     """)
-    List<BossResvDetailView> findByShopCode(@Param("shopCode")Integer shopCode);
+    List<BossResvDetailView> findByShopCodeAndResvMonth(@Param("shopCode")Integer shopCode, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
     /* 선택된 날짜의 예약 조회 */
     @Query("""

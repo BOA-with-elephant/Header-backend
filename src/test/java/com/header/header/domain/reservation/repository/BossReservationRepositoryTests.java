@@ -47,8 +47,14 @@ public class BossReservationRepositoryTests {
     @Order(1)
     @DisplayName("가게의 전체 예약 내역 조회하기")
     void testReservationList(){
-        List<BossResvProjectionDTO> reservationDTOList = bossReservationService.findReservationList(SHOP_CODE);
+        // given
+        String thisMonth = "2025-06";
 
+        // when
+        List<BossResvProjectionDTO> reservationDTOList = bossReservationService.findReservationList(SHOP_CODE, thisMonth);
+
+        /** 오류 해결하고 pull 받기 */
+        // then
         assertNotNull(reservationDTOList);
 
         System.out.println("DTO");
