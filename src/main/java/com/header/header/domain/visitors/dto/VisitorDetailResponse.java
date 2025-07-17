@@ -11,6 +11,7 @@ public class VisitorDetailResponse {
     private String userName;
     private String phone;
     private String birthday;
+    private String memo;
     private Boolean sendable;
     private Integer visitCount;
     private Integer totalPaymentAmount;
@@ -23,6 +24,7 @@ public class VisitorDetailResponse {
                 .userName(dto.getUserName())
                 .phone(dto.getUserPhone())
                 .birthday(TimeUtils.formatBirthday(dto.getBirthday()))
+                .memo(dto.getMemo())
                 .sendable(dto.getSendable())
                 .visitCount(dto.getVisitCount())
                 .totalPaymentAmount(dto.getTotalPaymentAmount())
