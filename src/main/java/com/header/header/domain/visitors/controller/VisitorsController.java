@@ -48,6 +48,13 @@ public class VisitorsController extends MyShopBaseController {
         return ResponseEntity.ok(ApiResponse.success(visitor));
     }
 
+    /**
+     * 샵 회원에 대한 메모를 수정합니다.
+     * @param shopId 등록할 샵의 아이디
+     * @param customerId 샵 회원 아이디
+     * @param memo 수정할 메모 전문
+     * @return ResponseEntity<ApiResponse<VisitorCreateResponse>>
+     */
     @PatchMapping("/customers/{customerId}")
     public ResponseEntity<ApiResponse<String>> modifyCustomerMemo(
             @PathVariable Integer shopId,
