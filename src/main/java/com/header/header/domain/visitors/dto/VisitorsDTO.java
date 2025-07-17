@@ -1,4 +1,4 @@
-package com.header.header.domain.visitors.DTO;
+package com.header.header.domain.visitors.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;

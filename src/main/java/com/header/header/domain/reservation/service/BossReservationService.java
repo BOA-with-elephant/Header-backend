@@ -21,7 +21,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
@@ -42,9 +41,12 @@ public class BossReservationService {
     private final ModelMapper modelMapper;
 
     /* 가게 예약 내역 전체 조회하기 */
-    public List<BossResvProjectionDTO> findReservationList(Integer shopCode){
+    public List<BossResvProjectionDTO> findReservationList(Integer shopCode, String thisMonth){
 
-        List<BossResvDetailView> reservationList = bossReservationRepository.findByShopCode(shopCode);
+        Date startDate = Date.valueOf(thisMonth + "-01");
+        Date endDate = Date.valueOf(thisMonth + "-31");
+
+        List<BossResvDetailView> reservationList = bossReservationRepository.findByShopCodeAndResvMonth(shopCode, startDate, endDate);
 
         return reservationList.stream()
                 .map(reservation -> modelMapper.map(reservation, BossResvProjectionDTO.class))

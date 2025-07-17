@@ -28,6 +28,7 @@ public class ShopMessageHistoryTests {
     private ShopMessageHistoryDTO testHistory;
     private ShopMessageHistoryDTO testReservedHistory;
 
+    @Autowired
     private ModelMapper modelMapper;
 
     @BeforeEach

@@ -1,5 +1,6 @@
 package com.header.header.common.exception;
 
+import com.header.header.common.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,11 @@ import org.springframework.web.context.request.WebRequest;
  * - 적절한 HTTP 상태 코드와 함께 구조화된 에러 정보 반환
  */
 @RestControllerAdvice(basePackages = {
-        "com.header.header.domain.sales",
-        "com.header.header.domain.menu"
+        "com.header.header.domain.visitors",
+        "com.header.header.domain.message"
 })
 @Slf4j
-public class GlobalExceptionHandler {
+public class GlobalExeptionHandlerForApiResponse {
 
     /**
      * NotFoundException 처리
@@ -28,17 +29,17 @@ public class GlobalExceptionHandler {
      * - HTTP 404 Not Found 상태로 응답
      */
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(
-        NotFoundException ex, WebRequest request) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleNotFoundException(
+            NotFoundException ex, WebRequest request) {
 
         log.error("리소스를 찾을 수 없음: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.notFound(
-            ex.getMessage(),
-            request.getDescription(false).replace("uri=", "")
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(errorResponse.getMessage(),errorResponse));
     }
 
     /**
@@ -49,17 +50,17 @@ public class GlobalExceptionHandler {
      * - HTTP 400 Bad Request 상태로 응답
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-        IllegalArgumentException ex, WebRequest request) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleIllegalArgumentException(
+            IllegalArgumentException ex, WebRequest request) {
 
         log.error("잘못된 매개변수: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.badRequest(
-            ex.getMessage(),
-            request.getDescription(false).replace("uri=", "")
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(errorResponse.getMessage(),errorResponse));
     }
 
     /**
@@ -70,16 +71,16 @@ public class GlobalExceptionHandler {
      * - 상세한 에러 정보는 로그에만 기록하고, 클라이언트에는 일반적인 메시지만 전달
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(
-        Exception ex, WebRequest request) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleGlobalException(
+            Exception ex, WebRequest request) {
 
         log.error("예상하지 못한 오류 발생: {}", ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.internalServerError(
-            "서버 내부 오류가 발생했습니다.",
-            request.getDescription(false).replace("uri=", "")
+                "서버 내부 오류가 발생했습니다.",
+                request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail(errorResponse.getMessage(),errorResponse));
     }
 }
