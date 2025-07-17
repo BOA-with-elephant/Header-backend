@@ -66,11 +66,11 @@ public class VisitorsService {
                             .userName(visitor.getUserName())
                             .userPhone(visitor.getUserPhone())
                             .birthday(visitor.getBirthday() != null ?
-                                    visitor.getBirthday().toLocalDate() : null)
+                                    visitor.getBirthday() : null)
                             // 통계 정보
                             .visitCount(stats != null ? stats.getVisitCount() : 0)
                             .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
-                            .lastVisitDate(stats != null ? stats.getLastVisitDate().toLocalDate() : null)
+                            .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
                             // 선호 메뉴
                             .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
                             .build());
@@ -119,10 +119,12 @@ public class VisitorsService {
      * @param memo 수정할 메모
      * */
     @Transactional              // todo. shopCode, clientCode INDEXING을 고려한 매개변수 선정
-    public void updateShopUserMemo(Integer shopCode, Integer clientCode, String memo){
+    public String updateShopUserMemo(Integer shopCode, Integer clientCode, String memo){
         Visitors found = findVisitorByClientCode(clientCode);
 
         found.modifyClientMemo(memo); // Entity Update
+
+        return found.getMemo();
     }
 
     /**
