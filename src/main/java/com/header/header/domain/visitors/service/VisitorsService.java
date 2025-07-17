@@ -99,6 +99,7 @@ public class VisitorsService {
                 .shopCode(shopCode)
                 .sendable(request.getSendable())
                 .memo(request.getMemo())
+                .isActive(true)
                 .build();
 
         Visitors visitors = visitorsRepository.save(modelMapper.map(visitorsDTO, Visitors.class));

@@ -66,4 +66,19 @@ public class VisitorsController extends MyShopBaseController {
         return ResponseEntity.ok(ApiResponse.success(updatedMemo));
     }
 
+    /**
+     * 샵 회원에 대한 회원을 삭제합니다.
+     * @param shopId 등록할 샵의 아이디
+     * @param customerId 샵 회원 아이디
+     * @return ResponseEntity<ApiResponse<VisitorCreateResponse>>
+     */
+    @DeleteMapping("/customers/{customerId}")
+    public ResponseEntity<ApiResponse<String>> deleteCustomer(
+            @PathVariable Integer shopId,
+            @PathVariable Integer customerId)
+    {
+        visitorsService.deleteShopUser(shopId, customerId);
+        return ResponseEntity.ok(ApiResponse.success("고객이 삭제되었습니다."));
+    }
+
 }
