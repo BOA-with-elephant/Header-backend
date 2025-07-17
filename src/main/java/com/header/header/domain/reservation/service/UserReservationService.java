@@ -70,22 +70,22 @@ public class UserReservationService {
             UserReservationSearchConditionDTO conditionDTO) {
         /*유효성 체크가 된 데이터들 한개씩 꺼내오기*/
         Integer userCode = conditionDTO.getUserCode();
-        Date startDate = conditionDTO.getStartDate();
-        Date endDate = conditionDTO.getEndDate();
+        LocalDate startDate = conditionDTO.getStartDate();
+        LocalDate endDate = conditionDTO.getEndDate();
 
         /*날짜 조회 필터를 사용할 경우*/
-        if (startDate != null || endDate != null) {
+        if (startDate != null && endDate != null) {
 
             /*조회 시작 날짜가 조회 종료 날짜보다 이후인 경우 예외*/
-            if (!startDate.before(endDate)) {
+            if (!startDate.isBefore(endDate)) {
                 throw new UserReservationExceptionHandler(UserReservationErrorCode.INPUT_DATE_WRONG);
             }
         }
 
         if (startDate == null || endDate == null) {
             // 둘 중 하나라도 없으면 쿼리에서 에러, 방지용
-            startDate = Date.valueOf("2025-01-01");
-            endDate = Date.valueOf(LocalDate.now().toString());
+            startDate = LocalDate.of(2020, 1,1);
+            endDate = LocalDate.now();
         }
 
         /*사용자 정보가 존재하지 않을 경우 예외*/

@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +33,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.net.URI;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,11 +160,18 @@ public class ShopController {
     /*🐭 회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
     @GetMapping("/reservation")
     public ResponseEntity<ResponseMessage> selectReservations(
-            @Valid UserReservationSearchConditionDTO condition
+            @RequestParam Integer userCode,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
 
         try {//시작 날짜, 종료 날짜 둘 다 있/없은 괜찮은데 둘 중 하나만 없으면 오류
             //프론트에서 시작날짜/종료날짜가 있어야 재요청 보낼 수 있도록 막는 작업 필요
+
+            UserReservationSearchConditionDTO condition
+                    = new UserReservationSearchConditionDTO(userCode, startDate, endDate);
+
+            log.info(condition.toString());
 
             List<UserReservationSummary> reservationSummaryList
                     = userReservationService.findResvSummaryByUserCode(condition);

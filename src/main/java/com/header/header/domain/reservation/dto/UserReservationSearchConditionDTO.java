@@ -1,22 +1,30 @@
 package com.header.header.domain.reservation.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.lang.Nullable;
 
-import java.sql.Date;
+import java.time.LocalDate;
+
 
 @Getter
 @Setter
+@AllArgsConstructor
+@ToString
 public class UserReservationSearchConditionDTO {
 
     Integer userCode;
 
     /*지정된 날짜 형식만 받을 수 있게 체크, null 허용*/
+    @Nullable
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    Date startDate;
+    LocalDate startDate;
 
+    @Nullable
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    Date endDate;
+    LocalDate endDate;
 
 }
