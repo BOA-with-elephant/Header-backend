@@ -1,12 +1,10 @@
 package com.header.header.domain.user.controller;
 
 import com.header.header.auth.model.dto.SignupDTO;
+import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.facade.UserFacadeService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
@@ -18,7 +16,7 @@ public class UserController {
         this.userFacadeServiceService = userFacadeServiceService;
     }
 
-    @GetMapping("/session")
+    @GetMapping("/users")
     public void signup(){
         //void = user/signup으로 (자동) 반환
     }
@@ -31,7 +29,6 @@ public class UserController {
         //그러나 이번엔 간단하게 바로 DTO 적용하는 걸로.
 
         int result = userFacadeServiceService.registerUser(signupDTO);
-        //수행횟수(숫자)를 반환 받기위해 int result로 변수 생성
 
         String msg = "";
 
@@ -48,5 +45,41 @@ public class UserController {
         mv.addObject("msg", msg);
 
         return mv;
+    }
+
+    @GetMapping("/session")
+    public void login() {
+    }
+
+    //로그인 실패시 핸들해줄 핸들러 메소드 작성
+    @GetMapping("/session/fail")
+    public ModelAndView loginFail(ModelAndView mv,
+                                  @RequestParam(value = "msg"
+                                          , defaultValue = "login failed") String msg) {
+        //@RequestParam을 통해 어떤 실패가 일어난 건지 메시지 받는다.
+        mv.addObject("msg", msg);
+        mv.setViewName("/auth/fail");
+        return mv;
+    }
+
+    // 회원정보 수정 시
+    @GetMapping("/auth/{user_id}")
+    public void modifyUser(){}
+
+    @PutMapping("/auth/{user_id}")
+    public String modifyUser(@ModelAttribute UserDTO userDTO) {
+        userFacadeServiceService.updateUser(userDTO);
+        return "redirect:/session";
+    }
+
+    // 회원탈퇴 시
+    @GetMapping("/auth/{user_id}/leave")
+    public void leaveHeader() {}
+
+    //회원탈퇴 시 patchmapping 이용해서 isAdmin 변경
+    @PatchMapping("/auth/{user_id}/leave")
+    public String leaveHeader(@ModelAttribute UserDTO userDTO) {
+        userFacadeServiceService.withdrawUser(userDTO);
+        return "redirect:/";
     }
 }

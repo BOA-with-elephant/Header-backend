@@ -16,7 +16,9 @@ public enum ApiResponse {
 
     SAME_PASSWORD("(은)는 이전 비밀번호와 동일합니다.", HttpStatus.BAD_REQUEST),
     SAME_PHONE("(은)는 이전 전화번호와 동일합니다.", HttpStatus.BAD_REQUEST),
-    SAME_NAME("(은)는 이전 이름과 동일합니다.", HttpStatus.BAD_REQUEST);
+    SAME_NAME("(은)는 이전 이름과 동일합니다.", HttpStatus.BAD_REQUEST),
+
+    UNKNOWN_ERROR("회원가입 중 알 수 없는 오류가 발생하였습니다.", HttpStatus.BAD_REQUEST);
 
     private final String message;
     private final HttpStatus status;

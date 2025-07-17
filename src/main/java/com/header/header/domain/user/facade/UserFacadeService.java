@@ -1,5 +1,6 @@
 package com.header.header.domain.user.facade;
 
+import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.domain.menu.service.MenuCategoryService;
@@ -14,10 +15,13 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import com.header.header.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+
+import java.util.Objects;
 
 import static com.header.header.auth.common.ApiResponse.SUCCESS_REGISTER_USER;
 
@@ -26,13 +30,6 @@ import static com.header.header.auth.common.ApiResponse.SUCCESS_REGISTER_USER;
 public class UserFacadeService {
 
     private final UserService userService;
-    private final MainUserRepository userRepository;
-    private final BossReservationService bossReservationService;
-    private final SalesService salesService;
-    private final MessageSendBatchService messageSendBatchService;
-    private final MessageTemplateService messageTemplateService;
-    private final MenuCategoryService menuCategoryService;
-    private final ShopMessageHistoryService shopMessageHistoryService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -52,6 +49,7 @@ public class UserFacadeService {
     /* 3. 회원가입 처리 (중복검사 포함) */
     @Transactional
     public int registerUser(SignupDTO signupDTO) {
+        // 비밀번호 암호화
         signupDTO.setUserPwd(passwordEncoder.encode(signupDTO.getUserPwd()));
 
         String resultMessage = userService.registerNewUser(signupDTO);
@@ -62,23 +60,6 @@ public class UserFacadeService {
         } else {
             return 0; // Or any non-positive integer to indicate failure
         }
-    }
-
-    //spring security filter를 통해 적용되는 코드.
-    public int regist(SignupDTO signupDTO) {
-
-        signupDTO.setUserPass(passwordEncoder.encode(signupDTO.getUserPass()));
-
-        int result = 0;
-
-        //error 발생시 중단되지 않고 실행하도록 try/catch문 넣기
-        try {
-            result = userMapper.regist(signupDTO);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return result;
     }
 
     /* 4. 로그인 시 유저 정보 조회 */
@@ -96,5 +77,16 @@ public class UserFacadeService {
     @Transactional
     public void withdrawUser(UserDTO dto) {
         userService.deleteUser(dto);
+    }
+
+    /* 7. 인가를 위한 loadByUserID 사용 */
+    @Transactional
+    public AuthDetails loadUserByUserId(String userId) {
+        LoginUserDTO login = userService.findByUserId(userId);
+        if (Objects.isNull(login)) {
+            throw new UsernameNotFoundException("해당하는 회원이 없습니다.");
+        }
+
+        return new AuthDetails(login);
     }
 }

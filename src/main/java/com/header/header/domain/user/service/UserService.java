@@ -8,10 +8,11 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import static com.header.header.auth.common.ApiResponse.*;
@@ -23,7 +24,6 @@ public class UserService {
 
     private final MainUserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
 
     /***
      * dummy user을 추가한다.
@@ -72,18 +72,21 @@ public class UserService {
         if (userRepository.existsByUserPhone(signupDTO.getUserPhone())) {
             return DUPLICATE_PHONE.getMessage();
         }
+        try {
+            // DTO → Entity로 변환 후 저장
+            User userEntity = modelMapper.map(signupDTO, User.class);
+            User savedUser = userRepository.save(userEntity);
 
-        // 비밀번호 암호화
-        signupDTO.setUserPwd(passwordEncoder.encode(signupDTO.getUserPwd()));
+            // 저장된 userCode를 다시 DTO에 설정 (if needed for further operations, otherwise not strictly necessary here)
+            signupDTO.setUserCode(savedUser.getUserCode());
 
-        // DTO → Entity로 변환 후 저장
-        User userEntity = modelMapper.map(signupDTO, User.class);
-        User savedUser = userRepository.save(userEntity);
-
-        // 저장된 userCode를 다시 DTO에 설정
-        signupDTO.setUserCode(savedUser.getUserCode());
-
-        return SUCCESS_REGISTER_USER.getMessage();
+            return SUCCESS_REGISTER_USER.getMessage();
+        } catch (Exception e) {
+            // Log the exception for debugging
+            e.printStackTrace(); // In a real app, use a logger (e.g., logger.error("Error during user registration", e);)
+            // Return a generic error message
+            return UNKNOWN_ERROR.getMessage(); // Or a more specific error message if you can identify the type of exception
+        }
     }
 
     /** Read specific : Login
@@ -158,5 +161,4 @@ public class UserService {
         }
         user.modifyUserLeave(true);
     }
-
 }
