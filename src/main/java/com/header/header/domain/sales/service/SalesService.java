@@ -86,12 +86,21 @@ public class SalesService {
     }
 
     /**
-     * 특정 샵의 모든 매출 상세 목록 조회
+     * 특정 샵의 모든 매출 상세 목록 조회 (삭제 포함)
      * @param shopCode 샵 코드
      * @return 매출 상세 목록
      */
     public List<SalesDetailDTO> getSalesDetailsByShop(Integer shopCode) {
         return salesRepository.findSalesDetailsByShop(shopCode);
+    }
+
+    /**
+     * 특정 샵의 활성 매출 상세 목록 조회 (삭제된 매출 제외)
+     * @param shopCode 샵 코드
+     * @return 활성 매출 상세 목록
+     */
+    public List<SalesDetailDTO> getActiveSalesDetailsByShop(Integer shopCode) {
+        return salesRepository.findActiveSalesDetailsByShop(shopCode);
     }
 
     /**
