@@ -84,10 +84,23 @@ public class VisitorsService {
     /**
      * 샵 회원 히스토리 리스트 조회
      * @param clientCode 샵 회원 코드
-     * @return List<VisitorHistoryView>
+     * @return List<VisitorHistoryResponse>
      */
-    public List<VisitorHistoryView> getShopVisitorsHistory(Integer clientCode){
-        return visitorsRepository.getVisitHistoryByClientCode(clientCode);
+    public List<VisitorHistoryResponse> getShopVisitorsHistory(Integer clientCode){
+
+        List<VisitorHistoryView> historyViewList = visitorsRepository.getVisitHistoryByClientCode(clientCode);
+
+        return historyViewList.stream()
+                .map( history -> {
+                    LocalDate visitDate = history.getVisitDate();
+                    String menuName = history.getMenuName();
+
+                    return VisitorHistoryResponse.builder()
+                            .visitDate(visitDate)
+                            .menuName(menuName)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     /**
