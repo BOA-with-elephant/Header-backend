@@ -5,5 +5,4 @@ import java.time.LocalDate;
 public interface VisitorHistoryView {
     LocalDate getVisitDate();
     String getMenuName();
-    Integer getSalesPrice();
 }
