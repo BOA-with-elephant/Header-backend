@@ -33,4 +33,32 @@ public class BossReservationController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    /* 검색 결과 조회 - 날짜별, 고객 이름별, 메뉴 이름 별 */
+    @GetMapping("")
+    public ResponseEntity<List<BossResvProjectionDTO>> searchResultReservationList(
+            @PathVariable(value = "shopCode") Integer shopCode,
+            @RequestParam(value = "resvDate", required = false) String resvDate,
+            @RequestParam(value = "userName", required = false) String userName,
+            @RequestParam(value = "menuName", required = false) String menuName){
+
+        try{
+            List<BossResvProjectionDTO> result;
+
+            if(resvDate != null){
+                Date formattedDate = Date.valueOf(resvDate);
+                result = bossReservationService.findReservationListByDate(shopCode, formattedDate);
+            } else if(userName != null){
+                result = bossReservationService.findReservationListByName(shopCode, userName);
+            } else if(menuName != null){
+                result = bossReservationService.findReservationListByMenuName(shopCode, menuName);
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
