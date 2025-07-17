@@ -29,7 +29,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ShopExceptionHandler.class)
-    @Order(1)
     public ResponseEntity<ResponseMessage> handleShopException(ShopExceptionHandler e) {
         ShopErrorCode errorInfo = e.getShopErrorCode();
 
@@ -97,6 +96,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
         Exception ex, WebRequest request) {
+
+        if (ex instanceof ShopExceptionHandler) {
+            throw (ShopExceptionHandler) ex;
+        }
 
         log.error("예상하지 못한 오류 발생: {}", ex.getMessage(), ex);
 
