@@ -65,7 +65,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // jwtCookie.setHttpOnly(true); // JavaScript 접근 방지
         // jwtCookie.setSecure(true); // HTTPS 에서만 전송
         // jwtCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-        // jwtCookie.setMaxAge((int) (jwtTokenProvider.getExpiration() / 1000)); // 만료 시간 설정 (초 단위)
+        // jwtCookie.setMaxAge((int) (JwtTokenProvider.getExpiration() / 1000)); // 만료 시간 설정 (초 단위)
         // response.addCookie(jwtCookie);
     }
 }

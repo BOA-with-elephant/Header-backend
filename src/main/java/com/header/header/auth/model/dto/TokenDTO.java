@@ -7,8 +7,6 @@ public class TokenDTO {
     private String accessToken; 		// 액세스 토큰
     private Long accessTokenExpiresIn;	// Long 형의 만료 시간
 
-    public TokenDTO() {
-    }
     public TokenDTO(String grantType, String memberName, String accessToken, Long accessTokenExpiresIn) {
         this.grantType = grantType;
         this.memberName = memberName;
