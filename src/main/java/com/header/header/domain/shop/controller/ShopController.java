@@ -211,13 +211,13 @@ public class ShopController {
     }
 
     /*🐭 예약을 취소할 경우*/
-    @PatchMapping("reservation/{resvCode}")
+    @PutMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> cancelReservation(
             @RequestParam Integer userCode,
             @PathVariable Integer resvCode
     ) {
 
-        log.info("userCode: {}, resvCode: {}", userCode, resvCode);
+        /*log.info("userCode: {}, resvCode: {}", userCode, resvCode);
 
         try {// 응답 데이터 설정
 
@@ -243,7 +243,13 @@ public class ShopController {
         } catch (ShopExceptionHandler e) {
             log.error("ShopExceptionHandler 에러 발생");
             return getShopErrorCode(e);
-        }
+        }*/
+
+        // 오류 찾으려고 간소화 -> @PatchMapping -> @PutMapping으로 수정했더니 작동함
+        userReservationService.cancelReservation(userCode, resvCode);
+
+        return ResponseEntity.ok().body(
+                new ResponseMessage(204, "삭제 성공", null));
     }
 
     public ResponseEntity<ResponseMessage> getShopErrorCode(ShopExceptionHandler e) {
