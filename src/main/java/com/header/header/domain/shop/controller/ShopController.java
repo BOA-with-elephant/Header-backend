@@ -41,6 +41,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/shops")
+@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
+        allowedHeaders = "*",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH})
 @SpringBootApplication(exclude = {org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class})
 // spring 보안 임시 해제
 public class ShopController {
