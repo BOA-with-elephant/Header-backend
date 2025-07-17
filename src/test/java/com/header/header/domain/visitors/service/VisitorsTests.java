@@ -1,8 +1,6 @@
 package com.header.header.domain.visitors.service;
 
-import com.header.header.domain.visitors.dto.VisitorDetailDTO;
-import com.header.header.domain.visitors.dto.VisitorsDTO;
-import com.header.header.domain.visitors.dto.VisitorDetailResponse;
+import com.header.header.domain.visitors.dto.*;
 import com.header.header.domain.visitors.enitity.Visitors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,12 +27,15 @@ public class VisitorsTests {
 
     @BeforeEach
     void setUp(){
-        VisitorsDTO visitors = visitorsService.createVisitorsByNameAndPhone(2, "김예람", "010-2222-9999", true);
+        VisitorCreateRequest request = VisitorCreateRequest.builder()
+                .name("김예람")
+                .phone("010-2222-9999")
+                .sendable(true)
+                .build();
+        VisitorCreateResponse visitors = visitorsService.createVisitorsByNameAndPhone(2, request);
 
         testVisitor = VisitorsDTO.builder()
                 .clientCode(visitors.getClientCode())
-                .userCode(visitors.getUserCode())
-                .shopCode(visitors.getShopCode())
                 .memo("초기 메모입니다.")
                 .sendable(true)
                 .isActive(true)
