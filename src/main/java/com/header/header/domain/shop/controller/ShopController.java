@@ -222,7 +222,7 @@ public class ShopController {
     }
 
     /*🐭 예약을 취소할 경우*/
-    @PutMapping("reservation/{resvCode}")
+    @DeleteMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> cancelReservation(
             @RequestParam Integer userCode,
             @PathVariable Integer resvCode
