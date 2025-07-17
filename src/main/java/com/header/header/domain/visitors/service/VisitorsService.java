@@ -6,6 +6,7 @@ import com.header.header.domain.visitors.dto.*;
 import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
+import com.header.header.domain.visitors.projection.VisitorHistoryView;
 import com.header.header.domain.visitors.projection.VisitorWithUserInfoView;
 import com.header.header.domain.visitors.repository.VisitorsRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -76,6 +78,16 @@ public class VisitorsService {
                             .build());
                 })
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 샵 회원 히스토리 리스트 조회
+     * @param clientCode 샵 회원 코드
+     * @return List<VisitorHistoryView>
+     */
+    public List<VisitorHistoryView> getShopVisitorsHistory(Integer clientCode){
+        return visitorsRepository.getVisitHistoryByClientCode(clientCode);
     }
 
     /**
