@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.controller;
 
+import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.service.BossReservationService;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,9 @@ public class BossReservationController {
         try{
             List<BossResvProjectionDTO> reservationList = bossReservationService.findReservationList(shopCode, thisMonth);
 
+            for(BossResvProjectionDTO list : reservationList){
+                System.out.println(list);
+            }
             return ResponseEntity.ok(reservationList);
         } catch (Exception e){
             return ResponseEntity.internalServerError().build();
