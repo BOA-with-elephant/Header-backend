@@ -86,7 +86,7 @@ public class VisitorsService {
      * @param clientCode 샵 회원 코드
      * @return List<VisitorHistoryResponse>
      */
-    public List<VisitorHistoryResponse> getShopVisitorsHistory(Integer clientCode){
+    public List<VisitorHistoryResponse> getShopVisitorsHistory(Integer shopCode ,Integer clientCode){ // todo. INDEXING을 위한 shopCode
 
         List<VisitorHistoryView> historyViewList = visitorsRepository.getVisitHistoryByClientCode(clientCode);
 
