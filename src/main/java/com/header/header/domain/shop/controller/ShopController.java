@@ -15,7 +15,6 @@ import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.service.ShopService;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.net.URI;
-import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,12 +67,12 @@ public class ShopController {
     ) {
 
         // 기본 로딩 개수는 10개
-
-        try {
             Pageable pageable = PageRequest.of(page, 10);
             // 응답 헤더 설정
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
 
             Page<ShopSummaryResponseDTO> shopsWithPaging
                     = shopService.findShopsByCondition(
@@ -86,6 +83,8 @@ public class ShopController {
                     pageable
             );
 
+            log.info("shopsWithPaging: {}", shopsWithPaging);
+
             // 응답 데이터 설정
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("shops", shopsWithPaging.getContent());
@@ -95,7 +94,7 @@ public class ShopController {
             return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
         } catch (ShopExceptionHandler e) {
 
-            // 최하단에 설정된 에러 코드용 메소드 리턴
+            // 최하단에 설정된 에러 코드 처리용 메소드 사용해 ResponseEntity 리턴
             return getShopErrorCode(e);
         }
     }
