@@ -32,6 +32,11 @@ public class VisitorsController extends MyShopBaseController {
         return ResponseEntity.ok(ApiResponse.success(visitors));
     }
 
+    /**
+     * 유저를 샵의 회원으로 등록합니다.
+     * @param shopId 등록할 샵의 아이디
+     * @return ResponseEntity<ApiResponse<VisitorCreateResponse>>
+     */
     @PostMapping("/customers")
     public ResponseEntity<ApiResponse<VisitorCreateResponse>> registerCustomer(
             @PathVariable Integer shopId,
@@ -41,6 +46,17 @@ public class VisitorsController extends MyShopBaseController {
         VisitorCreateResponse visitor = visitorsService.createVisitorsByNameAndPhone(shopId ,requestBody);
 
         return ResponseEntity.ok(ApiResponse.success(visitor));
+    }
+
+    @PatchMapping("/customers/{customerId}")
+    public ResponseEntity<ApiResponse<String>> modifyCustomerMemo(
+            @PathVariable Integer shopId,
+            @PathVariable Integer customerId,
+            @RequestParam String memo) // QueryParameter 이용!
+    {
+        String updatedMemo = visitorsService.updateShopUserMemo(shopId, customerId, memo);
+
+        return ResponseEntity.ok(ApiResponse.success(updatedMemo));
     }
 
 }
