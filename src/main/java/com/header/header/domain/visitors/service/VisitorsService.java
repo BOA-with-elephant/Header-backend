@@ -2,9 +2,7 @@ package com.header.header.domain.visitors.service;
 
 import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.user.service.UserService;
-import com.header.header.domain.visitors.dto.VisitorDetailDTO;
-import com.header.header.domain.visitors.dto.VisitorsDTO;
-import com.header.header.domain.visitors.dto.VisitorDetailResponse;
+import com.header.header.domain.visitors.dto.*;
 import com.header.header.domain.visitors.enitity.Visitors;
 import com.header.header.domain.visitors.projection.UserFavoriteMenuView;
 import com.header.header.domain.visitors.projection.VisitStatisticsView;
@@ -68,11 +66,11 @@ public class VisitorsService {
                             .userName(visitor.getUserName())
                             .userPhone(visitor.getUserPhone())
                             .birthday(visitor.getBirthday() != null ?
-                                    visitor.getBirthday().toLocalDate() : null)
+                                    visitor.getBirthday() : null)
                             // 통계 정보
                             .visitCount(stats != null ? stats.getVisitCount() : 0)
                             .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
-                            .lastVisitDate(stats != null ? stats.getLastVisitDate().toLocalDate() : null)
+                            .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
                             // 선호 메뉴
                             .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
                             .build());
@@ -84,33 +82,31 @@ public class VisitorsService {
      * 샵 고객 리스트 추가
      * 사장님이 직접 고객을 추가하거나, 샵을 처음 예약한 고객일 경우 비즈니스 로직에 의해 추가된다.
      * @param shopCode 샵 코드
-     * @param userName 유저 이름
-     * @param userPhone 유저 핸드폰 번호
-     * @param sendable 광고성문자 수신 동의 여부
+     * @param request 요청받은 유저 요청 DTO
      * */
     @Transactional
-    public VisitorsDTO createVisitorsByNameAndPhone(Integer shopCode,String userName, String userPhone, Boolean sendable){
+    public VisitorCreateResponse createVisitorsByNameAndPhone(Integer shopCode , VisitorCreateRequest request){
         // 이미 user로 존재하는지 체크
-        Integer userCode = userService.findUserByNameAndPhone(userName, userPhone);
+        Integer userCode = userService.findUserByNameAndPhone(request.getName(), request.getPhone());
 
         // 없다면 추가해서 userId를 받아온다.
         if(userCode == null){
-            userCode = userService.createUserByNameAndPhone(userName, userPhone).getUserCode();
+            userCode = userService.createUserByNameAndPhone(request.getName(), request.getPhone()).getUserCode();
         }
 
         VisitorsDTO visitorsDTO = VisitorsDTO.builder()
                 .userCode(userCode)
                 .shopCode(shopCode)
-                .sendable(sendable)
+                .sendable(request.getSendable())
+                .memo(request.getMemo())
+                .isActive(true)
                 .build();
 
         Visitors visitors = visitorsRepository.save(modelMapper.map(visitorsDTO, Visitors.class));
 
         // Visitors Table에 생성.
-        return VisitorsDTO.builder()
+        return VisitorCreateResponse.builder()
                 .clientCode(visitors.getClientCode())
-                .userCode(visitors.getUserCode())
-                .shopCode(visitors.getShopCode())
                 .memo(visitors.getMemo())
                 .sendable(visitors.isSendable())
                 .build();
@@ -124,10 +120,12 @@ public class VisitorsService {
      * @param memo 수정할 메모
      * */
     @Transactional              // todo. shopCode, clientCode INDEXING을 고려한 매개변수 선정
-    public void updateShopUserMemo(Integer shopCode, Integer clientCode, String memo){
+    public String updateShopUserMemo(Integer shopCode, Integer clientCode, String memo){
         Visitors found = findVisitorByClientCode(clientCode);
 
         found.modifyClientMemo(memo); // Entity Update
+
+        return found.getMemo();
     }
 
     /**

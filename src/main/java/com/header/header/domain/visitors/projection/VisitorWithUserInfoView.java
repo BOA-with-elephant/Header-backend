@@ -1,6 +1,7 @@
 package com.header.header.domain.visitors.projection;
 
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
 
 public interface VisitorWithUserInfoView {
 
@@ -12,5 +13,5 @@ public interface VisitorWithUserInfoView {
     // Join User
     String getUserName();
     String getUserPhone();
-    LocalDateTime getBirthday();
+    LocalDate getBirthday();
 }
