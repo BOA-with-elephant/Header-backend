@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -20,7 +21,7 @@ public class User {
     private boolean isAdmin;
     private String userName;
     private String userPhone;
-    private Date birthday;
+    private LocalDate birthday;
     private boolean isLeave;
 
     public void modifyUserLeave(boolean isLeave){
