@@ -2,6 +2,8 @@ package com.header.header.domain.shop.controller;
 
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
+import com.header.header.domain.reservation.enums.UserReservationErrorCode;
+import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
@@ -17,6 +19,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/shops")
@@ -85,7 +89,7 @@ public class ShopController {
         } catch (ShopExceptionHandler e) {
 
             // 최하단에 설정된 에러 코드용 메소드 리턴
-            return getErrorCode(e);
+            return getShopErrorCode(e);
         }
     }
 
@@ -110,7 +114,7 @@ public class ShopController {
 
             return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
         } catch (ShopExceptionHandler e) {
-            return getErrorCode(e);
+            return getShopErrorCode(e);
         }
     }
 
@@ -127,98 +131,119 @@ public class ShopController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setLocation(URI.create(referer));
-            // 응답 데이터 설정
-            Map<String, Object> responseMap = new HashMap<>();
 
         try {
             Optional<UserReservationDetail> reservationResult
                     = userReservationService.createReservation(shopCode, dto);
 
+            // 응답 데이터 설정
+            Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("reservation-result", reservationResult);
-        } catch (ShopExceptionHandler e) {
 
-        }
             ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", responseMap);
             return new ResponseEntity<>(responseMessage, headers, HttpStatus.CREATED);
 
+        } catch (ShopExceptionHandler e) {
+
+            return getShopErrorCode(e);
+
+        }
     }
 
     /*🐭 회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
     @GetMapping("/reservation")
     public ResponseEntity<ResponseMessage> selectReservations(
-            @RequestBody @Valid UserReservationSearchConditionDTO condition
+            @Valid UserReservationSearchConditionDTO condition
     ) {
 
-        //시작 날짜, 종료 날짜 둘 다 있/없은 괜찮은데 둘 중 하나만 없으면 오류
-        //프론트에서 시작날짜/종료날짜가 있어야 재요청 보낼 수 있도록 막는 작업 필요
+        try {//시작 날짜, 종료 날짜 둘 다 있/없은 괜찮은데 둘 중 하나만 없으면 오류
+            //프론트에서 시작날짜/종료날짜가 있어야 재요청 보낼 수 있도록 막는 작업 필요
 
-        List<UserReservationSummary> reservationSummaryList
-                = userReservationService.findResvSummaryByUserCode(condition);
+            List<UserReservationSummary> reservationSummaryList
+                    = userReservationService.findResvSummaryByUserCode(condition);
 
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            // 응답 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shop-detail", reservationSummaryList);
+            // 응답 데이터 설정
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("shop-detail", reservationSummaryList);
 
-        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
+            ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
 
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+            return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+        } catch (ShopExceptionHandler e) {
+            return getShopErrorCode(e);
+        }
     }
 
     /*🐭 특정 예약 내역을 상세조회할 경우*/
     @GetMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> getReservationDetail(
-            @RequestBody ShopUserCodeDTO dto,
+            ShopUserCodeDTO dto, //@RequestParam이 없어야 dto를 받고, 잘 받아옴
             @PathVariable Integer resvCode
     ) {
 
         Integer userCode = dto.getUserCode();
 
-        Optional<UserReservationDetail> resvDetail
-                = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
+        try {
+            Optional<UserReservationDetail> resvDetail
+                    = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
 
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            // 응답 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shop-detail", resvDetail);
+            // 응답 데이터 설정
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("shop-detail", resvDetail);
 
-        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
+            ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
 
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+            return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+        } catch (ShopExceptionHandler e) {
+            return getShopErrorCode(e);
+        }
     }
 
     /*🐭 예약을 취소할 경우*/
     @PatchMapping("reservation/{resvCode}")
     public ResponseEntity<ResponseMessage> cancelReservation(
-            @RequestBody ShopUserCodeDTO userCodeDTO,
+            @RequestParam Integer userCode,
             @PathVariable Integer resvCode
     ) {
 
-        Integer userCode = userCodeDTO.getUserCode();
+        log.info("userCode: {}, resvCode: {}", userCode, resvCode);
 
-        userReservationService.cancelReservation(userCode, resvCode);
+        try {// 응답 데이터 설정
 
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            log.info("userCode 가져오기");
+//            Integer userCode = userCodeDTO.getUserCode();
+            log.info("예약취소 try 시작");
+            userReservationService.cancelReservation(userCode, resvCode);
+            // 응답 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        String message = "예약 정상 취소";
-        responseMap.put("cancel", message);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("cancel", "예약 정상 취소");
+            responseMap.put("resvCode", resvCode);
+            responseMap.put("userCode", userCode);
 
-        ResponseMessage responseMessage = new ResponseMessage(204, "예약 취소 성공", responseMap);
+            ResponseMessage responseMessage = new ResponseMessage(200, "예약 취소 성공", responseMap);
 
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+            return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+        } catch (UserReservationExceptionHandler e) {
+            log.error("UserReservationExceptionHandler 에러 발생");
+            return getUserErrorCode(e);
+        } catch (ShopExceptionHandler e) {
+            log.error("ShopExceptionHandler 에러 발생");
+            return getShopErrorCode(e);
+        }
     }
 
-    public ResponseEntity<ResponseMessage> getErrorCode(ShopExceptionHandler e) {
+    public ResponseEntity<ResponseMessage> getShopErrorCode(ShopExceptionHandler e) {
         // Custom 에러 정보를 담음
         ShopErrorCode errorInfo = e.getShopErrorCode();
 
@@ -226,6 +251,18 @@ public class ShopController {
         ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
 
         // 에러 정보를 Map에 담음
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("error", error);
+
+        // 정보를 담은 ResponseMessage 생성
+        ResponseMessage responseMessage = new ResponseMessage(400, "조회 실패", responseMap);
+        return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<ResponseMessage> getUserErrorCode(UserReservationExceptionHandler e) {
+        UserReservationErrorCode errorInfo = e.getURErrorCode();
+        ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
+
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("error", error);
 

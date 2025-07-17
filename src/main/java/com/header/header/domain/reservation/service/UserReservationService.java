@@ -19,6 +19,7 @@ import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserReservationService {
@@ -80,6 +82,12 @@ public class UserReservationService {
             }
         }
 
+        if (startDate == null || endDate == null) {
+            // 둘 중 하나라도 없으면 쿼리에서 에러, 방지용
+            startDate = Date.valueOf("2025-01-01");
+            endDate = Date.valueOf(LocalDate.now().toString());
+        }
+
         /*사용자 정보가 존재하지 않을 경우 예외*/
         User user = userRepository.findById(userCode)
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
@@ -103,6 +111,14 @@ public class UserReservationService {
         Date resvDate = dto.getResvDate();
         Time resvTime = dto.getResvTime();
 
+        /*유효하지 않은 사용자 정보일 경우 예외*/
+        User user = userRepository.findById(userCode)
+                .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
+
+        /*유효하지 않은 샵 정보일 경우 예외*/
+        Shop shop = shopRepository.findById(shopCode)
+                .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.SHOP_NOT_FOUND));
+
         // 예약 시도 날짜가 샵 휴무일인 경우 예외
         if (isHoliday(shopCode, resvDate)) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.DATE_HAS_HOL);
@@ -117,14 +133,6 @@ public class UserReservationService {
         if(userReservationRepository.isUserHasReservationInThisSchedule(userCode, resvDate, resvTime)) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_SCHEDULE_UNAVAILABLE);
         }
-
-        /*유효하지 않은 사용자 정보일 경우 예외*/
-        User user = userRepository.findById(userCode)
-                .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
-
-        /*유효하지 않은 샵 정보일 경우 예외*/
-        Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.SHOP_NOT_FOUND));
 
         /*  유효하지 않는 메뉴 정보 예외
             1) 해당 샵이 가지고 있지 않은 메뉴인 경우
@@ -156,36 +164,48 @@ public class UserReservationService {
     @Transactional
     public void cancelReservation(Integer userCode, Integer resvCode) {
 
+        log.info("예약 취소 시작");
+
         /* 사용자 정보 유효성 검사 */
         User user = userRepository.findById(userCode)
                 /*존재하지 않는 유저 정보 예외*/
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
+
+                log.info("사용자 유효성 검사 완료");
 
         if (user.isLeave()) {
             /*탈퇴한 유저 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_HAS_LEFT);
         }
 
+        log.info("사용자 유효성 검사 - 탈퇴 검사 완료");
+
         /*예약 정보 유효성 검사*/
         BossReservation reservation = userReservationRepository.findById(resvCode)
 
                 /*존재하지 않는 예약 정보 예외*/
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
+                log.info("예약 정보 유효성 검사1");
         if (reservation.getResvState() == ReservationState.CANCEL) {
 
+            log.info("예약 정보 유효성 검사2");
             /*이미 취소된 예약 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
         } else if (reservation.getResvState() == ReservationState.FINISH) {
+            log.info("예약 정보 유효성 검사3");
 
             /*시술 완료된 예약 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
         } else {
+            log.info("예약 정보 유효성 검사4, cacel 진입");
 
             /*위 유효성 검사를 모두 통과했을 경우, 엔티티 내부 취소 메소드 사용*/
             reservation.cancelReservation();
         }
 
         userReservationRepository.save(reservation);
+
+        log.info("예약 취소 완료");
     }
 
     /*사용자가 접근하려는 날짜가 휴일인지 검증하는 메소드
