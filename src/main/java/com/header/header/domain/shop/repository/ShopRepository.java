@@ -17,13 +17,15 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     /*shop_code로 상세 조회*/
     @Query("""
         SELECT 
-            s.shopName as shopName
+            s.shopCode as shopCode
+          , s.shopName as shopName
           , s.shopPhone as shopPhone
           , s.shopLocation as shopLocation
           , s.shopOpen as shopOpen
           , s.shopClose as shopClose
           , sc.categoryName as categoryName
           , c.categoryName as menuCategoryName
+          , m.menuCode as menuCode
           , m.menuName as menuName
           , m.menuPrice as menuPrice
           , m.estTime as estTime
