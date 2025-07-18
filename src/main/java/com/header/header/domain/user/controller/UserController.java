@@ -2,7 +2,7 @@ package com.header.header.domain.user.controller;
 
 import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.domain.user.dto.UserDTO;
-import com.header.header.domain.user.facade.UserFacadeService;
+import com.header.header.domain.user.service.UserFacadeService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
