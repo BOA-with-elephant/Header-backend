@@ -2,12 +2,12 @@ package com.header.header.domain.shop.service;
 
 import com.header.header.domain.shop.dto.ShopCreationDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
@@ -125,11 +125,11 @@ class ShopServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
                 userLat, userLong, categoryCode, null, pageable
         );
 
-        List<ShopSummaryResponseDTO> content = result.getContent();
+        List<ShopSearchSummaryResponse> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -149,11 +149,11 @@ class ShopServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         String keyword = "멀리";
 
-        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
                 userLat, userLong, categoryCode, keyword, pageable
         );
 
-        List<ShopSummaryResponseDTO> content = result.getContent();
+        List<ShopSearchSummaryResponse> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -173,11 +173,11 @@ class ShopServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
                 null, null, categoryCode, null, pageable
         );
 
-        List<ShopSummaryResponseDTO> content = result.getContent();
+        List<ShopSearchSummaryResponse> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(

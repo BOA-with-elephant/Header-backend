@@ -1,8 +1,8 @@
 package com.header.header.domain.shop.repository;
 
-import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
@@ -53,9 +53,12 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     @Query(
             value = """
         SELECT 
+            s.SHOP_CODE AS shopCode,
             s.SHOP_NAME AS shopName,
             s.SHOP_PHONE AS shopPhone,
             s.SHOP_LOCATION AS shopLocation,
+            s.SHOP_LONG AS shopLong,
+            s.SHOP_LA AS shopLa,
             sc.CATEGORY_NAME AS categoryName,
             ST_Distance_Sphere(
                     POINT(s.SHOP_LONG, s.SHOP_LA), 
@@ -75,7 +78,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         """,
             nativeQuery = true
     )
-    Page<ShopSummaryResponseDTO> findShopsByCondition(
+    Page<ShopSearchSummaryResponse> findShopsByCondition(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("categoryCode") Integer categoryCode,

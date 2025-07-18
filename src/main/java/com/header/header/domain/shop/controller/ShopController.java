@@ -9,11 +9,11 @@ import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.ErrorResponseMessage;
 import com.header.header.domain.shop.common.ResponseMessage;
-import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.dto.ShopUserCodeDTO;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.service.ShopService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -74,7 +74,7 @@ public class ShopController {
 
         try {
 
-            Page<ShopSummaryResponseDTO> shopsWithPaging
+            Page<ShopSearchSummaryResponse> shopsWithPaging
                     = shopService.findShopsByCondition(
                     latitude,
                     longitude,

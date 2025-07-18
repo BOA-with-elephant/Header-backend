@@ -7,6 +7,7 @@ import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
@@ -72,7 +73,7 @@ public class ShopService {
     /*사용자가 검색하는 경우, 페이징 처리된 요약 조회 메소드
       필터: 카테고리 or 키워드
       정렬: 기끼운 거리순*/
-    public Page<ShopSummaryResponseDTO> findShopsByCondition(
+    public Page<ShopSearchSummaryResponse> findShopsByCondition(
             Double lat, Double lon, Integer categoryCode, String keyword, Pageable pageable
     ) {
 
