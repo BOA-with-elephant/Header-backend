@@ -1,21 +1,24 @@
-package com.header.header.domain.auth;
+package com.header.header.domain.user.service;
 
 import com.header.header.auth.common.ApiResponse;
+import com.header.header.domain.user.controller.UserController;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.domain.user.entity.User;
-import com.header.header.domain.user.facade.UserFacadeService;
 import com.header.header.domain.user.repository.MainUserRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ComponentScan(basePackages = "com.header.header")
 @Transactional // 테스트 후 데이터 롤백
 public class UserFacadeServiceTests {
 

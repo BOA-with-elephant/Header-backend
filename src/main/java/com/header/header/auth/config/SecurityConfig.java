@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +21,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static org.springframework.security.config.Customizer.withDefaults;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -73,7 +71,8 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        http.csrf(csrf -> csrf.disable());
+            http
                 .cors(withDefaults()) // CORS 설정은 그대로 유지 (예람님 코드에서 갖고 옴)
                 // 세션 관리 전략을 STATELESS로 설정 (세션을 사용하지 않음)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -85,8 +84,8 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
                     auth.requestMatchers("/my-shops/**").hasRole("ADMIN");
-                    // "/shops/**" 경로는 USER 역할만 접근 가능합니다.
-                    auth.requestMatchers("/shops/**").hasRole("USER");
+                    // "/shops/**" 경로는 USER 역할, ADMIN역할 모두 접근 가능합니다.
+                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
                     // 그 외 모든 요청은 인증된 사용자만 접근 가능합니다.
                     auth.anyRequest().authenticated();
                 })
@@ -113,9 +112,9 @@ public class SecurityConfig {
                 // 직접 작성한 커스텀 필터인 JwtAuthenticationFilter를 필터 체인에 추가 (이 필터는 모든 요청에서 JWT 토큰을 검증한다)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
 
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
+//                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable);
+                //.httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }

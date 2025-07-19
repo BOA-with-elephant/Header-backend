@@ -1,32 +1,138 @@
 package com.header.header.auth.model.service;
 
+import com.header.header.auth.common.ApiResponse;
+import com.header.header.auth.config.JwtTokenProvider;
+import com.header.header.auth.exception.DuplicatedMemberEmailException;
+import com.header.header.auth.exception.DuplicatedPhoneException;
+import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.TokenDTO;
+import com.header.header.domain.user.dto.UserDTO;
+import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.repository.MainUserRepository;
 import com.header.header.domain.user.service.UserService;
-import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import javax.security.auth.login.FailedLoginException;
+
 
 @Service
-@RequiredArgsConstructor
-// final 붙은 필드만 골라서 생성자를 자동 생성해줌 -> 의존성을 안정적으로 주입하고 코드를 간결하게 유지해줌
 public class AuthUserService implements UserDetailsService {
     @Autowired
     private UserService userService;
 
-    @Override
-    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        LoginUserDTO login = userService.findByUserId(userId);
+    private static final Logger log = LoggerFactory.getLogger(AuthUserService.class);
+    private final MainUserRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider tokenProvider;
+    private final ModelMapper modelMapper;
+    private final MainUserRepository userRepository;
 
-        if(Objects.isNull(login)){
-            throw new UsernameNotFoundException("해당하는 회원이 없습니다");
+    public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider, ModelMapper modelMapper, MainUserRepository userRepository) {
+        this.memberRepository = memberRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenProvider = tokenProvider;
+        this.modelMapper = modelMapper;
+        this.userRepository = userRepository;
+    }
+
+    public Object login(LoginUserDTO userDTO) throws FailedLoginException {
+
+        log.info("[AuthService] login() START");
+        log.info("[AuthService] {}", userDTO);
+
+        /* 목차. 1. 아이디 조회 */
+        User user = memberRepository.findByUserId(userDTO.getUserId());
+
+        if (user == null) {
+            log.info("[AuthService] login() Required User Not Found!");
+            throw new FailedLoginException(userDTO.getUserId() + " 유저를 찾을 수 없습니다.");
         }
 
-        return new AuthDetails(login);
+        /* 목차. 2. 비밀번호 매칭 */
+        if (!passwordEncoder.matches(userDTO.getUserPwd(), user.getUserPwd())) {
+            log.info("[AuthService] login() Password Match Failed!");
+            throw new FailedLoginException("잘못된 비밀번호입니다.");
+        }
+
+        /* 목차. 3. 토큰 발급 */
+        TokenDTO newToken = tokenProvider.generateTokenDTO(LoginUserDTO);
+
+        return newToken;
+    }
+
+    @Transactional
+    public UserDTO signup(UserDTO userDTO) {
+        log.info("[AuthService] signup() Start.");
+        log.info("[AuthService] userDTO {}", userDTO);
+
+        /* 1. 중복 유효성 검사 */
+        // 중복확인 1 : userId
+        if (userRepository.existsByUserId(userDTO.getUserId())) {
+            log.info("[AuthService] 아이디가 중복됩니다.");
+            throw new DuplicatedMemberEmailException(ApiResponse.DUPLICATE_ID.getMessage());
+        }
+        // 중복확인 2 : userPhone
+        if (userRepository.existsByUserPhone(userDTO.getUserPhone())) {
+            log.info("[AuthService] 전화번호가 중복됩니다.");
+            try {
+                throw new DuplicatedPhoneException(ApiResponse.DUPLICATE_PHONE.getMessage());
+                // 2. 비밀번호 암호화
+                String encodedPassword = passwordEncoder.encode(userDTO.getUserPwd());
+
+                // 3. User 엔티티 생성 및 기본 권한(isAdmin=false) 설정
+                User registUser = new User(
+                        userDTO.getUserId(),
+                        encodedPassword,
+                        false, // isAdmin: 회원가입 시 기본값은 false (일반 사용자)
+                        userDTO.getUserName(),
+                        userDTO.getUserPhone(),
+                        userDTO.getBirthday(),
+                        false  // isLeave: 회원가입 시 기본값은 false (탈퇴하지 않음)
+                );
+
+                // 4. User 엔티티 저장
+                User result = userRepository.save(registUser);
+
+                /* 설명. 위의 save()가 성공해야 해당 트랜잭션이 성공했다고 판단. */
+                log.info("[AuthService] User Insert Result {}",
+                        (result != null) ? "회원 가입 성공" : "회원 가입 실패");
+
+                return userDTO;
+
+            } catch (DuplicatedPhoneException e) {
+                throw new RuntimeException(e);
+            } catch (Exception e) {
+                // 예상치 못한 다른 모든 예외 처리
+                log.error("회원가입 중 알 수 없는 오류 발생", e);
+                throw new RegistrationUnknownException(ApiResponse.UNKNOWN_ERROR.getMessage(), e);
+            } finally {
+                log.info("[AuthService] signup() End.");
+            }
+        }
+    }
+    @Override
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+
+        if(userId == null || userId.equals("")) {
+            throw new AuthenticationServiceException(userId + " is Empty!");
+        } else {
+            LoginUserDTO loginUserDTO = userService.findByUserId(userId);
+            if (loginUserDTO == null) {
+                throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원 가입 후 로그인 해주십시오.");
+            }
+            return new AuthDetails(loginUserDTO);
+        }
     }
 }

@@ -1,85 +1,58 @@
 package com.header.header.domain.user.controller;
 
+import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
-import com.header.header.domain.user.dto.UserDTO;
+import com.header.header.common.dto.ResponseDTO;
 import com.header.header.domain.user.service.UserFacadeService;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequestMapping("/auth")
 public class UserController {
-    private final UserFacadeService userFacadeServiceService;
 
-    public UserController(UserFacadeService userFacadeServiceService) {
-        this.userFacadeServiceService = userFacadeServiceService;
+    @Autowired
+    private final UserFacadeService userFacadeService;
+
+    public UserController(UserFacadeService userFacadeService) {
+        this.userFacadeService = userFacadeService;
     }
 
-    @GetMapping("/users")
-    public void signup(){
-        //void = user/signup으로 (자동) 반환
+    /* 설명.
+     *  @RequestBody를 통해 RequestBody로 넘어온 JSON 문자열을 파싱해 MemberDTO 속성으로 매핑해 객체로 받아낸다.
+     *  (회원 아이디, 비밀번호)
+     *  + 요청의 body에서 데이터를 뽑아내겠다는 것은 요청이 POST 요청이었다는 것을 알 수 있다.
+     *  왜냐하면 GET 요청은 body가 아니라 header에 데이터가 담겨있기 때문이다.
+     * */
+    @PostMapping("/session")
+    public ResponseEntity<ResponseDTO> login(@RequestBody LoginUserDTO loginUserDTO) {
+
+        /* 설명. ResponseEntity
+         *  HTTP 응답 몸체와 헤더, 그리고 상태 코드를 제어할 수 있는 Spring Framework의 클래스다.
+         * 	응답으로 변환될 정보가 담긴 모든 요소들을 해당 객체로 만들어서 반환해 준다.(body + header + status)
+         *  (ResponseBody와 차별점이 있다면, ResponseEntity는 HTTP 상태 코드나 헤더도 다룰 수 있다.)
+         *  필요한 정보들만 담아서 전달할 수 있기 때문에 REST API를 만들 때 유용하게 사용하는 클래스다.
+         * 	또한 ResponseEntity를 사용할 때, 생성자 대신 Builder 사용을 권장한다.
+         *  (숫자 타입인 상태 코드를 실수로 잘못 입력하지 않도록 메소드들이 제공 된다.)
+         * */
+        return ResponseEntity
+                .ok()
+                .body(new ResponseDTO(HttpStatus.OK, "로그인 성공~", userFacadeService.login(loginUserDTO)));
+        /* 설명. (React 및 Spring 연계 시, 가장 중요한 개념!!!)
+         *  ResponseEntity의 body() 메소드를 사용하면 Response객체의 body에 담기는 ResponseDTO는 JSON문자열이 되고
+         *  화면단이 React인 곳으로 가면 결국 Redux Store에 해당 리듀서가 관리하는 state 값이 된다.
+         * */
     }
 
-    //post 요청 받아줄 핸들러 메소드 작성
     @PostMapping("/users")
-    public ModelAndView signup(ModelAndView mv, @ModelAttribute SignupDTO signupDTO){
-        //@ModelAttribute SignupDTO signupDTO ->
-        // 원래는 signupDTO가 유효성에 부합하는지도 확인해야함.
-        //그러나 이번엔 간단하게 바로 DTO 적용하는 걸로.
-
-        int result = userFacadeServiceService.registerUser(signupDTO);
-
-        String msg = "";
-
-        if(result >0){
-            msg = "Successfully Signed up";
-            mv.setViewName("auth/session.html");
-            // 회원가입 성공 시 로그인 페이지로 이동
-        }else {
-            msg="Fail to sign up";
-            mv.setViewName("auth/users");
-            //실패 시 회원가입 form("auth/users")으로 다시 돌아오도록 설정
-        }
-        //signup 페이지 <header> <script> 내에 메세지 alert 뜨도록 작성
-        mv.addObject("msg", msg);
-
-        return mv;
-    }
-
-    @GetMapping("/session")
-    public void login() {
-    }
-
-    //로그인 실패시 핸들해줄 핸들러 메소드 작성
-    @GetMapping("/session/fail")
-    public ModelAndView loginFail(ModelAndView mv,
-                                  @RequestParam(value = "msg"
-                                          , defaultValue = "login failed") String msg) {
-        //@RequestParam을 통해 어떤 실패가 일어난 건지 메시지 받는다.
-        mv.addObject("msg", msg);
-        mv.setViewName("/auth/fail");
-        return mv;
-    }
-
-    // 회원정보 수정 시
-    @GetMapping("/auth/{user_id}")
-    public void modifyUser(){}
-
-    @PutMapping("/auth/{user_id}")
-    public String modifyUser(@ModelAttribute UserDTO userDTO) {
-        userFacadeServiceService.updateUser(userDTO);
-        return "redirect:/session";
-    }
-
-    // 회원탈퇴 시
-    @GetMapping("/auth/{user_id}/leave")
-    public void leaveHeader() {}
-
-    //회원탈퇴 시 patchmapping 이용해서 isAdmin 변경
-    @PatchMapping("/auth/{user_id}/leave")
-    public String leaveHeader(@ModelAttribute UserDTO userDTO) {
-        userFacadeServiceService.withdrawUser(userDTO);
-        return "redirect:/";
+    public ResponseEntity<ResponseDTO> signup(@RequestBody SignupDTO signupDTO) {	// 회원 가입 정보를 받아 냄
+        return ResponseEntity
+                .ok()
+                .body(new ResponseDTO(HttpStatus.CREATED, "회원가입 성공", userFacadeService.registerUser(signupDTO)));
     }
 }

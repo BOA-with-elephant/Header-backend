@@ -1,6 +1,7 @@
 package com.header.header.auth.model;
 
 import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.domain.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +28,7 @@ public class AuthDetails implements UserDetails {
     public void setLoginUserDTO(LoginUserDTO loginUserDTO) {
         this.loginUserDTO = loginUserDTO;
     }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();

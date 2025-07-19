@@ -24,6 +24,16 @@ public class User {
     private LocalDate birthday;
     private boolean isLeave;
 
+    public User(String userId, String userPwd, boolean isAdmin, String userName, String userPhone, LocalDate birthday, boolean isLeave) {
+        this.userId = userId;
+        this.userPwd = userPwd;
+        this.isAdmin = isAdmin;
+        this.userName = userName;
+        this.userPhone = userPhone;
+        this.birthday = birthday;
+        this.isLeave = isLeave;
+    }
+
     public void modifyUserLeave(boolean isLeave){
         this.isLeave = isLeave;
     }

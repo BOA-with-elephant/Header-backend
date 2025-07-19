@@ -1,21 +1,25 @@
 package com.header.header.auth.config;
 
+import com.header.header.auth.model.AuthDetails;
+import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.TokenDTO;
+import com.header.header.auth.model.service.AuthUserService;
+import com.header.header.domain.user.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -24,45 +28,52 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    // application.properties 또는 application.yml에서 secret 키를 주입받는다.
-    @Value("${jwt.secret}")
-    private String secret;
+    private final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private final Key key;
+    private final long expiration;
 
-    @Value("${jwt.expiration}") // JWT 유효 기간 (밀리초 단위)
-    private long expiration;
+    // JWT 토큰에 권한 정보를 담을 클레임의 키
+    private static final String AUTHORITIES_KEY = "auth";
+    private static final String BEARER_TYPE = "Bearer";
+    private final AuthUserService authUserService;
 
-    private Key key; // JWT 서명에 사용할 키
-
-    /**
-     * Secret 값을 사용하여 키를 초기화합니다.
-     * 이 메서드는 빈 생성 후 자동으로 호출됩니다.
-     */
-    @PostConstruct
-    public void init() {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secret,
+                            @Value("${jwt.token-validity-in-milliseconds}") long tokenValidityInMilliseconds, AuthUserService authUserService) {
+        // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.expiration = tokenValidityInMilliseconds;
+        this.authUserService = authUserService;
     }
 
-    /**
-     * 사용자 인증 정보를 기반으로 JWT 토큰을 생성합니다.
-     * @param authentication 인증 객체
-     * @return 생성된 JWT 토큰 문자열
-     */
-    public String generateToken(Authentication authentication) {
-        // 인증된 사용자의 권한(Authority)들을 쉼표로 구분된 문자열로 변환합니다.
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO) {
+        log.info("[TokenProvider] generateTokenDTO() Start");
 
-        long now = (new Date()).getTime(); // 현재 시간
-        Date validity = new Date(now + expiration); // 토큰 만료 시간 설정
+        long now = System.currentTimeMillis();
+        Date accessTokenExpiresIn = new Date(now + expiration);
 
-        // JWT 토큰을 빌드하고 서명합니다.
-        return Jwts.builder()
-                .setSubject(authentication.getName()) // 토큰의 주체 (사용자 ID)
-                .claim("auth", authorities) // 권한 정보를 클레임으로 추가
-                .setExpiration(validity) // 토큰 만료 시간
-                .signWith(key, SignatureAlgorithm.RS256) // 서명에 사용할 키와 알고리즘
-                .compact(); // JWT를 압축하여 문자열로 반환
+        // LoginUserDTO의 isAdmin 필드를 기반으로 권한 정보를 가져옵니다.
+        // isAdmin 필드를 통해 "ROLE_USER" 또는 "ROLE_ADMIN" 권한을 부여합니다.
+        String authorities = loginUserDTO.isAdmin() ? "ROLE_ADMIN" : "ROLE_USER";
+
+        // JWT 토큰 생성
+        String accessToken = Jwts.builder()
+                // 토큰의 주체 (사용자 ID) 설정
+                .setSubject(loginUserDTO.getUserId())
+                // 권한 정보를 클레임으로 추가
+                .claim(AUTHORITIES_KEY, authorities)
+                // 토큰 만료 시간 설정
+                .setExpiration(accessTokenExpiresIn)
+                // 서명에 사용할 키와 알고리즘
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+
+        System.out.println("조립된 accessToken 확인 = " + accessToken);
+
+        log.info("[TokenProvider] generateTokenDTO() End");
+
+        // TokenDTO 생성 시 사용자 이름(userId)과 토큰 만료 시간을 사용합니다.
+        // loginUserDTO.getUserId()를 사용하여 사용자 ID를 직접 전달합니다.
+        return new TokenDTO(BEARER_TYPE, loginUserDTO.getUserId(), accessToken, accessTokenExpiresIn.getTime());
     }
 
     /**
@@ -103,16 +114,15 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
 
-        // 클레임에서 권한 정보를 추출하여 GrantedAuthority 컬렉션으로 변환합니다.
         Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get("auth").toString().split(","))
+                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        // UserDetails 객체를 생성합니다. (여기서는 Spring Security의 User 클래스를 사용)
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        UserDetails principal = authUserService.loadUserByUsername(claims.getSubject());
 
-        // UsernamePasswordAuthenticationToken을 반환하여 SecurityContext에 저장할 수 있도록 합니다.
+        // UsernamePasswordAuthenticationToken을 반환하여 SecurityContext에 저장
+        // principal (UserDetails), credentials (비밀번호, 여기서는 빈 문자열), authorities
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 }
