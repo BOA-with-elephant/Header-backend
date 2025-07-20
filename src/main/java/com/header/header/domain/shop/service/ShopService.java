@@ -88,7 +88,6 @@ public class ShopService {
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
 
-
         return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
     }
 
@@ -123,10 +122,10 @@ public class ShopService {
 
     /*보유한 샵을 수정*/
     @Transactional
-    public ShopDTO updateShop(ShopUpdateDTO dto) {
+    public ShopDTO updateShop(Integer shopCode, ShopUpdateDTO dto) {
 
         /*존재하지 않는 샵 예외*/
-        Shop shop = shopRepository.findById(dto.getShopCode())
+        Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
         /*필드별로 null 체크하여 기존 값 유지, 더티 체킹이 동작하지 않아 처리. 추후 검토 예정*/
@@ -177,7 +176,7 @@ public class ShopService {
 
     //DELETE (논리적 삭제)
     @Transactional
-    public ShopDTO deActiveShop(Integer shopCode) {
+    public void deActiveShop(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
@@ -188,8 +187,6 @@ public class ShopService {
         shop.deactivateShop();
 
         shopRepository.save(shop);
-
-        return modelMapper.map(shop, ShopDTO.class);
     }
 
     /* MapService - getCoordinates 메소드를 통해 문서에서 필요한 정보를 가져오는 메소드

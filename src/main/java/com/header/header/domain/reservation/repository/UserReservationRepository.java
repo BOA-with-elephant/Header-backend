@@ -25,6 +25,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
      * */
     @Query("""
                 SELECT 
+                        r.resvCode AS resvCode,
                         r.resvDate AS resvDate,
                         r.resvTime AS resvTime,
                         r.resvState AS resvState,
@@ -32,6 +33,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
                         s.shopName AS shopName,
                         s.shopLocation AS shopLocation,
                         m.menuName AS menuName,
+                        u.userCode AS userCode,
                         u.userName AS userName,
                         u.userPhone AS userPhone
                 FROM BossReservation r
@@ -54,6 +56,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
 
     @Query("""
                 SELECT 
+                    r.resvCode AS resvCode,
                     r.resvDate AS resvDate,
                     r.resvTime AS resvTime,
                     r.resvState AS resvState,

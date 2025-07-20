@@ -1,9 +1,6 @@
 package com.header.header.domain.reservation.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.Nullable;
 
@@ -14,6 +11,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @ToString
+@NoArgsConstructor // 테스트에 사용
 public class UserReservationSearchConditionDTO {
 
     Integer userCode;

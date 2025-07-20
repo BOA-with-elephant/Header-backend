@@ -9,6 +9,7 @@ public interface UserReservationDetail {
     * Menu => 메뉴 이름
     * */
 
+    Integer getResvCode();
     String getResvDate();
     String getResvTime();
     String getResvState();
@@ -16,6 +17,7 @@ public interface UserReservationDetail {
     String getShopName();
     String getShopLocation();
     String getMenuName();
+    Integer getUserCode();
     String getUserName();
     String getUserPhone();
 }

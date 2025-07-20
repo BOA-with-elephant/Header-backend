@@ -70,12 +70,14 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         JOIN TBL_SHOP_CATEGORY sc ON s.CATEGORY_CODE = sc.CATEGORY_CODE
         WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
           AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
+          AND s.IS_ACTIVE = 1
         ORDER BY distance ASC
         """,
             countQuery = """
         SELECT COUNT(*)
         FROM TBL_SHOP s
-        WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
+        WHERE s.IS_ACTIVE = 1
+          AND (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
           AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
         """,
             nativeQuery = true
@@ -91,6 +93,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     /* 관리자가 보유한 샵의 리스트 요약 조회 */
     @Query("""
     SELECT
+        s.shopCode as shopCode,
         s.shopName as shopName,
         s.shopPhone as shopPhone,
         s.shopLocation as shopLocation,

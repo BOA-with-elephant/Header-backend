@@ -269,8 +269,8 @@ public class UserReservationTests {
         conditionDTO.setUserCode(3);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        conditionDTO.setStartDate(Date.valueOf("2025-06-01"));
-        conditionDTO.setEndDate(Date.valueOf("2025-07-31"));
+        conditionDTO.setStartDate(Date.valueOf("2025-06-01").toLocalDate());
+        conditionDTO.setEndDate(Date.valueOf("2025-07-31").toLocalDate());
 
         //when and then
         List<UserReservationSummary> results
@@ -299,8 +299,8 @@ public class UserReservationTests {
         conditionDTO.setUserCode(3);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        conditionDTO.setStartDate(Date.valueOf("2025-08-01"));
-        conditionDTO.setEndDate(Date.valueOf("2025-07-31"));
+        conditionDTO.setStartDate(Date.valueOf("2025-08-01").toLocalDate());
+        conditionDTO.setEndDate(Date.valueOf("2025-07-31").toLocalDate());
 
         //when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {

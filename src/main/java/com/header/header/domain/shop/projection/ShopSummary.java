@@ -2,6 +2,8 @@ package com.header.header.domain.shop.projection;
 
 public interface ShopSummary {
 
+    Integer getShopCode();
+
     String getShopName();
     String getShopPhone();
     String getShopLocation();
