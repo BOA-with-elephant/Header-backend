@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Lists.list;
@@ -112,16 +114,23 @@ class MessageAsyncServiceTest {
     void processMessageAsync_ShouldSendSms_WhenTextIsShort() {
         // Given
         String shortMessage = "짧은 메시지";
+        List<ShopMessageHistory> shopMessageHistoryList = new ArrayList<>();
+
         ShopMessageHistory shortMsgEntity = new ShopMessageHistory();
         shortMsgEntity.setUserCode(1);
         shortMsgEntity.setMsgContent(shortMessage);
         shortMsgEntity.setSendStatus(MessageStatus.PENDING);
 
+        shopMessageHistoryList.add(shortMsgEntity);
+
         when(userService.getPhoneByUserCode(1))
                 .thenReturn("010-1234-5678");
 
         // When
-        messageAsyncService.processMessageAsync(shortMsgEntity, testRequest, "TEST_001");
+        messageAsyncService.processAllMessagesAsync(shopMessageHistoryList
+                , testRequest
+                , "TEST_001"
+                , shortMsgEntity.getBatchCode());
 
         // Then - SMS 전송 메서드가 호출되었는지 확인
         verify(userService, timeout(1000)).getPhoneByUserCode(1);
@@ -140,16 +149,24 @@ class MessageAsyncServiceTest {
     void processMessageAsync_ShouldSendLms_WhenTextIsLong() {
         // Given
         String longMessage = "a".repeat(100);  // 100자 메시지
+        List<ShopMessageHistory> shopMessageHistoryList = new ArrayList<>();
+
         ShopMessageHistory longMsgEntity = new ShopMessageHistory();
         longMsgEntity.setUserCode(1);
         longMsgEntity.setMsgContent(longMessage);
         longMsgEntity.setSendStatus(MessageStatus.PENDING);
 
+        shopMessageHistoryList.add(longMsgEntity);
+
         when(userService.getPhoneByUserCode(1))
                 .thenReturn("010-1234-5678");
 
         // When
-        messageAsyncService.processMessageAsync(longMsgEntity, testRequest, "TEST_001");
+        messageAsyncService.processAllMessagesAsync(shopMessageHistoryList
+                , testRequest
+                , "TEST_001"
+                , longMsgEntity.getBatchCode());
+
 
         // Then - LMS 전송 메서드가 호출되었는지 확인
         verify(userService, timeout(1000)).getPhoneByUserCode(1);
@@ -201,12 +218,17 @@ class MessageAsyncServiceTest {
     void processMessageAsync_ShouldSaveErrorMessage_WhenPhoneNumberNotFound() {
         // Given
         String expectedErrorMessage = "사용자를 찾을 수 없습니다";
+        List<ShopMessageHistory> shopMessageHistoryList = new ArrayList<>();
+        shopMessageHistoryList.add(mockHistoryEntity);
 
         when(userService.getPhoneByUserCode(1))
                 .thenThrow(new RuntimeException(expectedErrorMessage));
 
         // When
-        messageAsyncService.processMessageAsync(mockHistoryEntity, testRequest, "TEST_001");
+        messageAsyncService.processAllMessagesAsync(shopMessageHistoryList
+                , testRequest
+                , "TEST_001"
+                ,mockHistoryEntity.getBatchCode());
 
         // Then - 전화번호 조회 실패 에러 메시지 확인
         verify(userService, timeout(1000)).getPhoneByUserCode(1);
@@ -222,6 +244,8 @@ class MessageAsyncServiceTest {
     void processMessageAsync_ShouldHandleException_WhenCoolSmsThrowsException() {
         // Given
         String expectedErrorMessage = "CoolSMS API 오류";  // ← 예상 에러 메시지
+        List<ShopMessageHistory> shopMessageHistoryList = new ArrayList<>();
+        shopMessageHistoryList.add(mockHistoryEntity);
 
         when(userService.getPhoneByUserCode(1))
                 .thenReturn("010-1234-5678");
@@ -230,7 +254,10 @@ class MessageAsyncServiceTest {
                 .when(coolSmsService).sendSms(anyString(), anyString(), anyString());
 
         // When
-        messageAsyncService.processMessageAsync(mockHistoryEntity, testRequest, "TEST_001");
+        messageAsyncService.processAllMessagesAsync(shopMessageHistoryList
+                , testRequest
+                , "TEST_001"
+                , mockHistoryEntity.getBatchCode());
 
         // Then - 에러 메시지까지 검증
         verify(userService, timeout(1000)).getPhoneByUserCode(1);
