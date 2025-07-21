@@ -269,8 +269,8 @@ public class UserReservationTests {
         conditionDTO.setUserCode(3);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        conditionDTO.setStartDate(Date.valueOf("2025-06-01"));
-        conditionDTO.setEndDate(Date.valueOf("2025-07-31"));
+        conditionDTO.setStartDate(Date.valueOf("2025-06-01").toLocalDate());
+        conditionDTO.setEndDate(Date.valueOf("2025-07-31").toLocalDate());
 
         //when and then
         List<UserReservationSummary> results
@@ -299,8 +299,8 @@ public class UserReservationTests {
         conditionDTO.setUserCode(3);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        conditionDTO.setStartDate(Date.valueOf("2025-08-01"));
-        conditionDTO.setEndDate(Date.valueOf("2025-07-31"));
+        conditionDTO.setStartDate(Date.valueOf("2025-08-01").toLocalDate());
+        conditionDTO.setEndDate(Date.valueOf("2025-07-31").toLocalDate());
 
         //when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
@@ -320,7 +320,7 @@ public class UserReservationTests {
 
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(testUserCode);
-        dto.setShopCode(testShopCode);
+//        dto.setShopCode(testShopCode);
         dto.setMenuCode(testMenuCode);
         dto.setResvDate(testDate);
         dto.setResvTime(Time.valueOf("15:00:00"));
@@ -328,7 +328,7 @@ public class UserReservationTests {
 
         // when
         Optional<UserReservationDetail> result =
-                userReservationService.createReservation(dto);
+                userReservationService.createReservation(testShopCode, dto);
 
         // then
         assertTrue(result.isPresent());
@@ -357,7 +357,7 @@ public class UserReservationTests {
 
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(testUserCode);
-        dto.setShopCode(testShopCode);
+//        dto.setShopCode(testShopCode);
         dto.setMenuCode(99999);
         dto.setResvDate(Date.valueOf("2025-07-31"));
         dto.setResvTime(Time.valueOf("14:30:00"));
@@ -365,7 +365,7 @@ public class UserReservationTests {
 
         //when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(testShopCode, dto);
         });
     }
 
@@ -410,7 +410,7 @@ public class UserReservationTests {
         //given
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(testUserCode);
-        dto.setShopCode(SHOP_CODE);
+//        dto.setShopCode(SHOP_CODE);
         dto.setMenuCode(testMenuCode);
         dto.setResvDate(Date.valueOf("2025-06-18"));
         dto.setResvTime(Time.valueOf("14:30:00"));
@@ -418,7 +418,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(SHOP_CODE, dto);
         });
     }
 
@@ -430,7 +430,7 @@ public class UserReservationTests {
         //given
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(testUserCode);
-        dto.setShopCode(SHOP_CODE);
+//        dto.setShopCode(SHOP_CODE);
         dto.setMenuCode(testMenuCode);
         dto.setResvDate(Date.valueOf("2025-08-02"));
         dto.setResvTime(Time.valueOf("14:30:00"));
@@ -438,7 +438,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(SHOP_CODE, dto);
         });
     }
 
@@ -450,7 +450,7 @@ public class UserReservationTests {
         //given
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(testUserCode);
-        dto.setShopCode(SHOP_CODE);
+//        dto.setShopCode(SHOP_CODE);
         dto.setMenuCode(testMenuCode);
         dto.setResvDate(Date.valueOf("2025-07-27"));
         dto.setResvTime(Time.valueOf("14:30:00"));
@@ -458,7 +458,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(SHOP_CODE, dto);
         });
 
     }
@@ -471,7 +471,7 @@ public class UserReservationTests {
         //given
         UserReservationDTO dto = new UserReservationDTO();
         dto.setUserCode(USER_CODE);
-        dto.setShopCode(testShopCode);
+//        dto.setShopCode(testShopCode);
         dto.setMenuCode(testMenuCode);
         dto.setResvDate(Date.valueOf("2025-07-06"));
         dto.setResvTime(Time.valueOf("17:00:00"));
@@ -479,7 +479,7 @@ public class UserReservationTests {
 
         // when and then
         assertThrows(UserReservationExceptionHandler.class, () -> {
-            userReservationService.createReservation(dto);
+            userReservationService.createReservation(testShopCode, dto);
         });
 
     }

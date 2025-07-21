@@ -4,6 +4,7 @@ public interface UserReservationSummary {
 
     /*사용자가 자신이 예약한 다수의 예약들을 요약 조회하는 프로젝션*/
 
+    Integer getResvCode();
     String getResvDate();
     String getResvTime();
     String getResvState();

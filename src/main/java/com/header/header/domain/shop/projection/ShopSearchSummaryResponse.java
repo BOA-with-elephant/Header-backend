@@ -1,13 +1,14 @@
 package com.header.header.domain.shop.projection;
 
-public interface ShopSummary {
+public interface ShopSearchSummaryResponse {
 
     Integer getShopCode();
-
     String getShopName();
     String getShopPhone();
     String getShopLocation();
+    Double getShopLong();
+    Double getShopLa();
     String getCategoryName();
+    Double getDistance();
 
-    // 관리자의 요약 조회 데이터: shop - 샵 이름, 샵 전화번호, 샵 주소, category - 카테고리 이름
 }

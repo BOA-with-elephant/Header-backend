@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
      * */
     @Query("""
                 SELECT 
+                        r.resvCode AS resvCode,
                         r.resvDate AS resvDate,
                         r.resvTime AS resvTime,
                         r.resvState AS resvState,
@@ -31,6 +33,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
                         s.shopName AS shopName,
                         s.shopLocation AS shopLocation,
                         m.menuName AS menuName,
+                        u.userCode AS userCode,
                         u.userName AS userName,
                         u.userPhone AS userPhone
                 FROM BossReservation r
@@ -53,6 +56,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
 
     @Query("""
                 SELECT 
+                    r.resvCode AS resvCode,
                     r.resvDate AS resvDate,
                     r.resvTime AS resvTime,
                     r.resvState AS resvState,
@@ -69,8 +73,8 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
             """)
     List<UserReservationSummary> findResvSummaryByUserCode(
             @Param("userCode") Integer userCode,
-            @Param("startDate") Date startDate,
-            @Param("endDate") Date endDate
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 
     /* 휴일 날짜가 이미 예약 상에 존재하는지 검증하는 용도 (일시적 휴일)*/

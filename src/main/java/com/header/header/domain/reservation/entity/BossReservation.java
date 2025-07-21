@@ -9,10 +9,12 @@ import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Date;
 import java.sql.Time;
 
+@Slf4j
 @Entity
 @Table(name="tbl_reservation")
 @Getter
@@ -51,7 +53,11 @@ public class BossReservation {
     }
 
     public void cancelReservation() {
+
+        log.info("예약 취소 시작");
         this.resvState = ReservationState.CANCEL;
+
+        log.info("예약 취소 끝");
     }
 
     public void modifyReservation(BossReservationDTO reservationDTO, Menu menu){

@@ -1,8 +1,8 @@
 package com.header.header.domain.shop.repository;
 
-import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
@@ -11,19 +11,22 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
     /*shop_code로 상세 조회*/
     @Query("""
         SELECT 
-            s.shopName as shopName
+            s.shopCode as shopCode
+          , s.shopName as shopName
           , s.shopPhone as shopPhone
           , s.shopLocation as shopLocation
           , s.shopOpen as shopOpen
           , s.shopClose as shopClose
           , sc.categoryName as categoryName
           , c.categoryName as menuCategoryName
+          , m.menuCode as menuCode
           , m.menuName as menuName
           , m.menuPrice as menuPrice
           , m.estTime as estTime
@@ -53,9 +56,12 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     @Query(
             value = """
         SELECT 
+            s.SHOP_CODE AS shopCode,
             s.SHOP_NAME AS shopName,
             s.SHOP_PHONE AS shopPhone,
             s.SHOP_LOCATION AS shopLocation,
+            s.SHOP_LONG AS shopLong,
+            s.SHOP_LA AS shopLa,
             sc.CATEGORY_NAME AS categoryName,
             ST_Distance_Sphere(
                     POINT(s.SHOP_LONG, s.SHOP_LA), 
@@ -65,17 +71,19 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         JOIN TBL_SHOP_CATEGORY sc ON s.CATEGORY_CODE = sc.CATEGORY_CODE
         WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
           AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
+          AND s.IS_ACTIVE = 1
         ORDER BY distance ASC
         """,
             countQuery = """
         SELECT COUNT(*)
         FROM TBL_SHOP s
-        WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
+        WHERE s.IS_ACTIVE = 1
+          AND (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
           AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
         """,
             nativeQuery = true
     )
-    Page<ShopSummaryResponseDTO> findShopsByCondition(
+    Page<ShopSearchSummaryResponse> findShopsByCondition(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("categoryCode") Integer categoryCode,
@@ -86,6 +94,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     /* 관리자가 보유한 샵의 리스트 요약 조회 */
     @Query("""
     SELECT
+        s.shopCode as shopCode,
         s.shopName as shopName,
         s.shopPhone as shopPhone,
         s.shopLocation as shopLocation,
@@ -96,5 +105,27 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         AND s.adminInfo.userCode = :adminCode 
     """)
     List<ShopSummary> readShopSummaryByAdminCode(Integer adminCode);
+
+    /*논리적 삭제시, 해당 코드를 가진 관리자의 샵이 맞는지 교차 검증하는 용도*/
+    @Query("""
+    SELECT s 
+    FROM Shop s
+    WHERE s.isActive = true 
+    AND s.shopCode = :shopCode
+    AND s.adminInfo.userCode = :adminCode
+    """)
+    Shop findByShopCodeAndAdminCode(
+            @Param("shopCode") Integer shopCode,
+            @Param("adminCode") Integer adminCode);
+
+
+    /* 관리자가 샵을 비활성화하려고 시도할 경우, 샵이 한 개만 남아있다면 isAdmin = false로 전환된다 */
+    @Query("""
+    SELECT COUNT (s) = 1
+    FROM Shop s
+    WHERE s.adminInfo.userCode = :adminCode
+    AND s.isActive = true
+    """)
+    boolean isShopLeft (@Param("adminCode") Integer adminCode);
 
 }
