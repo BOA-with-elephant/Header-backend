@@ -4,8 +4,6 @@ import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopCategoryDTO;
 import com.header.header.domain.shop.service.ShopCategoryService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

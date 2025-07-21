@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
@@ -104,5 +105,27 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         AND s.adminInfo.userCode = :adminCode 
     """)
     List<ShopSummary> readShopSummaryByAdminCode(Integer adminCode);
+
+    /*논리적 삭제시, 해당 코드를 가진 관리자의 샵이 맞는지 교차 검증하는 용도*/
+    @Query("""
+    SELECT s 
+    FROM Shop s
+    WHERE s.isActive = true 
+    AND s.shopCode = :shopCode
+    AND s.adminInfo.userCode = :adminCode
+    """)
+    Shop findByShopCodeAndAdminCode(
+            @Param("shopCode") Integer shopCode,
+            @Param("adminCode") Integer adminCode);
+
+
+    /* 관리자가 샵을 비활성화하려고 시도할 경우, 샵이 한 개만 남아있다면 isAdmin = false로 전환된다 */
+    @Query("""
+    SELECT COUNT (s) = 1
+    FROM Shop s
+    WHERE s.adminInfo.userCode = :adminCode
+    AND s.isActive = true
+    """)
+    boolean isShopLeft (@Param("adminCode") Integer adminCode);
 
 }
