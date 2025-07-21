@@ -139,7 +139,7 @@ public class MessageTemplateService {
     /**
      * 광고성 템플릿 삭제
      *
-     * @param templateCode 생성할 템플릿 DTO
+     * @param templateCode 삭제할 템플릿 DTO
      * @param shopCode 샵 코드
      */
     public void deleteMessageTemplate(Integer templateCode, Integer shopCode){
