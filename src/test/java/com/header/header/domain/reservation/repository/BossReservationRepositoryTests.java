@@ -150,8 +150,8 @@ public class BossReservationRepositoryTests {
     void testRegistNewReservation(String userName, String userPhone, String menuName, Date resvDate, Time resvTime, String userComment){
 
         // when
-        BossResvInputDTO newReservation = new BossResvInputDTO(userName, userPhone, SHOP_CODE, menuName, resvDate, resvTime, userComment);
-        bossReservationService.registNewReservation(newReservation);
+        BossResvInputDTO newReservation = new BossResvInputDTO(userName, userPhone, menuName, resvDate, resvTime, userComment);
+        bossReservationService.registNewReservation(newReservation, SHOP_CODE);
 
         // then
         List<BossResvProjectionDTO> saved = bossReservationService.findReservationByUserNameAndUserPhone(SHOP_CODE, userName, userPhone);
@@ -170,10 +170,10 @@ public class BossReservationRepositoryTests {
     void testModifyReservation(String menuName, Date resvDate, Time resvTime, String userComment){
         // given
         Integer resvCode = 70;
-        BossResvInputDTO inputDTO = new BossResvInputDTO(menuName, resvDate, resvTime, userComment, SHOP_CODE);
+        BossResvInputDTO inputDTO = new BossResvInputDTO(menuName, resvDate, resvTime, userComment);
 
         // when
-        bossReservationService.updateReservation(inputDTO, resvCode);
+        bossReservationService.updateReservation(inputDTO, resvCode, SHOP_CODE);
 
         // then
         BossResvProjectionDTO saved = bossReservationService.findReservationByResvCode(resvCode);

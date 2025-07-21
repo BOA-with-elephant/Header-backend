@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.service;
 
+import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
 import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
@@ -93,7 +94,7 @@ public class BossReservationService {
     }
 
     /* 새 예약 등록하기 */
-    public void registNewReservation(BossResvInputDTO inputDTO){
+    public void registNewReservation(BossResvInputDTO inputDTO, Integer shopCode){
         /*
         * 1. 예약 정보 입력받기(userName, userPhone, MenuName, resvDate, resvTime, userComment, resvState(예약 확정))
         * 2. 입력받은 정보를 DTO에 담아서 받기
@@ -130,18 +131,18 @@ public class BossReservationService {
         }
 
         // reservationDTO에 입력받은 menuName과 shopCode로 menuCode 찾아서 넣기
-        Menu menu = menuRepository.findByMenuNameAndShopCode(inputDTO.getMenuName(), inputDTO.getShopCode());
+        Menu menu = menuRepository.findByMenuNameAndShopCode(inputDTO.getMenuName(), shopCode);
         registDTO.getMenuInfo().setMenuCode(menu.getMenuCode());
 
         // reservationDTO에 입력받은 resvDate, resvTime, userComment, resvState 넣기
-        registDTO.setShopCode(inputDTO.getShopCode());
+        registDTO.setShopCode(shopCode);
         registDTO.setResvDate(inputDTO.getResvDate());
         registDTO.setResvTime(inputDTO.getResvTime());
         registDTO.setUserComment(inputDTO.getUserComment());
         registDTO.setResvState(ReservationState.APPROVE);
 
-        Shop shop = shopRepository.findById(inputDTO.getShopCode())
-                .orElseThrow(() -> NotFoundException.shop(inputDTO.getShopCode()));
+        Shop shop = shopRepository.findById(shopCode)
+                .orElseThrow(() -> NotFoundException.shop(shopCode));
 
         // 저장
         BossReservation reservation = modelMapper.map(registDTO, BossReservation.class);
@@ -152,7 +153,7 @@ public class BossReservationService {
     }
 
     /* 예약 내용 수정하기 */
-    public void updateReservation(BossResvInputDTO inputDTO, Integer resvCode){
+    public void updateReservation(BossResvInputDTO inputDTO, Integer resvCode, Integer shopCode){
         /*
         * 예약 날짜, 예약 시간, 시술 메뉴, 사용자코멘트만 변경 가능
         * 순서
@@ -168,7 +169,7 @@ public class BossReservationService {
         BossReservation foundReservation = bossReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
 
         // 3번
-        Menu menu = menuRepository.findByMenuNameAndShopCode(inputDTO.getMenuName(), inputDTO.getShopCode());
+        Menu menu = menuRepository.findByMenuNameAndShopCode(inputDTO.getMenuName(), shopCode);
 
         if(menu == null){
             throw NotFoundException.menu(menu.getMenuCode());
