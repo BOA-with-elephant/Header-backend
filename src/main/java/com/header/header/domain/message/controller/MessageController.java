@@ -57,7 +57,7 @@ public class MessageController extends MyShopBaseController {
      * @return String 등록 완료 문구
      */
     @PostMapping("/template")
-    public ResponseEntity<ApiResponse<List<MessageTemplateResponse>>> registTemplate(
+    public ResponseEntity<ApiResponse<List<MessageTemplateResponse>>> registerTemplate(
             @PathVariable Integer shopId) {
 
         return ResponseEntity.ok(ApiResponse.success(null));
