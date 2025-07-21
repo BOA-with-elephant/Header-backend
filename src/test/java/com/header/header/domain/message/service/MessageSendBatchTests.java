@@ -93,7 +93,7 @@ public class MessageSendBatchTests {
         Integer updateSuccessCount = 6;
         Integer updateFailCount = 4;
 
-        MessageSendBatchDTO result = messageSendBatchService.updateMessageBatchResults(testBatch.getShopCode(), testBatch.getBatchCode(),updateSuccessCount,updateFailCount);
+        MessageSendBatchDTO result = messageSendBatchService.updateMessageBatchResults(testBatch.getShopCode(), testBatch.getBatchCode(),true);
 
         assertEquals(updateSuccessCount, result.getSuccessCount());
         assertEquals(updateFailCount, result.getFailCount());
@@ -105,7 +105,7 @@ public class MessageSendBatchTests {
         int updateSuccessCount = 6;
         int updateFailCount = 3;
 
-        assertThatThrownBy(() -> messageSendBatchService.updateMessageBatchResults(testBatch.getShopCode(), testBatch.getBatchCode(),updateSuccessCount,updateFailCount))
+        assertThatThrownBy(() -> messageSendBatchService.updateMessageBatchResults(testBatch.getShopCode(), testBatch.getBatchCode(),false))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("일치하지 않는 결과 카운트");
     }

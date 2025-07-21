@@ -80,6 +80,14 @@ public class VisitorsService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * clientCode를 통해 대치되는 userCode를 조회.
+     * @param clientCode 클라이언트 코드
+     * @return Integer userCode
+     */
+    public Integer getUserCodeByClientCode(Integer clientCode){
+        return visitorsRepository.findUserCodeByClientCode(clientCode).orElseThrow();
+    }
 
     /**
      * 샵 회원 히스토리 리스트 조회
