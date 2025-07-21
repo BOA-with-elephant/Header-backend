@@ -50,7 +50,6 @@ public class MessageAsyncService {
         // batch 저장
         MessageSendBatchDTO batchDTO = MessageSendBatchDTO.builder()
                 .shopCode(request.getFrom())
-                .templateCode(request.getTemplateCode())
                 .sendType(request.getSendType())
                 .subject(request.getSubject())
                 .build();
