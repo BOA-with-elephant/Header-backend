@@ -41,7 +41,7 @@ public class UserController {
         // 로그인 성공 시 200 OK와 토큰 정보를 담은 ResponseDTO 반환
         return ResponseEntity
                 .ok()
-                .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", userFacadeService.login(loginUserDTO)));
+                .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", userFacadeService.loginUser(loginUserDTO)));
     }
 
     @PostMapping("/users")

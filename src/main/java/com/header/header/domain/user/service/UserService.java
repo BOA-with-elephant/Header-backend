@@ -54,7 +54,7 @@ public class UserService {
         return userRepository.findPhoneByUserCode(userCode);
     }
 
-    /** Read specific : Login, findId
+    /** Read specific : findId
      * ID갖고 회원정보 조회하는 method 생성. 반환은 UserDTO로
      *
      * @param userCode
@@ -82,7 +82,7 @@ public class UserService {
      * @throws IllegalArgumentException */
     @Transactional
     public String modifyUser(UserDTO userDTO){
-        // 1. 기존 유저 엔티티 조회 (예시로 userCode 또는 userId 기준으로 조회)
+        // 1. 기존 유저 엔티티 조회
         User user = userRepository.findById(userDTO.getUserCode())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 

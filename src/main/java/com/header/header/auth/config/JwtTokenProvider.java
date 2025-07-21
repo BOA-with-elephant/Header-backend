@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,7 +36,8 @@ public class JwtTokenProvider {
     private final AuthUserService authUserService;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
-                            @Value("${jwt.expiration}") long tokenValidityTime, AuthUserService authUserService) {
+                            @Value("${jwt.expiration}") long tokenValidityTime,
+                            @Lazy AuthUserService authUserService) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expiration = tokenValidityTime;

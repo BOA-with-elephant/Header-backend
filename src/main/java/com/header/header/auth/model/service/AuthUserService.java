@@ -35,19 +35,17 @@ public class AuthUserService implements UserDetailsService {
     private static final Logger log = LoggerFactory.getLogger(AuthUserService.class);
     private final MainUserRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
     private final ModelMapper modelMapper;
     private final MainUserRepository userRepository;
 
-    public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider, ModelMapper modelMapper, MainUserRepository userRepository) {
+    public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper, MainUserRepository userRepository) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
-        this.tokenProvider = tokenProvider;
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
     }
 
-    public Object loginUser(LoginUserDTO loginUserDTO) throws FailedLoginException {
+    public Object login(LoginUserDTO loginUserDTO) throws FailedLoginException {
 
         log.info("[AuthService] login() START");
         log.info("[AuthService] {}", loginUserDTO);
@@ -55,7 +53,8 @@ public class AuthUserService implements UserDetailsService {
         /* 목차. 1. 아이디 조회 */
         User user = memberRepository.findByUserId(loginUserDTO.getUserId());
 
-        if (user == null) {
+        // isLeave=true(탈퇴) 사용자도 exception에 포함
+        if (user == null || user.isLeave()) {
             log.info("[AuthService] login() Required User Not Found!");
             throw new FailedLoginException(loginUserDTO.getUserId() + " 유저를 찾을 수 없습니다.");
         }
@@ -66,10 +65,7 @@ public class AuthUserService implements UserDetailsService {
             throw new FailedLoginException("잘못된 비밀번호입니다.");
         }
 
-        /* 목차. 3. 토큰 발급 */
-        TokenDTO newToken = tokenProvider.generateTokenDTO(loginUserDTO);
-
-        return newToken;
+        return modelMapper.map(user, LoginUserDTO.class);
     }
 
     /** save : registerNewUser
@@ -77,7 +73,6 @@ public class AuthUserService implements UserDetailsService {
      @param userDTO 생성할 user 정보가 담긴 DTO
      @return 생성된 signupDTO(user관련 DTO)
      이미 존재하는 아이디나 전화번호일 때 */
-    @Transactional
     public UserDTO signup(UserDTO userDTO) {
         log.info("[AuthService] Let's start signup().");
         log.info("[AuthService] userDTO {}", userDTO);
@@ -85,12 +80,12 @@ public class AuthUserService implements UserDetailsService {
         /* 1. 중복 유효성 검사 */
         // 중복확인 1 : userId
         if (userRepository.existsByUserId(userDTO.getUserId())) {
-            log.info("[AuthService] 아이디가 중복됩니다.");
+            log.info("[AuthService] 아이디 중복");
             throw new DuplicatedUserIdException(ApiResponse.DUPLICATE_ID.getMessage());
         }
         // 중복확인 2 : userPhone
         if (userRepository.existsByUserPhone(userDTO.getUserPhone())) {
-            log.info("[AuthService] 전화번호가 중복됩니다.");
+            log.info("[AuthService] 전화번호 중복");
             throw new DuplicatedPhoneException(ApiResponse.DUPLICATE_PHONE.getMessage());
         }
 

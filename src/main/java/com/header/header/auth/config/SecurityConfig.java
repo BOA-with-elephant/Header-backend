@@ -71,8 +71,8 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-            http
+        http
+                .csrf(csrf -> csrf.disable())
                 .cors(withDefaults()) // CORS 설정은 그대로 유지 (예람님 코드에서 갖고 옴)
                 // 세션 관리 전략을 STATELESS로 설정 (세션을 사용하지 않음)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -112,9 +112,9 @@ public class SecurityConfig {
                 // 직접 작성한 커스텀 필터인 JwtAuthenticationFilter를 필터 체인에 추가 (이 필터는 모든 요청에서 JWT 토큰을 검증한다)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
 
-//                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable);
-                //.httpBasic(AbstractHttpConfigurer::disable);
+                //.csrf(AbstractHttpConfigurer::disable) //맨 위에서 http.csrf(csrf -> csrf.disable());로 해결, 주석처리함 - 정아
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }

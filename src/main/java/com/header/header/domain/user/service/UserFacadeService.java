@@ -1,12 +1,10 @@
 package com.header.header.domain.user.service;
 
-import com.header.header.auth.common.ApiResponse;
 import com.header.header.auth.exception.DuplicatedPhoneException;
 import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
-import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
@@ -20,8 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.security.auth.login.FailedLoginException;
 import java.util.Objects;
-
-import static com.header.header.auth.common.ApiResponse.SUCCESS_REGISTER_USER;
 
 @Service
 @Slf4j
@@ -74,8 +70,9 @@ public class UserFacadeService {
     }
 
     /* 4. 로그인 시 유저 정보 조회 */
-    public Object login(LoginUserDTO loginUserDTO) throws FailedLoginException {
-        return authService.loginUser(loginUserDTO);
+    @Transactional
+    public Object loginUser(LoginUserDTO loginUserDTO) throws FailedLoginException {
+        return authService.login(loginUserDTO);
     }
 
     /* 5. 회원 정보 수정 */
