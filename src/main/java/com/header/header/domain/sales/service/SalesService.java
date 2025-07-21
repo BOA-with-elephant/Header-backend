@@ -2,6 +2,7 @@ package com.header.header.domain.sales.service;
 
 import com.header.header.common.exception.NotFoundException;
 import com.header.header.domain.sales.dto.SalesDTO;
+import com.header.header.domain.sales.dto.SalesDashboardDTO;
 import com.header.header.domain.sales.dto.SalesDetailDTO;
 import com.header.header.domain.sales.entity.Sales;
 import com.header.header.domain.sales.enums.PaymentStatus;
@@ -389,4 +390,25 @@ public class SalesService {
             .map(this::toDTO)
             .collect(Collectors.toList());
     }
+
+    public SalesDashboardDTO getDashboardStats(Integer shopCode, LocalDateTime finalStart, LocalDateTime finalEnd) {
+        SalesDashboardDTO dto = new SalesDashboardDTO();
+
+        if (finalStart != null && finalEnd != null) {
+            dto.setTotalSales(calculateTotalSales(shopCode, finalStart, finalEnd));
+            dto.setTotalCancelAmount(calculateTotalCancelAmount(shopCode, finalStart, finalEnd));
+        } else {
+            dto.setTotalSales(0L);
+            dto.setTotalCancelAmount(0L);
+        }
+
+        dto.setPaymentMethodStats(getSalesStatsByPayMethod(shopCode));
+        dto.setMonthlyStats(getMonthlySalesStats(shopCode));
+        dto.setActiveSalesCount(getActiveSalesDetailsByShop(shopCode).size());
+        dto.setCompletedSalesCount(getCompletedSalesDetailsByShop(shopCode).size());
+        dto.setCancelledSalesCount(getCancelledSalesDetailsByShop(shopCode).size());
+
+        return dto;
+    }
+
 }
