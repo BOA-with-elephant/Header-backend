@@ -2,12 +2,12 @@ package com.header.header.domain.shop.service;
 
 import com.header.header.domain.shop.dto.ShopCreationDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
@@ -125,11 +125,11 @@ class ShopServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
                 userLat, userLong, categoryCode, null, pageable
         );
 
-        List<ShopSummaryResponseDTO> content = result.getContent();
+        List<ShopSearchSummaryResponse> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -149,11 +149,11 @@ class ShopServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         String keyword = "멀리";
 
-        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
                 userLat, userLong, categoryCode, keyword, pageable
         );
 
-        List<ShopSummaryResponseDTO> content = result.getContent();
+        List<ShopSearchSummaryResponse> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -173,11 +173,11 @@ class ShopServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ShopSummaryResponseDTO> result = shopService.findShopsByCondition(
+        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
                 null, null, categoryCode, null, pageable
         );
 
-        List<ShopSummaryResponseDTO> content = result.getContent();
+        List<ShopSearchSummaryResponse> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -227,7 +227,6 @@ class ShopServiceTest {
     void testUpdateShop() {
         // given
         ShopUpdateDTO dto = new ShopUpdateDTO();
-        dto.setShopCode(testShopCode);
         dto.setShopName("변경된 샵 이름");
         dto.setShopPhone("010-9999-9999");
         dto.setShopLocation("서울시 송파구"); // 기존과 동일
@@ -236,7 +235,7 @@ class ShopServiceTest {
         dto.setCategoryCode(testCategoryCode); // 기존과 동일
 
         // when
-        ShopDTO updated = shopService.updateShop(dto);
+        ShopDTO updated = shopService.updateShop(testShopCode, dto);
 
         // then
         assertEquals("변경된 샵 이름", updated.getShopName());
@@ -259,7 +258,6 @@ class ShopServiceTest {
     void testUpdateShopWithLocation() {
         // given
         ShopUpdateDTO dto = new ShopUpdateDTO();
-        dto.setShopCode(testShopCode);
         dto.setShopLocation("서울 강남구 테헤란로 212"); // 다른 주소로 변경
         dto.setShopName("위치 바뀐 샵");
         dto.setShopPhone("010-1234-5678");
@@ -267,7 +265,7 @@ class ShopServiceTest {
         dto.setShopClose("20:00");
         dto.setCategoryCode(testCategoryCode);
 
-        ShopDTO updated = shopService.updateShop(dto);
+        ShopDTO updated = shopService.updateShop(testShopCode, dto);
 
         System.out.println(updated);
 
@@ -289,10 +287,11 @@ class ShopServiceTest {
         System.out.println("shopCodeToDelete : " + shopCodeToDelete);
 
         //when
-        ShopDTO shopToDelete = shopService.deActiveShop(shopCodeToDelete);
+        shopService.deActiveShop(shopCodeToDelete);
+        Shop shop = shopRepository.findById(shopCodeToDelete).orElseThrow();
 
         //then
-        assertFalse(shopToDelete.getIsActive());
+        assertFalse(shop.getIsActive());
     }
 
     @Test

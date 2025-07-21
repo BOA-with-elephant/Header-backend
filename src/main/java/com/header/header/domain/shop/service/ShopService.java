@@ -7,6 +7,7 @@ import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
@@ -72,13 +73,19 @@ public class ShopService {
     /*사용자가 검색하는 경우, 페이징 처리된 요약 조회 메소드
       필터: 카테고리 or 키워드
       정렬: 기끼운 거리순*/
-    public Page<ShopSummaryResponseDTO> findShopsByCondition(
+    public Page<ShopSearchSummaryResponse> findShopsByCondition(
             Double lat, Double lon, Integer categoryCode, String keyword, Pageable pageable
     ) {
 
         if (lat == null || lon == null) {
             lat = 37.5145;
             lon = 127.1067; //사용자가 위치를 허용하지 않았을 때의 기본값, 송파구 중심 좌표
+        }
+
+        if (categoryCode != null) {
+
+        ShopCategory category = shopCategoryRepository.findById(categoryCode)
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
 
         return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
@@ -115,10 +122,10 @@ public class ShopService {
 
     /*보유한 샵을 수정*/
     @Transactional
-    public ShopDTO updateShop(ShopUpdateDTO dto) {
+    public ShopDTO updateShop(Integer shopCode, ShopUpdateDTO dto) {
 
         /*존재하지 않는 샵 예외*/
-        Shop shop = shopRepository.findById(dto.getShopCode())
+        Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
         /*필드별로 null 체크하여 기존 값 유지, 더티 체킹이 동작하지 않아 처리. 추후 검토 예정*/
@@ -169,7 +176,7 @@ public class ShopService {
 
     //DELETE (논리적 삭제)
     @Transactional
-    public ShopDTO deActiveShop(Integer shopCode) {
+    public void deActiveShop(Integer shopCode) {
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
@@ -180,8 +187,6 @@ public class ShopService {
         shop.deactivateShop();
 
         shopRepository.save(shop);
-
-        return modelMapper.map(shop, ShopDTO.class);
     }
 
     /* MapService - getCoordinates 메소드를 통해 문서에서 필요한 정보를 가져오는 메소드

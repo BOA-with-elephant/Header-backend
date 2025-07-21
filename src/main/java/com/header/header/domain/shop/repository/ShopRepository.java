@@ -1,8 +1,8 @@
 package com.header.header.domain.shop.repository;
 
-import com.header.header.domain.shop.dto.ShopSummaryResponseDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
@@ -17,13 +17,15 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     /*shop_code로 상세 조회*/
     @Query("""
         SELECT 
-            s.shopName as shopName
+            s.shopCode as shopCode
+          , s.shopName as shopName
           , s.shopPhone as shopPhone
           , s.shopLocation as shopLocation
           , s.shopOpen as shopOpen
           , s.shopClose as shopClose
           , sc.categoryName as categoryName
           , c.categoryName as menuCategoryName
+          , m.menuCode as menuCode
           , m.menuName as menuName
           , m.menuPrice as menuPrice
           , m.estTime as estTime
@@ -53,9 +55,12 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     @Query(
             value = """
         SELECT 
+            s.SHOP_CODE AS shopCode,
             s.SHOP_NAME AS shopName,
             s.SHOP_PHONE AS shopPhone,
             s.SHOP_LOCATION AS shopLocation,
+            s.SHOP_LONG AS shopLong,
+            s.SHOP_LA AS shopLa,
             sc.CATEGORY_NAME AS categoryName,
             ST_Distance_Sphere(
                     POINT(s.SHOP_LONG, s.SHOP_LA), 
@@ -65,17 +70,19 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         JOIN TBL_SHOP_CATEGORY sc ON s.CATEGORY_CODE = sc.CATEGORY_CODE
         WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
           AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
+          AND s.IS_ACTIVE = 1
         ORDER BY distance ASC
         """,
             countQuery = """
         SELECT COUNT(*)
         FROM TBL_SHOP s
-        WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
+        WHERE s.IS_ACTIVE = 1
+          AND (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
           AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
         """,
             nativeQuery = true
     )
-    Page<ShopSummaryResponseDTO> findShopsByCondition(
+    Page<ShopSearchSummaryResponse> findShopsByCondition(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("categoryCode") Integer categoryCode,
@@ -86,6 +93,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     /* 관리자가 보유한 샵의 리스트 요약 조회 */
     @Query("""
     SELECT
+        s.shopCode as shopCode,
         s.shopName as shopName,
         s.shopPhone as shopPhone,
         s.shopLocation as shopLocation,
