@@ -103,7 +103,6 @@ class ShopServiceTest {
         dto.setShopPhone("010-1234-5678");
         dto.setShopOpen("09:00");
         dto.setShopClose("18:00");
-        dto.setShopStatus("영업중");
 
         dto.setShopLocation("서울특별시 종로구 세종대로 175");
 
@@ -235,7 +234,7 @@ class ShopServiceTest {
         dto.setCategoryCode(testCategoryCode); // 기존과 동일
 
         // when
-        ShopDTO updated = shopService.updateShop(testShopCode, dto);
+        ShopDTO updated = shopService.updateShop(testUserId, testShopCode, dto);
 
         // then
         assertEquals("변경된 샵 이름", updated.getShopName());
@@ -265,7 +264,7 @@ class ShopServiceTest {
         dto.setShopClose("20:00");
         dto.setCategoryCode(testCategoryCode);
 
-        ShopDTO updated = shopService.updateShop(testShopCode, dto);
+        ShopDTO updated = shopService.updateShop(testUserId, testShopCode, dto);
 
         System.out.println(updated);
 
@@ -287,7 +286,7 @@ class ShopServiceTest {
         System.out.println("shopCodeToDelete : " + shopCodeToDelete);
 
         //when
-        shopService.deActiveShop(shopCodeToDelete);
+        shopService.deActiveShop(testUserId, shopCodeToDelete);
         Shop shop = shopRepository.findById(shopCodeToDelete).orElseThrow();
 
         //then
@@ -302,7 +301,7 @@ class ShopServiceTest {
         Integer shopCodeToDelete = testShopCode + 1000000000;
 
         //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));
+        assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(testUserId, shopCodeToDelete));
     }
 
     @Test
@@ -314,6 +313,6 @@ class ShopServiceTest {
         System.out.println("shopCodeToDelete : " + shopCodeToDelete);
 
         //when and then
-        assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(shopCodeToDelete));
+        assertThrows(ShopExceptionHandler.class, () -> shopService.deActiveShop(testUserId, shopCodeToDelete));
     }
 }
