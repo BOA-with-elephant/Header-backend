@@ -27,7 +27,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "WHERE v.shopCode = :shopCode " +
             "AND v.isActive = true")
     List<VisitorWithUserInfoView> findVisitorWithUserInfoByShopCode(@Param("shopCode") Integer shopCode);
-    
+
     // (2) 방문 및 결제 통계 및 마지막 방문일 리스트 조회
     @Query("SELECT r.userCode as userCode, " +
             "       COUNT(*) as visitCount, " +
@@ -68,4 +68,8 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
     
     // (5) clientCode로 샵 회원 조회
     Optional<Visitors> findByClientCode(Integer clientCode);
+
+    @Query("SELECT v.userCode FROM Visitors v WHERE v.clientCode = :clientCode")
+    Optional<Integer> findUserCodeByClientCode(@Param("clientCode") Integer clientCode);
+
 }
