@@ -5,7 +5,6 @@ import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
