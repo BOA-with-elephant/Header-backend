@@ -1,27 +1,20 @@
 package com.header.header.domain.shop.controller;
 
-import com.header.header.domain.reservation.enums.UserReservationErrorCode;
-import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
-import com.header.header.domain.shop.common.ErrorResponseMessage;
 import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopCreationDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
-import com.header.header.domain.shop.enums.ShopErrorCode;
-import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
