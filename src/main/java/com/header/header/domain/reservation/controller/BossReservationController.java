@@ -86,8 +86,11 @@ public class BossReservationController {
            bossReservationService.registNewReservation(inputDTO, shopCode);
             System.out.println("넘어온 값 : " + inputDTO);
 
-           return ResponseEntity.ok(Map.of("message", "등록 성공"));
+            ResponseEntity<?> response = ResponseEntity.ok(Map.of("message", "등록 완료"));
+            System.out.println("Response headers : " + response.getHeaders());
+           return response;
         } catch (Exception e){
+            e.printStackTrace();
             return ResponseEntity.status(400)
                     .header("Content-Type", "application/json")
                     .body(Map.of("message", "등록 실패"));
