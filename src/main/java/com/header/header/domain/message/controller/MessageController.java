@@ -2,21 +2,22 @@ package com.header.header.domain.message.controller;
 
 import com.header.header.common.controller.MyShopBaseController;
 import com.header.header.common.dto.response.ApiResponse;
-import com.header.header.domain.message.dto.MessageRequest;
-import com.header.header.domain.message.dto.MessageResponse;
+import com.header.header.domain.message.dto.*;
 import com.header.header.domain.message.service.MessageSendFacadeService;
+import com.header.header.domain.message.service.MessageTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 public class MessageController extends MyShopBaseController {
 
     private final MessageSendFacadeService messageSendFacadeService;
+    private final MessageTemplateService messageTemplateService;
 
     @PostMapping("/messages")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
@@ -31,4 +32,13 @@ public class MessageController extends MyShopBaseController {
 
         return ResponseEntity.ok(ApiResponse.success(messageResponse));
     }
+
+    @GetMapping("/template")
+    public ResponseEntity<ApiResponse<List<MessageTemplateResponse>>> getTemplateList(
+            @PathVariable Integer shopId) {
+        List<MessageTemplateResponse> response = messageTemplateService.getAllTypeTemplateList(shopId);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
 }
