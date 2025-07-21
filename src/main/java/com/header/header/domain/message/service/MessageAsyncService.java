@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,19 +36,6 @@ public class MessageAsyncService {
         log.info("📩 [{}] 메시지 요청 접수 - UserCode: {}", taskId, request.getTo());
 
         // 1. DB에 PENDING으로 저장
-        ShopMessageHistory history = saveAsPending(request);
-
-        // 2. PENDING으로 응답
-        MessageResponse response = new MessageResponse(MessageStatus.PENDING.toString());
-
-        // 3. 백그라운드에서 비동기 처리
-        processMessageAsync(history, request, taskId);
-        log.info("⚡ [{}] PENDING 응답 즉시 반환", taskId);
-
-        return response;
-    }
-
-    private ShopMessageHistory saveAsPending(MessageDTO request){
         // batch 저장
         MessageSendBatchDTO batchDTO = MessageSendBatchDTO.builder()
                 .shopCode(request.getFrom())
@@ -56,11 +45,32 @@ public class MessageAsyncService {
 
         MessageSendBatchDTO createdBatchDTO = messageSendBatchService.createMessageBatch(batchDTO);
 
-        // history 저장
+        // history 저장 : 다수의 인원일 경우 그 수만큼 저장한다.
+        List<ShopMessageHistory> historyList = new ArrayList<>();
+
+        for(Integer userCode : request.getTo()){
+            historyList.add(saveAsPending(userCode,request.getText(),createdBatchDTO));
+        }
+
+
+        // 2. PENDING으로 응답
+        MessageResponse response = new MessageResponse(MessageStatus.PENDING.toString());
+
+        // 3. 백그라운드에서 비동기 처리
+        for(ShopMessageHistory history : historyList){
+            processMessageAsync(history, request, taskId);
+        }
+        log.info("⚡ [{}] PENDING 응답 즉시 반환", taskId);
+
+        return response;
+    }
+
+    private ShopMessageHistory saveAsPending(Integer userCode, String Contents,MessageSendBatchDTO batchDTO){
+
         ShopMessageHistoryDTO historyDTO = ShopMessageHistoryDTO.builder()
-                .batchCode(createdBatchDTO.getBatchCode())
-                .userCode(request.getTo())
-                .msgContent(request.getText())
+                .batchCode(batchDTO.getBatchCode())
+                .userCode(userCode)
+                .msgContent(Contents)
                 .sendStatus(MessageStatus.PENDING.toString())
                 .build();
 

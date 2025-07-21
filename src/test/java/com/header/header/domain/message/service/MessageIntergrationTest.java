@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Lists.list;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -30,7 +31,7 @@ class MessageIntegrationTest {
 
         // Given - 실제 전송할 메시지
         MessageDTO request = MessageDTO.builder()
-                .to(1)  // 본인 userCode (DB에 실제 존재하는 값)
+                .to(list(1))  // 본인 userCode (DB에 실제 존재하는 값)
                 .from(1)  // shopCode  
                 .sendType("INDIVIDUAL")
                 .subject("개발 테스트")
@@ -70,7 +71,7 @@ class MessageIntegrationTest {
                 "테스트용 긴 메시지입니다. 여러분의 휴대폰으로 잘 도착했나요?";
 
         MessageDTO request = MessageDTO.builder()
-                .to(1)
+                .to(list(1))
                 .from(1)
                 .sendType("INDIVIDUAL")
                 .subject("LMS 테스트")

@@ -4,12 +4,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
+
 /* Service에서 사용하는 메세지 DTO 입니다. */
 @Data
 @Builder
 public class MessageDTO {
     @NotBlank(message = "유저 코드는 필수입니다")
-    private Integer to;
+    private List<Integer> to;
 
     @NotBlank(message = "발신 샵 코드는 필수입니다")
     private Integer from;

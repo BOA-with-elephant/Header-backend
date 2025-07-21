@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.sql.Timestamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Lists.list;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -45,7 +46,7 @@ class MessageAsyncServiceTest {
     void setUp() {
         // 테스트 데이터 준비
         testRequest = MessageDTO.builder()
-                .to(1)  // userCode
+                .to(list(1))  // userCode
                 .from(2)
                 .sendType("INDIVIDUAL")
                 .subject("테스트 제목")
