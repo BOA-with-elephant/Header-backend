@@ -41,11 +41,14 @@ public class MessageAsyncService {
                 .shopCode(request.getFrom())
                 .sendType(request.getSendType())
                 .subject(request.getSubject())
+                .totalCount(request.getTo().size()) // 수신자 리스트 개수 카운트
+                .successCount(0)
+                .failCount(0)
                 .build();
 
         MessageSendBatchDTO createdBatchDTO = messageSendBatchService.createMessageBatch(batchDTO);
 
-        // history 저장 : 다수의 인원일 경우 그 수만큼 저장한다.
+        // 2. history 저장 : 다수의 인원일 경우 그 수만큼 저장한다.
         List<ShopMessageHistory> historyList = new ArrayList<>();
 
         for(Integer userCode : request.getTo()){
@@ -53,10 +56,10 @@ public class MessageAsyncService {
         }
 
 
-        // 2. PENDING으로 응답
+        // 3. PENDING으로 응답
         MessageResponse response = new MessageResponse(MessageStatus.PENDING.toString());
 
-        // 3. 백그라운드에서 비동기 처리
+        // 4. 백그라운드에서 비동기 처리
         for(ShopMessageHistory history : historyList){
             processMessageAsync(history, request, taskId);
         }
@@ -113,30 +116,32 @@ public class MessageAsyncService {
             }
 
             // 4. 성공 처리
-            handleSuccess(history, taskId);
+            handleSuccess(history, request.getFrom(), history.getBatchCode(),taskId);
 
         } catch (Exception e) {
             // 5. 실패 처리
-            handleFailure(history, e, taskId);
+            handleFailure(history,request.getFrom(),  history.getBatchCode(),e, taskId);
         }
     }
-    private void handleSuccess(ShopMessageHistory history, String taskId) {
+    private void handleSuccess(ShopMessageHistory history, Integer shopCode, Integer batchCode, String taskId) {
         try {
             log.info("✅ [{}] SMS 전송 성공", taskId);
 
             shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(),null);
+            messageSendBatchService.updateMessageBatchResults(shopCode, batchCode, true);// batch 성공 카운트 업데이트
 
         } catch (Exception e) {
             log.error("[{}] 성공 처리 중 오류", taskId, e);
         }
     }
 
-    private void handleFailure(ShopMessageHistory history, Exception error, String taskId) {
+    private void handleFailure(ShopMessageHistory history, Integer shopCode,Integer batchCode, Exception error, String taskId) {
         try {
             log.error("❌ [{}] SMS 전송 실패 - Error: {}", taskId, error.getMessage());
 
             shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(),error.getMessage());
-
+            messageSendBatchService.updateMessageBatchResults(shopCode, batchCode, false); // batch 실패 카운트 업데이트
+            
         } catch (Exception e) {
             log.error("[{}] 실패 처리 중 오류", taskId, e);
         }
