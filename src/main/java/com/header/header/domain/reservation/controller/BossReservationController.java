@@ -24,21 +24,6 @@ public class BossReservationController {
     }
 
     /* 당월 가게 에약 내역 조회 */
-//    @GetMapping("/{date}")
-//    public ResponseEntity<List<BossResvProjectionDTO>> findReservationListOfThisMonth(@PathVariable("shopCode") Integer shopCode, @PathVariable("date") String thisMonth){
-//        try{
-//            List<BossResvProjectionDTO> reservationList = bossReservationService.findReservationList(shopCode, thisMonth);
-//
-//            for(BossResvProjectionDTO list : reservationList){
-//                System.out.println(list);
-//            }
-//            return ResponseEntity.ok(reservationList);
-//        } catch (Exception e){
-//            return ResponseEntity.internalServerError().build();
-//        }
-//    }
-
-    /* 당월 가게 에약 내역 조회 */
     /* 검색 결과 조회 - 날짜별, 고객 이름별, 메뉴 이름 별 */
     @GetMapping("")
     public ResponseEntity<List<BossResvProjectionDTO>> searchResultReservationList(
