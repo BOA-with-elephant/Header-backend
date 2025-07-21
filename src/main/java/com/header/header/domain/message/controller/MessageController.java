@@ -3,6 +3,7 @@ package com.header.header.domain.message.controller;
 import com.header.header.common.controller.MyShopBaseController;
 import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.message.dto.*;
+import com.header.header.domain.message.enums.TemplateType;
 import com.header.header.domain.message.service.MessageSendFacadeService;
 import com.header.header.domain.message.service.MessageTemplateService;
 import lombok.RequiredArgsConstructor;
@@ -57,39 +58,61 @@ public class MessageController extends MyShopBaseController {
      * @return String 등록 완료 문구
      */
     @PostMapping("/template")
-    public ResponseEntity<ApiResponse<List<MessageTemplateResponse>>> registerTemplate(
-            @PathVariable Integer shopId) {
+    public ResponseEntity<ApiResponse<String>> registerTemplate(
+            @PathVariable Integer shopId,
+            @RequestBody MessageTemplateRequest requestBody
+    ) {
+        MessageTemplateDTO templateDTO = MessageTemplateDTO.builder()
+                .shopCode(shopId)
+                .templateTitle(requestBody.getTitle())
+                .templateContent(requestBody.getContent())
+                .templateType(TemplateType.PROMOTIONAL)
+                .build();
 
-        return ResponseEntity.ok(ApiResponse.success(null));
+        messageTemplateService.createPromotionalTemplate(templateDTO);
+
+        return ResponseEntity.ok(ApiResponse.success("템플릿이 정상적으로 등록되었습니다."));
     }
 
     /**
      * 메세지 템플릿 내용을 수정합니다.
      * @param shopId 샵 코드
-     * @param templateCode 수정할 템플릿 코드
+     * @param requestBody 요청 바디
      * @return String 수정 완료 문구
      */
-    @PutMapping("/template/{templateCode}")
+    @PutMapping("/template")
     public ResponseEntity<ApiResponse<String>> modifyTemplateContent(
             @PathVariable Integer shopId,
-            @PathVariable Integer templateCode
+            @RequestBody MessageTemplateRequest requestBody
     ){
 
-        return ResponseEntity.ok(ApiResponse.success(null));
+        MessageTemplateDTO templateDTO = MessageTemplateDTO.builder()
+                .templateCode(requestBody.getTemplateCode())
+                .shopCode(shopId)
+                .templateTitle(requestBody.getTitle())
+                .templateContent(requestBody.getContent())
+                .templateType(TemplateType.PROMOTIONAL)
+                .build();
+
+        messageTemplateService.modifyMessageTemplateContent(templateDTO); // 수정
+        
+        return ResponseEntity.ok(ApiResponse.success("템플릿이 정상적으로 수정되었습니다."));
     }
 
     /**
      * 메세지 템플릿을 삭제합니다.(물리적 삭제)
      * @param shopId 샵 코드
-     * @param templateCode 템플릿 코드
+     * @param requestBody 템플릿 코드
      * @return String 삭제 완료 문구
      */
-    @DeleteMapping("/template/{templateCode}")
+    @DeleteMapping("/template")
     public ResponseEntity<ApiResponse<String>> deleteTemplate(
             @PathVariable Integer shopId,
-            @PathVariable Integer templateCode
+            @RequestBody MessageTemplateRequest requestBody
     ){
-        return ResponseEntity.ok(ApiResponse.success(null));
+        messageTemplateService.deleteMessageTemplate(requestBody.getTemplateCode(), shopId);
+        
+        return ResponseEntity.ok(ApiResponse.success("템플릿이 정상적으로 삭제되었습니다."));
     }
 
 
