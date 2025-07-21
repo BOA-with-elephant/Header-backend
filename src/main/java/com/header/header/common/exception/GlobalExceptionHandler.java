@@ -1,11 +1,21 @@
 package com.header.header.common.exception;
 
+import com.header.header.domain.shop.common.ErrorResponseMessage;
+import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.domain.shop.enums.ShopErrorCode;
+import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 전역 예외 처리기
@@ -20,6 +30,23 @@ import org.springframework.web.context.request.WebRequest;
 })
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ShopExceptionHandler.class)
+    public ResponseEntity<ResponseMessage> handleShopException(ShopExceptionHandler e) {
+        ShopErrorCode errorInfo = e.getShopErrorCode();
+
+        ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("error", error);
+
+        ResponseMessage responseMessage = new ResponseMessage(400, "잘못된 요청 발생", responseMap);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return new ResponseEntity<>(responseMessage, headers, HttpStatus.BAD_REQUEST);
+    }
 
     /**
      * NotFoundException 처리
@@ -72,6 +99,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
         Exception ex, WebRequest request) {
+
+        if (ex instanceof ShopExceptionHandler) {
+            throw (ShopExceptionHandler) ex;
+        }
 
         log.error("예상하지 못한 오류 발생: {}", ex.getMessage(), ex);
 
