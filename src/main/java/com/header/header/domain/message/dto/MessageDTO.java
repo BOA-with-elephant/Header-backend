@@ -1,14 +1,13 @@
 package com.header.header.domain.message.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class MessageRequest {
+public class MessageDTO {
     @NotBlank(message = "유저 코드는 필수입니다")
     private Integer to;
 

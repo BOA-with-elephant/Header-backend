@@ -1,6 +1,6 @@
 package com.header.header.domain.message.service;
 
-import com.header.header.domain.message.dto.MessageRequest;
+import com.header.header.domain.message.dto.MessageDTO;
 import com.header.header.domain.message.dto.MessageResponse;
 import com.header.header.domain.message.dto.MessageSendBatchDTO;
 import com.header.header.domain.message.dto.ShopMessageHistoryDTO;
@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -30,7 +28,7 @@ public class MessageAsyncService {
     /**
      * 즉시 응답 + 백그라운드 처리\
      */
-    public MessageResponse sendMessageAsync(MessageRequest request){
+    public MessageResponse sendMessageAsync(MessageDTO request){
 
         String taskId = generateTaskId();
         log.info("📩 [{}] 메시지 요청 접수 - UserCode: {}", taskId, request.getTo());
@@ -48,7 +46,7 @@ public class MessageAsyncService {
         return response;
     }
 
-    private ShopMessageHistory saveAsPending(MessageRequest request){
+    private ShopMessageHistory saveAsPending(MessageDTO request){
         // batch 저장
         MessageSendBatchDTO batchDTO = MessageSendBatchDTO.builder()
                 .shopCode(request.getFrom())
@@ -75,7 +73,7 @@ public class MessageAsyncService {
      */
     @Async("smsExecutor")
     public void processMessageAsync(ShopMessageHistory history,
-                                    MessageRequest request,
+                                    MessageDTO request,
                                     String taskId) {
 
         log.info("🔄 [{}] 백그라운드 처리 시작 - Thread: {}",

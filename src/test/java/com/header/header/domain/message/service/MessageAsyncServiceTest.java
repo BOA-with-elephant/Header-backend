@@ -1,6 +1,6 @@
 package com.header.header.domain.message.service;
 
-import com.header.header.domain.message.dto.MessageRequest;
+import com.header.header.domain.message.dto.MessageDTO;
 import com.header.header.domain.message.dto.MessageResponse;
 import com.header.header.domain.message.dto.ShopMessageHistoryDTO;
 import com.header.header.domain.message.entity.ShopMessageHistory;
@@ -37,14 +37,14 @@ class MessageAsyncServiceTest {
     @InjectMocks
     private MessageAsyncService messageAsyncService;
 
-    private MessageRequest testRequest;
+    private MessageDTO testRequest;
     private ShopMessageHistory mockHistoryEntity;  // Entity (Service에서 반환)
     private ShopMessageHistoryDTO mockHistoryDTO;  // DTO (테스트용)
 
     @BeforeEach
     void setUp() {
         // 테스트 데이터 준비
-        testRequest = MessageRequest.builder()
+        testRequest = MessageDTO.builder()
                 .to(1)  // userCode
                 .from(2)
                 .sendType("INDIVIDUAL")
@@ -252,7 +252,7 @@ class MessageAsyncServiceTest {
 
         // When - 리플렉션으로 private 메서드 테스트
         java.lang.reflect.Method method = MessageAsyncService.class
-                .getDeclaredMethod("saveAsPending", MessageRequest.class);
+                .getDeclaredMethod("saveAsPending", MessageDTO.class);
         method.setAccessible(true);
         ShopMessageHistory result = (ShopMessageHistory) method.invoke(messageAsyncService, testRequest);
 

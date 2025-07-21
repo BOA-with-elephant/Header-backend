@@ -1,6 +1,6 @@
 package com.header.header.domain.message.service;
 
-import com.header.header.domain.message.dto.MessageRequest;
+import com.header.header.domain.message.dto.MessageDTO;
 import com.header.header.domain.message.dto.MessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
@@ -29,7 +29,7 @@ class MessageIntegrationTest {
         log.info("🚀 실제 SMS 전송 테스트 시작!");
 
         // Given - 실제 전송할 메시지
-        MessageRequest request = MessageRequest.builder()
+        MessageDTO request = MessageDTO.builder()
                 .to(1)  // 본인 userCode (DB에 실제 존재하는 값)
                 .from(1)  // shopCode  
                 .sendType("INDIVIDUAL")
@@ -69,7 +69,7 @@ class MessageIntegrationTest {
                 "현재 시간: " + System.currentTimeMillis() + " " +
                 "테스트용 긴 메시지입니다. 여러분의 휴대폰으로 잘 도착했나요?";
 
-        MessageRequest request = MessageRequest.builder()
+        MessageDTO request = MessageDTO.builder()
                 .to(1)
                 .from(1)
                 .sendType("INDIVIDUAL")
