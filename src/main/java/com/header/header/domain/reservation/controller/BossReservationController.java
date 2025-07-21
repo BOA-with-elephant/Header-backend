@@ -1,6 +1,7 @@
 package com.header.header.domain.reservation.controller;
 
 import com.header.header.domain.reservation.dto.BossReservationDTO;
+import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.service.BossReservationService;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import retrofit2.http.GET;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/my-shops/{shopCode}/reservation")
@@ -63,6 +66,31 @@ public class BossReservationController {
             return ResponseEntity.ok(result);
         } catch (Exception e){
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping(value="", produces = "application/json")
+    public ResponseEntity<?> registNewReservation(@PathVariable("shopCode") Integer shopCode, @RequestBody Map<String, String> newReservationInfo){
+        try{
+            Date resvDate = Date.valueOf(newReservationInfo.get("resvDate"));
+            Time resvTime = Time.valueOf(newReservationInfo.get("resvTime"));
+
+            BossResvInputDTO inputDTO = new BossResvInputDTO();
+            inputDTO.setUserName(newReservationInfo.get("userName"));
+            inputDTO.setUserPhone(newReservationInfo.get("userPhone"));
+            inputDTO.setResvDate(resvDate);
+            inputDTO.setResvTime(resvTime);
+            inputDTO.setMenuName(newReservationInfo.get("menuName"));
+            inputDTO.setUserComment(newReservationInfo.get("userComment"));
+
+           bossReservationService.registNewReservation(inputDTO, shopCode);
+            System.out.println("넘어온 값 : " + inputDTO);
+
+           return ResponseEntity.ok(Map.of("message", "등록 성공"));
+        } catch (Exception e){
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(Map.of("message", "등록 실패"));
         }
     }
 }
