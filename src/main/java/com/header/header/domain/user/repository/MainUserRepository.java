@@ -27,6 +27,8 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
 
     boolean existsByUserPhoneAndUserCodeNot(String userPhone, int userCode);
 
-    @Query("SELECT MAX(u.userCode) FROM User u")
-    int maxMemberCode();
+    List<User> findUserByUserId(String userId);
+
+    /* 관리자 정보인지 확인 */
+    User findByUserCodeAndIsAdminTrue(Integer userCode);
 }

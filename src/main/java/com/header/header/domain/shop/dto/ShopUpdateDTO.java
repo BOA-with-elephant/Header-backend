@@ -11,8 +11,6 @@ import lombok.Setter;
 /*샵을 업데이트 할 때 사용되는 DTO, CreationDTO와 다른 점: shopCode 필요*/
 public class ShopUpdateDTO {
 
-    private Integer shopCode;
-
     @NotBlank(message = "카테고리 유형은 비워둘 수 없습니다")
     private Integer categoryCode;
 
@@ -30,9 +28,6 @@ public class ShopUpdateDTO {
     private String shopLocation;
     private Double shopLong;
     private Double shopLa;
-
-    @NotBlank(message = "샵 상태는 비워둘 수 없습니다")
-    private String shopStatus;
 
     @NotBlank(message = "영업 시작 시간은 비워둘 수 없습니다")
     private String shopOpen;

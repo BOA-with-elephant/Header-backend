@@ -7,6 +7,7 @@ import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
+import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
@@ -66,19 +67,30 @@ public class ShopService {
                 .isActive(true)
                 .build();
 
+        // 관리자 권한을 부여
+        if (!admin.isAdmin()) {
+            admin.modifyAuthorityToAdmin(admin.isAdmin());
+        }
+
         return modelMapper.map(shopRepository.save(shop), ShopDTO.class);
     }
 
     /*사용자가 검색하는 경우, 페이징 처리된 요약 조회 메소드
       필터: 카테고리 or 키워드
       정렬: 기끼운 거리순*/
-    public Page<ShopSummaryResponseDTO> findShopsByCondition(
+    public Page<ShopSearchSummaryResponse> findShopsByCondition(
             Double lat, Double lon, Integer categoryCode, String keyword, Pageable pageable
     ) {
 
         if (lat == null || lon == null) {
             lat = 37.5145;
             lon = 127.1067; //사용자가 위치를 허용하지 않았을 때의 기본값, 송파구 중심 좌표
+        }
+
+        if (categoryCode != null) {
+
+        ShopCategory category = shopCategoryRepository.findById(categoryCode)
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
 
         return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
@@ -115,11 +127,22 @@ public class ShopService {
 
     /*보유한 샵을 수정*/
     @Transactional
-    public ShopDTO updateShop(ShopUpdateDTO dto) {
+    public ShopDTO updateShop(Integer adminCode, Integer shopCode, ShopUpdateDTO dto) {
 
-        /*존재하지 않는 샵 예외*/
-        Shop shop = shopRepository.findById(dto.getShopCode())
-                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+        /*유저 코드와 상응하는 관리자 정보가 있는지 검증*/
+        User admin = userRepository.findByUserCodeAndIsAdminTrue(adminCode);
+
+        if (admin == null) {
+            throw new ShopExceptionHandler(ShopErrorCode.ADMIN_NOT_FOUND);
+        }
+
+        /*해당 샵 코드, admin 코드에 상응하는 샵이 존재하는지 확인*/
+        Shop shop = shopRepository.findByShopCodeAndAdminCode(shopCode, adminCode);
+
+        // 없을 경우 예외
+        if (shop == null) {
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND);
+        }
 
         /*필드별로 null 체크하여 기존 값 유지, 더티 체킹이 동작하지 않아 처리. 추후 검토 예정*/
         String shopName = dto.getShopName() != null ? dto.getShopName() : shop.getShopName();
@@ -169,19 +192,43 @@ public class ShopService {
 
     //DELETE (논리적 삭제)
     @Transactional
-    public ShopDTO deActiveShop(Integer shopCode) {
+    public void deActiveShop(Integer adminCode, Integer shopCode) {
+
+        /*존재하는 샵 정보인지 검증*/
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
 
+        /*이미 비활성화된 샵인지 검증*/
         if (!shop.getIsActive()) {
             throw new ShopExceptionHandler(ShopErrorCode.SHOP_ALREADY_DEACTIVATED);
+        }
+
+        /*유저 코드와 상응하는 유저 정보가 있는지 검증*/
+        User admin = userRepository.findByUserCodeAndIsAdminTrue(adminCode);
+        
+        if (admin == null) {
+            // admin 정보가 비어있는 경우
+            throw new ShopExceptionHandler(ShopErrorCode.ADMIN_NOT_FOUND);
+        }
+
+        /*해당 샵 코드, admin 코드에 상응하는 샵이 존재하는지 확인*/
+        Shop shopValid = shopRepository.findByShopCodeAndAdminCode(shopCode, adminCode);
+
+        // 없을 경우 예외
+        if (shopValid == null) {
+            throw new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND);
+        }
+        
+        /*해당 사용자가 보유한 샵이 단 한 개 남았다면, 관리자 권한을 제거한다*/
+        if (shopRepository.isShopLeft(adminCode)) {
+            if (admin.isAdmin()) {
+                admin.modifyAuthorityToMember(admin.isAdmin());
+            }
         }
 
         shop.deactivateShop();
 
         shopRepository.save(shop);
-
-        return modelMapper.map(shop, ShopDTO.class);
     }
 
     /* MapService - getCoordinates 메소드를 통해 문서에서 필요한 정보를 가져오는 메소드

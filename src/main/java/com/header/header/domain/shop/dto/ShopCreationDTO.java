@@ -30,9 +30,6 @@ public class ShopCreationDTO {
     private Double shopLong;
     private Double shopLa;
 
-    @NotBlank(message = "샵 상태는 비워둘 수 없습니다")
-    private String shopStatus;
-
     @NotBlank(message = "영업 시작 시간은 비워둘 수 없습니다")
     private String shopOpen;
 

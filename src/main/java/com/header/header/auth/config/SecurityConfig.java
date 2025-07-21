@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,7 +51,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
     /**
      * 정적 리소스(CSS, JS, 이미지 등)에 대한 보안 필터 적용을 무시하도록 설정합니다.
      * @return WebSecurityCustomizer 인스턴스
@@ -119,20 +119,19 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .cors(withDefaults())  // CORS 설정은 그대로 유지
-//                .authorizeHttpRequests(auth -> auth
-//                        .anyRequest().permitAll() // ✅ 모든 요청 허용
-//                )
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .formLogin(AbstractHttpConfigurer::disable)
-//                .httpBasic(AbstractHttpConfigurer::disable); // 필요시 비활성화
-//
-//        return http.build();
-//    }
-
+    //    @Bean
+    //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    //        http
+    //                .cors(withDefaults())  // CORS 설정은 그대로 유지
+    //                .authorizeHttpRequests(auth -> auth
+    //                        .anyRequest().permitAll() // ✅ 모든 요청 허용
+    //                )
+    //                .csrf(AbstractHttpConfigurer::disable)
+    //                .formLogin(AbstractHttpConfigurer::disable)
+    //                .httpBasic(AbstractHttpConfigurer::disable); // 필요시 비활성화
+    //
+    //        return http.build();
+    //    }
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
