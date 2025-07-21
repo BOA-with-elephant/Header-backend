@@ -9,13 +9,11 @@ import com.header.header.domain.message.exception.InvalidTemplateException;
 import com.header.header.domain.message.exception.ValidationResult;
 import com.header.header.domain.message.repository.MessageTemplateRepository;
 import com.header.header.domain.message.validator.TemplateValidator;
-import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -131,7 +129,7 @@ public class MessageTemplateService {
         validateModifiable(foundMessageTemplate); // 수정할 수 있는 템플릿인지 검증
         validateTemplatePalceholder(templateDTO.getTemplateContent()); // 템플릿 placeholder 검증
         
-        foundMessageTemplate.modifyMessageTemplateContent(templateDTO.getTemplateContent());
+        foundMessageTemplate.modifyMessageTemplate(templateDTO.getTemplateTitle(),templateDTO.getTemplateContent());
 
         return modelMapper.map(foundMessageTemplate, MessageTemplateDTO.class);
     }
