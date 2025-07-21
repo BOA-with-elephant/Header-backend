@@ -1,13 +1,10 @@
 package com.header.header.auth.config;
 
-import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
-import com.header.header.domain.user.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,15 +30,15 @@ public class JwtTokenProvider {
     private final long expiration;
 
     // JWT 토큰에 권한 정보를 담을 클레임의 키
-    private static final String AUTHORITIES_KEY = "auth";
+    private static final String AUTHORITIES_KEY = "role";
     private static final String BEARER_TYPE = "Bearer";
     private final AuthUserService authUserService;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
-                            @Value("${jwt.token-validity-in-milliseconds}") long tokenValidityInMilliseconds, AuthUserService authUserService) {
+                            @Value("${jwt.expiration}") long tokenValidityTime, AuthUserService authUserService) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        this.expiration = tokenValidityInMilliseconds;
+        this.expiration = tokenValidityTime;
         this.authUserService = authUserService;
     }
 

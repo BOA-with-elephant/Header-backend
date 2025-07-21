@@ -45,7 +45,6 @@ public class CustomAuthenticationFilter
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 
-
     /**
      * description. 사용자의 로그인 요청 시 "요청 정보를 임시 토큰에 저장"하는 (로직에 대한) 메소드
      *
@@ -64,5 +63,4 @@ public class CustomAuthenticationFilter
 
         return new UsernamePasswordAuthenticationToken(user.getUserId(), user.getUserPwd());
     }
-
 }

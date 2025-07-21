@@ -2,7 +2,7 @@ package com.header.header.auth.model.service;
 
 import com.header.header.auth.common.ApiResponse;
 import com.header.header.auth.config.JwtTokenProvider;
-import com.header.header.auth.exception.DuplicatedMemberEmailException;
+import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.DuplicatedPhoneException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
@@ -47,86 +47,90 @@ public class AuthUserService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    public Object login(LoginUserDTO userDTO) throws FailedLoginException {
+    public Object loginUser(LoginUserDTO loginUserDTO) throws FailedLoginException {
 
         log.info("[AuthService] login() START");
-        log.info("[AuthService] {}", userDTO);
+        log.info("[AuthService] {}", loginUserDTO);
 
         /* 목차. 1. 아이디 조회 */
-        User user = memberRepository.findByUserId(userDTO.getUserId());
+        User user = memberRepository.findByUserId(loginUserDTO.getUserId());
 
         if (user == null) {
             log.info("[AuthService] login() Required User Not Found!");
-            throw new FailedLoginException(userDTO.getUserId() + " 유저를 찾을 수 없습니다.");
+            throw new FailedLoginException(loginUserDTO.getUserId() + " 유저를 찾을 수 없습니다.");
         }
 
         /* 목차. 2. 비밀번호 매칭 */
-        if (!passwordEncoder.matches(userDTO.getUserPwd(), user.getUserPwd())) {
-            log.info("[AuthService] login() Password Match Failed!");
+        if (!passwordEncoder.matches(loginUserDTO.getUserPwd(), user.getUserPwd())) {
+            log.info("[AuthService] Password Match Failed!");
             throw new FailedLoginException("잘못된 비밀번호입니다.");
         }
 
         /* 목차. 3. 토큰 발급 */
-        TokenDTO newToken = tokenProvider.generateTokenDTO(LoginUserDTO);
+        TokenDTO newToken = tokenProvider.generateTokenDTO(loginUserDTO);
 
         return newToken;
     }
 
+    /** save : registerNewUser
+     -> UserDTO 사용
+     @param userDTO 생성할 user 정보가 담긴 DTO
+     @return 생성된 signupDTO(user관련 DTO)
+     이미 존재하는 아이디나 전화번호일 때 */
     @Transactional
     public UserDTO signup(UserDTO userDTO) {
-        log.info("[AuthService] signup() Start.");
+        log.info("[AuthService] Let's start signup().");
         log.info("[AuthService] userDTO {}", userDTO);
 
         /* 1. 중복 유효성 검사 */
         // 중복확인 1 : userId
         if (userRepository.existsByUserId(userDTO.getUserId())) {
             log.info("[AuthService] 아이디가 중복됩니다.");
-            throw new DuplicatedMemberEmailException(ApiResponse.DUPLICATE_ID.getMessage());
+            throw new DuplicatedUserIdException(ApiResponse.DUPLICATE_ID.getMessage());
         }
         // 중복확인 2 : userPhone
         if (userRepository.existsByUserPhone(userDTO.getUserPhone())) {
             log.info("[AuthService] 전화번호가 중복됩니다.");
-            try {
-                throw new DuplicatedPhoneException(ApiResponse.DUPLICATE_PHONE.getMessage());
-                // 2. 비밀번호 암호화
-                String encodedPassword = passwordEncoder.encode(userDTO.getUserPwd());
+            throw new DuplicatedPhoneException(ApiResponse.DUPLICATE_PHONE.getMessage());
+        }
 
-                // 3. User 엔티티 생성 및 기본 권한(isAdmin=false) 설정
-                User registUser = new User(
-                        userDTO.getUserId(),
-                        encodedPassword,
-                        false, // isAdmin: 회원가입 시 기본값은 false (일반 사용자)
-                        userDTO.getUserName(),
-                        userDTO.getUserPhone(),
-                        userDTO.getBirthday(),
-                        false  // isLeave: 회원가입 시 기본값은 false (탈퇴하지 않음)
-                );
+        try {
+            // 2. 비밀번호 암호화
+            String encodedPassword = passwordEncoder.encode(userDTO.getUserPwd());
 
-                // 4. User 엔티티 저장
-                User result = userRepository.save(registUser);
+            // 3. User 엔티티 생성 및 기본 권한(isAdmin=false) 설정
+            User registUser = new User(
+                    userDTO.getUserId(),
+                    encodedPassword,
+                    false, // isAdmin: 회원가입 시 기본값은 false (일반 사용자)
+                    userDTO.getUserName(),
+                    userDTO.getUserPhone(),
+                    userDTO.getBirthday(),
+                    false  // isLeave: 회원가입 시 기본값은 false (탈퇴하지 않음)
+            );
 
-                /* 설명. 위의 save()가 성공해야 해당 트랜잭션이 성공했다고 판단. */
-                log.info("[AuthService] User Insert Result {}",
-                        (result != null) ? "회원 가입 성공" : "회원 가입 실패");
+            // 4. User 엔티티 저장
+            User result = userRepository.save(registUser);
 
-                return userDTO;
+            /* 설명. 위의 save()가 성공해야 해당 트랜잭션이 성공했다고 판단. */
+            log.info("[AuthService] 유저 생성 결과, {}",
+                    (result != null) ? "회원 가입 성공" : "회원 가입 실패");
 
-            } catch (DuplicatedPhoneException e) {
-                throw new RuntimeException(e);
-            } catch (Exception e) {
-                // 예상치 못한 다른 모든 예외 처리
-                log.error("회원가입 중 알 수 없는 오류 발생", e);
-                throw new RegistrationUnknownException(ApiResponse.UNKNOWN_ERROR.getMessage(), e);
-            } finally {
-                log.info("[AuthService] signup() End.");
-            }
+            return userDTO;
+
+        } catch (Exception e) {
+            log.error("회원가입 중 알 수 없는 오류 발생", e);
+            throw new RegistrationUnknownException(e);
+        } finally {
+            log.info("[AuthService] signup() End.");
         }
     }
+
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
 
         if(userId == null || userId.equals("")) {
-            throw new AuthenticationServiceException(userId + " is Empty!");
+            throw new AuthenticationServiceException(userId + "아이디를 입력하지 않았습니다.");
         } else {
             LoginUserDTO loginUserDTO = userService.findByUserId(userId);
             if (loginUserDTO == null) {

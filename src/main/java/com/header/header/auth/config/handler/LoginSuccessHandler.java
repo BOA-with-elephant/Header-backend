@@ -5,7 +5,6 @@ import com.header.header.auth.config.JwtTokenProvider;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -66,7 +65,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 2. JWT 토큰 생성 및 사용자 정보 포함 로직
         // loginUserDTO가 성공적으로 가져와졌을 때만 (null이 아닐 때만) 토큰을 생성하고 사용자 정보를 추가합니다.
-        if (loginUserDTO != null) { // loginUserDTO가 null이 아닌지 확인!
+        if (loginUserDTO != null) {
             // 2.1. jwtTokenProvider.generateTokenDTO(loginUserDTO) 호출의 결과는 TokenDTO 객체입니다.
             TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO);
 

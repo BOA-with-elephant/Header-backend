@@ -54,40 +54,7 @@ public class UserService {
         return userRepository.findPhoneByUserCode(userCode);
     }
 
-    /** save : registerNewUser
-    -> SignupDTO 사용
-    @param signupDTO 생성할 user 정보가 담긴 DTO
-    @return 생성된 signupDTO(user관련 DTO)
-     이미 존재하는 아이디나 전화번호일 때 */ /* @throws ApiResponse 이 부분 없는데 써서 오류나서 지웠어요 - 예람*/
-    @Transactional
-    public String registerNewUser(SignupDTO signupDTO) {
-        //중복확인 1 : userId
-        if (userRepository.existsByUserId(signupDTO.getUserId())) {
-            return DUPLICATE_ID.getMessage();
-        }
-
-        //중복확인 2 : userPhone
-        if (userRepository.existsByUserPhone(signupDTO.getUserPhone())) {
-            return DUPLICATE_PHONE.getMessage();
-        }
-        try {
-            // DTO → Entity로 변환 후 저장
-            User userEntity = modelMapper.map(signupDTO, User.class);
-            User savedUser = userRepository.save(userEntity);
-
-            // 저장된 userCode를 다시 DTO에 설정 (if needed for further operations, otherwise not strictly necessary here)
-            signupDTO.setUserCode(savedUser.getUserCode());
-
-            return SUCCESS_REGISTER_USER.getMessage();
-        } catch (Exception e) {
-            // Log the exception for debugging
-            e.printStackTrace(); // In a real app, use a logger (e.g., logger.error("Error during user registration", e);)
-            // Return a generic error message
-            return UNKNOWN_ERROR.getMessage(); // Or a more specific error message if you can identify the type of exception
-        }
-    }
-
-    /** Read specific : Login
+    /** Read specific : Login, findId
      * ID갖고 회원정보 조회하는 method 생성. 반환은 UserDTO로
      *
      * @param userCode
@@ -95,10 +62,11 @@ public class UserService {
      * @throws IllegalAccessError */
     /**Spring-data-jpa: findById (Repository에서 제공해주는 메소드) 이용하는 방법*/
     public LoginUserDTO findByUserId(String userId) {
+        //이 메소드는 단순히 사용자 ID를 기반으로 데이터베이스에서 사용자 정보를 조회하는 역할만 한다. Id 찾기에서 사용할 것
         User foundUser = userRepository.findByUserId(userId);
 
         if (foundUser == null) {
-            throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원 가입 후 로그인 해주십시오.");
+            throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원 가입을 먼저 진행해주십시오.");
         }
 
         // Entity → DTO 매핑
@@ -143,7 +111,6 @@ public class UserService {
 
         return SUCCESS_MODIFY_USER.getMessage();
     }
-
 
     /** DELETE
      -> deleteById() 말고

@@ -15,6 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -32,16 +34,15 @@ public class UserFacadeServiceTests {
     @DisplayName("회원가입(user 생성) + 중복 체크 테스트")
     void registerUserTest() {
         //given1. 기존 정보와 중복 없이 가입할 때
-        SignupDTO newSignup = new SignupDTO();
+        UserDTO newSignup = new UserDTO();
         newSignup.setUserId("user41");
         newSignup.setUserPwd("user41pwd");
         newSignup.setUserName("Kim tolkong");
         newSignup.setUserPhone("010-1233-2567");
-        newSignup.setBirthday("2000-12-31");
+        newSignup.setBirthday(LocalDate.parse("2000-12-31"));
 
         //when
         Object result1 = facadeService.registerUser(newSignup);
-
         //then
         System.out.println("가입 성공 메세지: " + result1);
         System.out.println("가입 정보 확인: "+ newSignup);
@@ -49,12 +50,12 @@ public class UserFacadeServiceTests {
         //가입 정보 확인: SignupDTO(userCode=101, userName=Kim tolkong, userPhone=010-1233-2567, userId=user41, userPwd=$2a$10$L3Md/JUWLKOGKBEwOSunD.VaonwaE.SAxZW8KZX5KcICbPBb7LlDG, birthday=2000-12-31)
 
         //given2. 중복된 userId 사용
-        SignupDTO duplicateIdDTO = new SignupDTO();
+        UserDTO duplicateIdDTO = new UserDTO();
         duplicateIdDTO.setUserId("kwoneunji"); // DB에 존재
         duplicateIdDTO.setUserPwd("test1234");
         duplicateIdDTO.setUserName("Test User");
         duplicateIdDTO.setUserPhone("010-9999-9999");
-        duplicateIdDTO.setBirthday("2025-07-14");
+        duplicateIdDTO.setBirthday(LocalDate.parse("2025-07-21"));
 
         //when(중복 아이디 가입 시도)
         Object result2 = facadeService.registerUser(duplicateIdDTO);
@@ -65,12 +66,12 @@ public class UserFacadeServiceTests {
         //Check Id msg: 이미 존재하는 아이디입니다.
 
         //given3. 중복된 전화번호로 가입 시도
-        SignupDTO duplicatePhoneDTO = new SignupDTO();
+        UserDTO duplicatePhoneDTO = new UserDTO();
         duplicatePhoneDTO.setUserId("newuser01");
         duplicatePhoneDTO.setUserPwd("pass001");
         duplicatePhoneDTO.setUserName("Jane Doe");
         duplicatePhoneDTO.setUserPhone("010-1004-1004"); // DB에 존재
-        duplicatePhoneDTO.setBirthday("2025-07-10");
+        duplicatePhoneDTO.setBirthday(LocalDate.parse("2025-07-10"));
 
         //when
         Object result3 = facadeService.registerUser(duplicatePhoneDTO);
