@@ -27,7 +27,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/shops/reservation")
+@RequestMapping("api/v1/shops/reservation")
 @RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
         allowedHeaders = "*",

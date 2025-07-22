@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/myshop")
+@RequestMapping("api/v1/my-shops")
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
         allowedHeaders = "*",
         methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
