@@ -25,7 +25,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/shops")
+@RequestMapping("api/v1/shops") // 사용자가 샵을 조회, 상세 조회, 예약 추가할 때
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
         allowedHeaders = "*",
         methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})

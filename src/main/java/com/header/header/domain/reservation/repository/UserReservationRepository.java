@@ -128,6 +128,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
           WHERE r.userInfo.userCode = :userCode
           AND r.resvDate = :resvDate
           AND r.resvTime = :resvTime
+          AND NOT r.resvState = 'CANCEL'
           """)
     boolean isUserHasReservationInThisSchedule(
             @Param("userCode") Integer userCode,
@@ -141,7 +142,6 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
               FROM BossReservation r 
              WHERE r.shopInfo.shopCode = :shopCode 
                AND r.resvDate = :resvDate
-               AND r.resvState != '예약취소'         
            """)
     List<Time> findReservedTimes(@Param("shopCode") Integer shopCode, @Param("resvDate") Date resvDate);
 }
