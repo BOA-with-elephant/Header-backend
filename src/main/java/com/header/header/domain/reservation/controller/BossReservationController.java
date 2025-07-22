@@ -114,7 +114,7 @@ public class BossReservationController {
             bossReservationService.updateReservation(inputDTO, resvCode, shopCode);
 
             return ResponseEntity.ok().body(
-                    new ResponseMessage(200, "조회 성공", null));
+                    new ResponseMessage(200, "수정 성공", null));
         } catch (Exception e){
 
             return ResponseEntity.status(400)
@@ -129,7 +129,7 @@ public class BossReservationController {
             bossReservationService.cancelReservation(resvCode);
 
             return ResponseEntity.ok().body(
-                    new ResponseMessage(200, "조회 성공", null));
+                    new ResponseMessage(200, "논리적 삭제 성공", null));
         } catch (Exception e){
             e.printStackTrace();
 

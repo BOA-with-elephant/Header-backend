@@ -318,6 +318,7 @@ public class UserReservationService {
 
             boolean isHoliday = isHoliday(shopCode, Date.valueOf(targetDate));
 
+            /* comment. 예약된 시간 가져오기 - 예약 취소가 아닌 경우 */
             List<Time> reservedTimesSql = userReservationRepository.findReservedTimes(shopCode, Date.valueOf(targetDate));
             List<LocalTime> reservedTimes = reservedTimesSql.stream()
                     .map(Time::toLocalTime)
@@ -346,7 +347,7 @@ public class UserReservationService {
 
                 time = time.plusMinutes(60);
             }
-
+            
             result.add(new ReservationDateAndTimeDTO(targetDate, availableTimes, reservedTimes));
         }
 
