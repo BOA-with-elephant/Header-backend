@@ -10,4 +10,5 @@ public interface MessageHistoryListView {
     String getUserName();
     String getSentStatus();
     Timestamp getSentAt();
+    String getErrorMessage();
 }
