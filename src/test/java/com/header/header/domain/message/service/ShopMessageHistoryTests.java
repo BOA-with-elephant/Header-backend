@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ShopMessageHistoryTests {
 
     @Autowired
-    private ShopMessageHistoryService shopMessageHistoryService;
+    private MessageHistoryService messageHistoryService;
 
     private ShopMessageHistoryDTO testHistory;
     private ShopMessageHistoryDTO testReservedHistory;
@@ -41,7 +41,7 @@ public class ShopMessageHistoryTests {
                 .sendStatus(String.valueOf(MessageStatus.PENDING))
                 .build();
 
-        testHistory = modelMapper.map(shopMessageHistoryService.createMessageHistory(createDTO), ShopMessageHistoryDTO.class);
+        testHistory = modelMapper.map(messageHistoryService.createMessageHistory(createDTO), ShopMessageHistoryDTO.class);
 
         // RESERVED 상태 히스토리 생성 (추가 테스트용)
         ShopMessageHistoryDTO reservedDTO = ShopMessageHistoryDTO.builder()
@@ -51,7 +51,7 @@ public class ShopMessageHistoryTests {
                 .sendStatus(String.valueOf(MessageStatus.RESERVED))
                 .build();
 
-        testReservedHistory = modelMapper.map(shopMessageHistoryService.createMessageHistory(reservedDTO), ShopMessageHistoryDTO.class);
+        testReservedHistory = modelMapper.map(messageHistoryService.createMessageHistory(reservedDTO), ShopMessageHistoryDTO.class);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class ShopMessageHistoryTests {
         Integer batchCode = testHistory.getBatchCode();
 
         // when
-        List<MessageHistoryListView> historyList = shopMessageHistoryService.getMessageHistoryListByBatch(batchCode);
+        List<MessageHistoryListView> historyList = messageHistoryService.getMessageHistoryListByBatch(batchCode);
 
         // then
         assertNotNull(historyList);
@@ -85,7 +85,7 @@ public class ShopMessageHistoryTests {
     @DisplayName("수신자 목록 조회 실패 - null batchCode")
     void getMessageHistoryListByBatch_NullBatchCode_ThrowsException() {
         // when & then
-        assertThatThrownBy(() -> shopMessageHistoryService.getMessageHistoryListByBatch(null))
+        assertThatThrownBy(() -> messageHistoryService.getMessageHistoryListByBatch(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("batchCode는 필수입니다");
     }
@@ -98,7 +98,7 @@ public class ShopMessageHistoryTests {
         Integer userCode = testHistory.getUserCode();
 
         // when
-        MessageContentView messageContent = shopMessageHistoryService.getMessageContent(batchCode, userCode);
+        MessageContentView messageContent = messageHistoryService.getMessageContent(batchCode, userCode);
 
         // then
         assertNotNull(messageContent);
@@ -117,7 +117,7 @@ public class ShopMessageHistoryTests {
         Integer nonExistentUserCode = 999;
 
         // when & then
-        assertThatThrownBy(() -> shopMessageHistoryService.getMessageContent(nonExistentBatchCode, nonExistentUserCode))
+        assertThatThrownBy(() -> messageHistoryService.getMessageContent(nonExistentBatchCode, nonExistentUserCode))
                 .isInstanceOf(InvalidBatchException.class)
                 .hasMessageContaining("해당 수신자 정보가 없습니다");
     }
@@ -126,11 +126,11 @@ public class ShopMessageHistoryTests {
     @DisplayName("수신자 상세 메세지 조회 실패 - null 파라미터")
     void getMessageContent_NullParams_ThrowsException() {
         // when & then
-        assertThatThrownBy(() -> shopMessageHistoryService.getMessageContent(null, 1))
+        assertThatThrownBy(() -> messageHistoryService.getMessageContent(null, 1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("batchCode,userCode는 필수입니다");
 
-        assertThatThrownBy(() -> shopMessageHistoryService.getMessageContent(1, null))
+        assertThatThrownBy(() -> messageHistoryService.getMessageContent(1, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("batchCode,userCode는 필수입니다");
     }
@@ -147,7 +147,7 @@ public class ShopMessageHistoryTests {
                 .build();
 
         // when
-        ShopMessageHistoryDTO result = modelMapper.map(shopMessageHistoryService.createMessageHistory(newHistoryDTO), ShopMessageHistoryDTO.class);
+        ShopMessageHistoryDTO result = modelMapper.map(messageHistoryService.createMessageHistory(newHistoryDTO), ShopMessageHistoryDTO.class);
 
         // then
         assertNotNull(result);
@@ -173,7 +173,7 @@ public class ShopMessageHistoryTests {
         String initialStatus = testHistory.getSendStatus();
 
         // when
-        ShopMessageHistoryDTO result = shopMessageHistoryService.updateMessageStatus(historyCode, null);
+        ShopMessageHistoryDTO result = messageHistoryService.updateMessageStatus(historyCode, null);
 
         // then
         assertNotNull(result);
@@ -198,7 +198,7 @@ public class ShopMessageHistoryTests {
         String initialStatus = testHistory.getSendStatus();
 
         // when
-        ShopMessageHistoryDTO result = shopMessageHistoryService.updateMessageStatus(historyCode, errorMessage);
+        ShopMessageHistoryDTO result = messageHistoryService.updateMessageStatus(historyCode, errorMessage);
 
         // then
         assertNotNull(result);
@@ -221,7 +221,7 @@ public class ShopMessageHistoryTests {
         String initialStatus = testReservedHistory.getSendStatus();
 
         // when
-        ShopMessageHistoryDTO result = shopMessageHistoryService.updateMessageStatus(historyCode, null);
+        ShopMessageHistoryDTO result = messageHistoryService.updateMessageStatus(historyCode, null);
 
         // then
         assertNotNull(result);
@@ -246,7 +246,7 @@ public class ShopMessageHistoryTests {
         String initialStatus = testReservedHistory.getSendStatus();
 
         // when
-        ShopMessageHistoryDTO result = shopMessageHistoryService.updateMessageStatus(historyCode, errorMessage);
+        ShopMessageHistoryDTO result = messageHistoryService.updateMessageStatus(historyCode, errorMessage);
 
         // then
         assertNotNull(result);
@@ -268,7 +268,7 @@ public class ShopMessageHistoryTests {
         Integer invalidHistoryCode = 999;
 
         // when & then
-        assertThatThrownBy(() -> shopMessageHistoryService.updateMessageStatus(invalidHistoryCode, null))
+        assertThatThrownBy(() -> messageHistoryService.updateMessageStatus(invalidHistoryCode, null))
                 .isInstanceOf(InvalidBatchException.class)
                 .hasMessageContaining("유효하지않은 히스토리 코드");
     }
@@ -280,7 +280,7 @@ public class ShopMessageHistoryTests {
         Integer batchCode = 2;
 
         // when
-        List<MessageHistoryListView> historyList = shopMessageHistoryService.getMessageHistoryListByBatch(batchCode);
+        List<MessageHistoryListView> historyList = messageHistoryService.getMessageHistoryListByBatch(batchCode);
 
         // then
         assertNotNull(historyList);

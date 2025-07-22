@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ShopMessageHistoryService {
+public class MessageHistoryService {
 
     private final ShopMessageHistoryRepository shopMessageHistoryRepository;
     private final ModelMapper modelMapper;
