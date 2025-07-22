@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.controller;
 
+import com.header.header.domain.reservation.dto.ReservationDateAndTimeDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
@@ -99,6 +100,21 @@ public class UserReservationController {
 
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("schedule", scheduleList);
+
+        return ResponseEntity.ok().body(
+                new ResponseMessage(200, "조회 성공", responseMap)
+        );
+    }
+
+    @GetMapping("{shopCode}/resv-time-and-date")
+    public ResponseEntity<ResponseMessage> getResvDateAndTime(@PathVariable Integer shopCode) {
+
+        int dateRangeToGet = 365;
+
+        List<ReservationDateAndTimeDTO> dateAndTimeList = userReservationService.getReservationDateAndTime(shopCode, dateRangeToGet);
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("schedule", dateAndTimeList);
 
         return ResponseEntity.ok().body(
                 new ResponseMessage(200, "조회 성공", responseMap)
