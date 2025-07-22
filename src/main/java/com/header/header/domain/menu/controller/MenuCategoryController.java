@@ -38,7 +38,7 @@ public class MenuCategoryController {
      * @param shopCode 조회할 샵의 코드
      * @return 해당 샵의 모든 메뉴 카테고리 DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/menu/category")
+    @GetMapping("/my-shops/{shopCode}/menu/category")
     public ResponseEntity<List<MenuCategoryDTO>> getAllMenuCategories(@PathVariable int shopCode) {
         List<MenuCategoryDTO> menuCategories = menuCategoryService.findAllMenuCategoriesByShopCode(
             shopCode);
@@ -51,7 +51,7 @@ public class MenuCategoryController {
      * @param shopCode 조회할 샵의 코드
      * @return 해당 샵의 활성화된 메뉴 카테고리 DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/menu/category/active")
+    @GetMapping("/my-shops/{shopCode}/menu/category/active")
     public ResponseEntity<List<MenuCategoryDTO>> getActiveMenuCategories(
         @PathVariable int shopCode) {
         List<MenuCategoryDTO> activeMenuCategories = menuCategoryService.findActiveMenuCategoriesByShopCode(
@@ -66,7 +66,7 @@ public class MenuCategoryController {
      * @param categoryCode 카테고리 코드
      * @return 조회된 메뉴 카테고리 DTO
      */
-    @GetMapping("/myshop/{shopCode}/menu/category/{categoryCode}")
+    @GetMapping("/my-shops/{shopCode}/menu/category/{categoryCode}")
     public ResponseEntity<MenuCategoryDTO> getMenuCategory(@PathVariable int shopCode,
         @PathVariable int categoryCode) {
         MenuCategoryDTO menuCategory = menuCategoryService.findMenuCategoryById(categoryCode,
@@ -81,7 +81,7 @@ public class MenuCategoryController {
      * @param menuCategoryDTO 생성할 카테고리 정보가 담긴 DTO
      * @return 생성된 메뉴 카테고리 DTO
      */
-    @PostMapping("/myshop/{shopCode}/menu/category")
+    @PostMapping("/my-shops/{shopCode}/menu/category")
     public ResponseEntity<MenuCategoryDTO> createMenuCategory(@PathVariable int shopCode,
         @RequestBody MenuCategoryDTO menuCategoryDTO) {
         MenuCategoryDTO createdCategory = menuCategoryService.createMenuCategory(menuCategoryDTO,
@@ -97,7 +97,7 @@ public class MenuCategoryController {
      * @param menuCategoryDTO 수정할 카테고리 정보가 담긴 DTO
      * @return 수정된 메뉴 카테고리 DTO
      */
-    @PutMapping("/myshop/{shopCode}/menu/category/{categoryCode}")
+    @PutMapping("/my-shops/{shopCode}/menu/category/{categoryCode}")
     public ResponseEntity<MenuCategoryDTO> updateMenuCategory(
         @PathVariable int categoryCode,
         @PathVariable int shopCode,
@@ -114,7 +114,7 @@ public class MenuCategoryController {
      * @param categoryCode 삭제할 카테고리 코드
      * @return 삭제 성공 메시지
      */
-    @DeleteMapping("/myshop/{shopCode}/menu/category/{categoryCode}")
+    @DeleteMapping("/my-shops/{shopCode}/menu/category/{categoryCode}")
     public ResponseEntity<String> deleteMenuCategory(@PathVariable int shopCode,
         @PathVariable int categoryCode) {
         menuCategoryService.deleteMenuCategoryWithBulkUpdate(categoryCode, shopCode);
