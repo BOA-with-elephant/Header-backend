@@ -54,7 +54,7 @@ public class SalesController {
      * @param shopCode 조회할 샵의 코드
      * @return 해당 샵의 모든 SalesDetail DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/sales/active")
+    @GetMapping("/my-shops/{shopCode}/sales/active")
     public ResponseEntity<List<SalesDetailDTO>> getActiveSalesByShop(@PathVariable Integer shopCode) {
         return handleApiCall("샵코드 " + shopCode + "의 활성 매출 조회 요청",
             () -> salesService.getActiveSalesDetailsByShop(shopCode));
@@ -66,7 +66,7 @@ public class SalesController {
      * @param salesCode 삭제할 매출 코드
      * @return 삭제 완료 응답
      */
-    @DeleteMapping("/myshop/{shopCode}/sales/{salesCode}")
+    @DeleteMapping("/my-shops/{shopCode}/sales/{salesCode}")
     public ResponseEntity<Void> deleteSales(@PathVariable Integer shopCode, @PathVariable Integer salesCode) {
         return handleApiCall("샵코드 " + shopCode + ", 매출코드 " + salesCode + "의 매출 삭제 요청", () -> {
             salesService.deleteSales(salesCode);
@@ -83,7 +83,7 @@ public class SalesController {
      * @param endDate 종료 날짜 (ISO 형식: yyyy-MM-ddTHH:mm:ss)
      * @return 총 매출 금액
      */
-    @GetMapping("/myshop/{shopCode}/sales/total-sales")
+    @GetMapping("/my-shops/{shopCode}/sales/total-sales")
     public ResponseEntity<Long> getTotalSales(@PathVariable Integer shopCode,
         @RequestParam String startDate,
         @RequestParam String endDate) {
@@ -100,7 +100,7 @@ public class SalesController {
      * @param endDate 종료 날짜 (ISO 형식: yyyy-MM-ddTHH:mm:ss)
      * @return 총 취소 금액
      */
-    @GetMapping("/myshop/{shopCode}/sales/total-cancel")
+    @GetMapping("/my-shops/{shopCode}/sales/total-cancel")
     public ResponseEntity<Long> getTotalCancelAmount(@PathVariable Integer shopCode,
         @RequestParam String startDate,
         @RequestParam String endDate) {
@@ -115,7 +115,7 @@ public class SalesController {
      * @param shopCode 샵 코드
      * @return 결제 방법별 통계 [결제방법, 총금액, 건수]
      */
-    @GetMapping("/myshop/{shopCode}/sales/payment-method-stats")
+    @GetMapping("/my-shops/{shopCode}/sales/payment-method-stats")
     public ResponseEntity<List<Object[]>> getPaymentMethodStats(@PathVariable Integer shopCode) {
         return handleApiCall("샵코드 " + shopCode + "의 결제 수단별 통계 조회",
             () -> salesService.getSalesStatsByPayMethod(shopCode));
@@ -126,7 +126,7 @@ public class SalesController {
      * @param shopCode 샵 코드
      * @return 월별 통계 [년도, 월, 총금액, 건수]
      */
-    @GetMapping("/myshop/{shopCode}/sales/monthly-stats")
+    @GetMapping("/my-shops/{shopCode}/sales/monthly-stats")
     public ResponseEntity<List<Object[]>> getMonthlySalesStats(@PathVariable Integer shopCode) {
         return handleApiCall("샵코드 " + shopCode + "의 월별 매출 통계 조회",
             () -> salesService.getMonthlySalesStats(shopCode));
@@ -139,7 +139,7 @@ public class SalesController {
      * @param endDate 종료 날짜 (ISO 형식: yyyy-MM-ddTHH:mm:ss)
      * @return 기간별 매출 상세 목록
      */
-    @GetMapping("/myshop/{shopCode}/sales/period")
+    @GetMapping("/my-shops/{shopCode}/sales/period")
     public ResponseEntity<List<SalesDetailDTO>> getSalesInPeriod(@PathVariable Integer shopCode,
         @RequestParam String startDate,
         @RequestParam String endDate) {
@@ -154,7 +154,7 @@ public class SalesController {
      * @param shopCode 샵 코드
      * @return 완료된 매출 목록
      */
-    @GetMapping("/myshop/{shopCode}/sales/completed")
+    @GetMapping("/my-shops/{shopCode}/sales/completed")
     public ResponseEntity<List<SalesDetailDTO>> getCompletedSalesByShop(@PathVariable Integer shopCode) {
         return handleApiCall("샵코드 " + shopCode + "의 완료된 매출 조회",
             () -> salesService.getCompletedSalesDetailsByShop(shopCode));
@@ -165,7 +165,7 @@ public class SalesController {
      * @param shopCode 샵 코드
      * @return 취소된 매출 목록 (전체취소 + 부분취소)
      */
-    @GetMapping("/myshop/{shopCode}/sales/cancelled")
+    @GetMapping("/my-shops/{shopCode}/sales/cancelled")
     public ResponseEntity<List<SalesDetailDTO>> getCancelledSalesByShop(@PathVariable Integer shopCode) {
         return handleApiCall("샵코드 " + shopCode + "의 취소된 매출 조회",
             () -> salesService.getCancelledSalesDetailsByShop(shopCode));
@@ -177,7 +177,7 @@ public class SalesController {
      * @param salesCode 매출 코드
      * @return 매출 상세 정보
      */
-    @GetMapping("/myshop/{shopCode}/sales/{salesCode}")
+    @GetMapping("/my-shops/{shopCode}/sales/{salesCode}")
     public ResponseEntity<SalesDetailDTO> getSalesDetailByCode(@PathVariable Integer shopCode,
         @PathVariable Integer salesCode) {
         return handleApiCall("샵코드 " + shopCode + ", 매출코드 " + salesCode + "의 상세 조회",
@@ -191,7 +191,7 @@ public class SalesController {
      * @param endDate 종료 날짜 (선택사항)
      * @return 통계 종합 정보
      */
-    @GetMapping("/myshop/{shopCode}/sales/dashboard")
+    @GetMapping("/my-shops/{shopCode}/sales/dashboard")
     public ResponseEntity<SalesDashboardDTO> getDashboardStats(@PathVariable Integer shopCode,
         @RequestParam(required = false) String startDate,
         @RequestParam(required = false) String endDate) {

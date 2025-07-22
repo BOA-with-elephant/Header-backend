@@ -38,7 +38,7 @@ public class MenuController {
      * @param shopCode 조회할 샵의 코드
      * @return 해당 샵의 모든 메뉴 DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/menu")
+    @GetMapping("/my-shops/{shopCode}/menu")
     public ResponseEntity<List<MenuDTO>> getAllMenus(@PathVariable Integer shopCode) {
         try {
             log.debug("샵코드 {}의 메뉴 전체 조회 요청", shopCode);
@@ -60,7 +60,7 @@ public class MenuController {
      * @param shopCode 조회할 샵의 코드
      * @return 해당 샵의 활성화된 메뉴 DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/menu/active")
+    @GetMapping("/my-shops/{shopCode}/menu/active")
     public ResponseEntity<List<MenuDTO>> getActiveMenus(@PathVariable Integer shopCode) {
         try {
             log.debug("샵코드 {}의 활성화된 메뉴 조회 요청", shopCode);
@@ -83,7 +83,7 @@ public class MenuController {
      * @param categoryCode 카테고리 코드
      * @return 해당 카테고리의 메뉴 DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/menu/by-category/{categoryCode}")
+    @GetMapping("/my-shops/{shopCode}/menu/by-category/{categoryCode}")
     public ResponseEntity<List<MenuDTO>> getMenusByCategory(@PathVariable Integer shopCode, @PathVariable Integer categoryCode) {
         try {
             log.debug("샵코드 {}, 카테고리코드 {}의 메뉴 조회 요청", shopCode, categoryCode);
@@ -106,7 +106,7 @@ public class MenuController {
      * @param menuCode 메뉴 코드
      * @return 조회된 메뉴 DTO
      */
-    @GetMapping("/myshop/{shopCode}/menu/{menuCode}")
+    @GetMapping("/my-shops/{shopCode}/menu/{menuCode}")
     public ResponseEntity<MenuDTO> getMenu(@PathVariable Integer shopCode, @PathVariable Integer menuCode) {
         try {
             log.debug("샵코드 {}, 메뉴코드 {}의 메뉴 조회 요청", shopCode, menuCode);
@@ -129,7 +129,7 @@ public class MenuController {
      * @param menuName 검색할 메뉴명
      * @return 검색된 메뉴 DTO 리스트
      */
-    @GetMapping("/myshop/{shopCode}/menu/search")
+    @GetMapping("/my-shops/{shopCode}/menu/search")
     public ResponseEntity<List<MenuDTO>> searchMenusByName(@PathVariable Integer shopCode, @RequestParam String menuName) {
         try {
             log.debug("샵코드 {}에서 메뉴명 '{}'로 검색 요청", shopCode, menuName);
@@ -152,7 +152,7 @@ public class MenuController {
      * @param menuDTO 생성할 메뉴 정보가 담긴 DTO
      * @return 생성된 메뉴 DTO
      */
-    @PostMapping("/myshop/{shopCode}/menu")
+    @PostMapping("/my-shops/{shopCode}/menu")
     public ResponseEntity<MenuDTO> createMenu(@PathVariable Integer shopCode, @RequestBody MenuDTO menuDTO) {
         try {
             log.debug("샵코드 {}에 메뉴 생성 요청: {}", shopCode, menuDTO.getMenuName());
@@ -177,7 +177,7 @@ public class MenuController {
      * @param menuDTO 수정할 정보가 담긴 DTO
      * @return 수정된 메뉴 DTO
      */
-    @PutMapping("/myshop/{shopCode}/menu/{menuCode}")
+    @PutMapping("/my-shops/{shopCode}/menu/{menuCode}")
     public ResponseEntity<MenuDTO> updateMenu(@PathVariable Integer shopCode, @PathVariable Integer menuCode, @RequestBody MenuDTO menuDTO) {
         try {
             log.debug("샵코드 {}, 메뉴코드 {}의 메뉴 수정 요청", shopCode, menuCode);
@@ -200,7 +200,7 @@ public class MenuController {
      * @param menuCode 삭제할 메뉴 코드
      * @return 삭제 완료 응답
      */
-    @DeleteMapping("/myshop/{shopCode}/menu/{menuCode}")
+    @DeleteMapping("/my-shops/{shopCode}/menu/{menuCode}")
     public ResponseEntity<Void> deleteMenu(@PathVariable Integer shopCode, @PathVariable Integer menuCode) {
         try {
             log.debug("샵코드 {}, 메뉴코드 {}의 메뉴 삭제 요청", shopCode, menuCode);
