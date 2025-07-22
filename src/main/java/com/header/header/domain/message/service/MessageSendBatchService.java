@@ -4,14 +4,13 @@ import com.header.header.domain.message.dto.MessageSendBatchDTO;
 import com.header.header.domain.message.entity.MessageSendBatch;
 import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.message.projection.MessageBatchListView;
+import com.header.header.domain.message.projection.MessageBatchResultCountView;
 import com.header.header.domain.message.repository.MessageSendBatchRepository;
-import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.Date;
 import java.util.List;
 
@@ -41,21 +40,24 @@ public class MessageSendBatchService {
     }
 
     /**
-     * 메세지 배치 상세 조회
+     * 메세지 배치 상세 조회( failCount와 successCount만 조회한다. )
      *
      * @param shopCode 샵 코드
      * @param batchCode 배치 코드
      * */
-    public MessageSendBatchDTO getBatchDetails(Integer shopCode, Integer batchCode) {
+    public MessageBatchResultCountView getBatchDetails(Integer shopCode, Integer batchCode) {
         if (shopCode == null || batchCode == null) {
             throw new IllegalArgumentException("shopCode와 batchCode는 필수입니다.");
         }
 
-        MessageSendBatch batch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode, batchCode)
+        MessageBatchResultCountView batch = messageSendBatchRepository.findByBatchCode(batchCode)
                 .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 배치 코드 입니다."));
 
-        return modelMapper.map(batch, MessageSendBatchDTO.class);
+        return batch;
     }
+
+
+
     /* CREATE */
     /**
      * 사용자가 메세지 요청시 배치가 생성된다
