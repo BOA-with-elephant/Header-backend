@@ -43,10 +43,10 @@ public class UserFacadeServiceTests {
     void registerUserTest() {
         // given1. 기존 정보와 중복 없이 가입할 때 사용할 UserDTO 생성
         UserDTO newSignup = new UserDTO();
-        newSignup.setUserId("user105");
-        newSignup.setUserPwd("pwd105");
-        newSignup.setUserName("ElleFenning");
-        newSignup.setUserPhone("010-1289-2378");
+        newSignup.setUserId("user101");
+        newSignup.setUserPwd("pwd101");
+        newSignup.setUserName("김철수");
+        newSignup.setUserPhone("010-3478-2378");
         newSignup.setBirthday(LocalDate.parse("1999-12-30"));
 
         // when: 회원가입 서비스 호출
@@ -55,7 +55,7 @@ public class UserFacadeServiceTests {
         // then: 회원가입 성공 여부 및 반환된 UserDTO의 유효성 검증
         assertNotNull(result1);
         System.out.println("가입 성공 정보: " + result1);
-        //가입 성공 정보: UserDTO(userCode=0, userId=user105, userPwd=pwd105, isAdmin=0, userName=ElleFenning, userPhone=010-1289-2378, birthday=1999-12-30, isLeave=0)
+        //가입 성공 정보: UserDTO(userCode=0, userId=user101, userPwd=pwd101, isAdmin=0, userName=김철수, userPhone=010-3478-2378, birthday=1999-12-30, isLeave=0)
     }
 
     @Test
