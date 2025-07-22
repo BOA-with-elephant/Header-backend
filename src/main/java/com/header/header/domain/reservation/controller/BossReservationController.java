@@ -5,6 +5,7 @@ import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.service.BossReservationService;
 import com.header.header.domain.shop.common.ResponseMessage;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retrofit2.http.GET;
@@ -130,6 +131,22 @@ public class BossReservationController {
 
             return ResponseEntity.ok().body(
                     new ResponseMessage(200, "논리적 삭제 성공", null));
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+    }
+
+    @DeleteMapping(value = "/{resvCode}", produces ="application/json")
+    public ResponseEntity<ResponseMessage> hardDeleteReservation(@PathVariable("shopCode") Integer shopCode, @PathVariable("resvCode") Integer resvCode){
+        try{
+            bossReservationService.deleteReservation(resvCode);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "물리적 삭제 성공", null));
         } catch (Exception e){
             e.printStackTrace();
 
