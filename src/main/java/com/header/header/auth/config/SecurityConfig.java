@@ -83,10 +83,10 @@ public class SecurityConfig {
                     // "/auth/session" (POST) 요청도 허용하여 로그인 시도를 가능하게 합니다.
                     auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
-                    auth.requestMatchers("/my-shops/**").permitAll();
+                    auth.requestMatchers("/my-shops/**", "/api/v1/**").permitAll();
 //                    auth.requestMatchers("/my-shops/**").hasRole("ADMIN");
                     // "/shops/**" 경로는 USER 역할, ADMIN역할 모두 접근 가능합니다.
-                    auth.requestMatchers("/shops/**").permitAll();
+                    auth.requestMatchers("/shops/**", "/api/v1/**").permitAll();
 //                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
                     // 그 외 모든 요청은 인증된 사용자만 접근 가능합니다.
                     auth.anyRequest().authenticated();
