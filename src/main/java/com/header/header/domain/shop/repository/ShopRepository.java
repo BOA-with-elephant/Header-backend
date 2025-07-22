@@ -32,13 +32,12 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
           , m.estTime as estTime
                   
         FROM Shop s
-        JOIN MenuCategory c ON s.shopCode = c.id.shopCode
-        JOIN Menu m ON m.menuCategory.id.shopCode = c.id.shopCode
+        LEFT JOIN MenuCategory c ON s.shopCode = c.id.shopCode AND c.isActive = true 
+        LEFT JOIN Menu m ON m.menuCategory.id.shopCode = c.id.shopCode
                     AND m.menuCategory.id.categoryCode = c.id.categoryCode
         JOIN ShopCategory sc ON s.categoryInfo.categoryCode = sc.categoryCode
                 
         WHERE s.isActive = true
-           AND c.isActive = true 
            AND s.shopCode = :shopCode
         """)
     List<ShopDetailResponse> readShopDetailByShopCode(Integer shopCode);
