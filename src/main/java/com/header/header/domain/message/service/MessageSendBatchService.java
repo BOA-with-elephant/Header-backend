@@ -1,17 +1,18 @@
 package com.header.header.domain.message.service;
 
+import com.header.header.domain.message.dto.MessageHistoryResponse;
+import com.header.header.domain.message.dto.MessageReceiver;
 import com.header.header.domain.message.dto.MessageSendBatchDTO;
 import com.header.header.domain.message.entity.MessageSendBatch;
 import com.header.header.domain.message.exception.InvalidBatchException;
 import com.header.header.domain.message.projection.MessageBatchListView;
+import com.header.header.domain.message.projection.MessageBatchResultCountView;
 import com.header.header.domain.message.repository.MessageSendBatchRepository;
-import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.Date;
 import java.util.List;
 
@@ -21,7 +22,39 @@ public class MessageSendBatchService {
 
     private final MessageTemplateService messageTemplateService;
     private final MessageSendBatchRepository messageSendBatchRepository;
+    private final MessageHistoryService messageHistoryService;
     private final ModelMapper modelMapper;
+
+    /* FACADE */
+
+    /**
+     * 배치 코드를 통해 배치 성공/실패 결과 및 수신자 정보 리스트를 조회합니다.
+     * @param shopCode 샵 코드
+     * @param batchCode 배치 코드
+     * @return MessageHistoryResponse API 응답용 DTO
+     */
+    public MessageHistoryResponse getMessageHistoryDetail(Integer shopCode, Integer batchCode){
+
+        // 1. 수신자 리스트 조회
+        List<MessageReceiver> receiverList = messageHistoryService.getMessageHistoryListByBatch(batchCode).stream()
+                .map( receiver -> MessageReceiver.builder()
+                        .name(receiver.getUserName())
+                        .sentStatus(receiver.getSentStatus())
+                        .sentAt(receiver.getSentAt() == null ? "-" :receiver.getSentAt().toString())
+                        .etc(receiver.getSentStatus().equals("SUCCESS") ?  "" : receiver.getErrorMessage() )
+                        .build()).toList();
+
+        // 2. 배치 정보 조회.
+        MessageBatchResultCountView batchDetail = getBatchDetails(shopCode, batchCode);
+
+        // 3. 응답 생성 및 반환
+        return MessageHistoryResponse.builder()
+                .successCount(batchDetail.getSuccessCount())
+                .failCount(batchDetail.getFailCount())
+                .receivers(receiverList)
+                .build();
+    }
+
 
     /* READ */
     /**
@@ -41,21 +74,24 @@ public class MessageSendBatchService {
     }
 
     /**
-     * 메세지 배치 상세 조회
+     * 메세지 배치 상세 조회( failCount와 successCount만 조회한다. )
      *
      * @param shopCode 샵 코드
      * @param batchCode 배치 코드
      * */
-    public MessageSendBatchDTO getBatchDetails(Integer shopCode, Integer batchCode) {
+    public MessageBatchResultCountView getBatchDetails(Integer shopCode, Integer batchCode) {
         if (shopCode == null || batchCode == null) {
             throw new IllegalArgumentException("shopCode와 batchCode는 필수입니다.");
         }
 
-        MessageSendBatch batch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode, batchCode)
+        MessageBatchResultCountView batch = messageSendBatchRepository.findByBatchCode(batchCode)
                 .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 배치 코드 입니다."));
 
-        return modelMapper.map(batch, MessageSendBatchDTO.class);
+        return batch;
     }
+
+
+
     /* CREATE */
     /**
      * 사용자가 메세지 요청시 배치가 생성된다

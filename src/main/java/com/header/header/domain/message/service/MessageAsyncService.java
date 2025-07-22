@@ -23,7 +23,7 @@ import java.util.UUID;
 public class MessageAsyncService {
 
     private final CoolSmsService coolSmsService;
-    private final ShopMessageHistoryService shopMessageHistoryService;
+    private final MessageHistoryService messageHistoryService;
     private final MessageSendBatchService messageSendBatchService;
     private final UserService userService;
 
@@ -73,7 +73,7 @@ public class MessageAsyncService {
                 .sendStatus(MessageStatus.PENDING.toString())
                 .build();
 
-        return shopMessageHistoryService.createMessageHistory(historyDTO);
+        return messageHistoryService.createMessageHistory(historyDTO);
     }
 
     /**
@@ -180,7 +180,7 @@ public class MessageAsyncService {
     private void handleSuccess(ShopMessageHistory history, String taskId) {
         try {
             log.debug("✅ [{}] SMS 전송 성공 - UserCode: {}", taskId, history.getUserCode());
-            shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(), null);
+            messageHistoryService.updateMessageStatus(history.getHistoryCode(), null);
 
         } catch (Exception e) {
             log.error("[{}] 성공 처리 중 오류 - UserCode: {}", taskId, history.getUserCode(), e);
@@ -196,7 +196,7 @@ public class MessageAsyncService {
             log.error("❌ [{}] SMS 전송 실패 - UserCode: {}, Error: {}",
                     taskId, history.getUserCode(), errorMessage);
 
-            shopMessageHistoryService.updateMessageStatus(history.getHistoryCode(), errorMessage);
+            messageHistoryService.updateMessageStatus(history.getHistoryCode(), errorMessage);
 
         } catch (Exception e) {
             log.error("[{}] 실패 처리 중 오류 - UserCode: {}", taskId, history.getUserCode(), e);
