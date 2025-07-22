@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/customers")
 @RequiredArgsConstructor
 public class VisitorsController extends MyShopBaseController {
 
@@ -28,7 +27,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: GET /api/v1/my-shops/{shopId}/customers
      */
-    @GetMapping
+    @GetMapping("/customers")
     public ResponseEntity<ApiResponse<List<VisitorDetailResponse>>> getShopCustomerList(
             @PathVariable Integer shopId) {
 
@@ -45,7 +44,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: POST /api/v1/my-shops/{shopId}/customers
      */
-    @PostMapping
+    @PostMapping("/customers")
     public ResponseEntity<ApiResponse<VisitorCreateResponse>> registerCustomer(
             @PathVariable Integer shopId,
             @RequestBody VisitorCreateRequest requestBody) {
@@ -63,7 +62,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/{customerId}
      */
-    @GetMapping("/{customerId}")
+    @GetMapping("/customers/{customerId}")
     public ResponseEntity<ApiResponse<List<VisitorHistoryResponse>>> getCustomerHistory(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId) {
@@ -82,7 +81,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: PATCH /api/v1/my-shops/{shopId}/customers/{customerId}?memo={memo}
      */
-    @PatchMapping("/{customerId}")
+    @PatchMapping("/customers/{customerId}")
     public ResponseEntity<ApiResponse<String>> updateCustomerMemo(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId,
@@ -101,7 +100,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: DELETE /api/v1/my-shops/{shopId}/customers/{customerId}
      */
-    @DeleteMapping("/{customerId}")
+    @DeleteMapping("/customers/{customerId}")
     public ResponseEntity<ApiResponse<String>> deleteCustomer(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId) {

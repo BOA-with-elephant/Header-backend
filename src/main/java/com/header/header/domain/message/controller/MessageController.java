@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/messages") // 클래스 레벨에서 공통 경로 설정
 @RequiredArgsConstructor
 public class MessageController extends MyShopBaseController {
 
@@ -28,7 +27,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages
      */
-    @PostMapping
+    @PostMapping("/messages")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
             @PathVariable Integer shopId,
             @RequestBody MessageRequest requestBody)
@@ -49,7 +48,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @GetMapping("/template")
+    @GetMapping("/messages/template")
     public ResponseEntity<ApiResponse<List<MessageTemplateResponse>>> getTemplateList(
             @PathVariable Integer shopId) {
         List<MessageTemplateResponse> response = messageTemplateService.getAllTypeTemplateList(shopId);
@@ -64,7 +63,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @PostMapping("/template")
+    @PostMapping("/messages/template")
     public ResponseEntity<ApiResponse<String>> registerTemplate(
             @PathVariable Integer shopId,
             @RequestBody MessageTemplateRequest requestBody
@@ -89,7 +88,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @PutMapping("/template")
+    @PutMapping("/messages/template")
     public ResponseEntity<ApiResponse<String>> modifyTemplateContent(
             @PathVariable Integer shopId,
             @RequestBody MessageTemplateRequest requestBody
@@ -116,7 +115,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @DeleteMapping("/template")
+    @DeleteMapping("/messages/template")
     public ResponseEntity<ApiResponse<String>> deleteTemplate(
             @PathVariable Integer shopId,
             @RequestBody MessageTemplateRequest requestBody
@@ -133,7 +132,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/history
      */
-    @GetMapping("/history")
+    @GetMapping("/messages/history")
     public ResponseEntity<ApiResponse<Object>> getMessageHistoryList(
             @PathVariable Integer shopId) {
         // TODO: 구현 필요
