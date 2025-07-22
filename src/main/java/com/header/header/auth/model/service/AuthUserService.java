@@ -22,10 +22,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.auth.login.FailedLoginException;
-
 
 @Service
 public class AuthUserService implements UserDetailsService {
@@ -35,17 +33,18 @@ public class AuthUserService implements UserDetailsService {
     private static final Logger log = LoggerFactory.getLogger(AuthUserService.class);
     private final MainUserRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ModelMapper modelMapper;
     private final MainUserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper, MainUserRepository userRepository) {
+    public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, MainUserRepository userRepository, JwtTokenProvider jwtTokenProvider, UserService userService) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
-        this.modelMapper = modelMapper;
         this.userRepository = userRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userService = userService;
     }
 
-    public Object login(LoginUserDTO loginUserDTO) throws FailedLoginException {
+    public TokenDTO login(LoginUserDTO loginUserDTO) throws FailedLoginException {
 
         log.info("[AuthService] login() START");
         log.info("[AuthService] {}", loginUserDTO);
@@ -53,7 +52,6 @@ public class AuthUserService implements UserDetailsService {
         /* 목차. 1. 아이디 조회 */
         User user = memberRepository.findByUserId(loginUserDTO.getUserId());
 
-        // isLeave=true(탈퇴) 사용자도 exception에 포함
         if (user == null || user.isLeave()) {
             log.info("[AuthService] login() Required User Not Found!");
             throw new FailedLoginException(loginUserDTO.getUserId() + " 유저를 찾을 수 없습니다.");
@@ -65,7 +63,12 @@ public class AuthUserService implements UserDetailsService {
             throw new FailedLoginException("잘못된 비밀번호입니다.");
         }
 
-        return modelMapper.map(user, LoginUserDTO.class);
+        TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO);
+
+        log.info("[AuthService] login() Token Generated: {}", tokenDto);
+        log.info("[AuthService] login() END");
+
+        return tokenDto; // TokenDTO 객체를 직접 반환
     }
 
     /** save : registerNewUser

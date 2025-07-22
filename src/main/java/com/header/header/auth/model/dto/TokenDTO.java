@@ -3,15 +3,18 @@ package com.header.header.auth.model.dto;
 public class TokenDTO {
 
     private String grantType;			// 토큰 타입
-    private String memberName; 			// 인증받은 회원 이름
+    private String userId; 			// 인증받은 회원 이름
     private String accessToken; 		// 액세스 토큰
     private Long accessTokenExpiresIn;	// Long 형의 만료 시간
 
-    public TokenDTO(String grantType, String memberName, String accessToken, Long accessTokenExpiresIn) {
+    public TokenDTO(String grantType, String userId, String accessToken, Long accessTokenExpiresIn) {
         this.grantType = grantType;
-        this.memberName = memberName;
+        this.userId = userId;
         this.accessToken = accessToken;
         this.accessTokenExpiresIn = accessTokenExpiresIn;
+    }
+
+    public TokenDTO(String jwtToken) {
     }
 
     public String getGrantType() {
@@ -22,12 +25,12 @@ public class TokenDTO {
         this.grantType = grantType;
     }
 
-    public String getMemberName() {
-        return memberName;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setMemberName(String memberName) {
-        this.memberName = memberName;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getAccessToken() {
@@ -50,7 +53,7 @@ public class TokenDTO {
     public String toString() {
         return "TokenDTO{" +
                 "grantType='" + grantType + '\'' +
-                ", memberName='" + memberName + '\'' +
+                ", userId='" + userId + '\'' +
                 ", accessToken='" + accessToken + '\'' +
                 ", accessTokenExpiresIn=" + accessTokenExpiresIn +
                 '}';

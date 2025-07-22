@@ -5,6 +5,7 @@ import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
@@ -27,9 +28,6 @@ public class UserFacadeService {
     private final UserService userService;
 
     private final AuthUserService authService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     /* 1. 더미 유저 등록 (전화번호/이름 기반)
     * 업장에서 전화번호 + 이름만으로 임시 가입한 dummy user 생성 */
@@ -71,7 +69,7 @@ public class UserFacadeService {
 
     /* 4. 로그인 시 유저 정보 조회 */
     @Transactional
-    public Object loginUser(LoginUserDTO loginUserDTO) throws FailedLoginException {
+    public TokenDTO loginUser(LoginUserDTO loginUserDTO) throws FailedLoginException {
         return authService.login(loginUserDTO);
     }
 
