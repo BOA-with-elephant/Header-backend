@@ -38,10 +38,9 @@ public class ShopHolidayService {
 
     /*새로운 휴일 규칙 생성*/
     @Transactional
-    public HolResDTO createShopHoliday(HolCreationDTO dto) {
+    public HolResDTO createShopHoliday(Integer shopCode, HolCreationDTO dto) {
 
         /*DTO에서 검증한 값 가져오기*/
-        Integer shopCode = dto.getShopCode();
         Date startDate = dto.getStartDate();
 
         /*존재하는 샵인지 검증*/
@@ -92,11 +91,11 @@ public class ShopHolidayService {
         return resDTO;
     }
 
-    public HolResDTO updateShopHoliday(HolUpdateDTO dto) {
+    public HolResDTO updateShopHoliday(
+            Integer shopCode, Integer shopHolCode, HolUpdateDTO dto
+    ) {
 
         // validated data from dto
-        Integer shopHolCode = dto.getShopHolCode();
-        Integer shopCode = dto.getShopCode();
         Date startDate = dto.getStartDate();
 
         // ID로 기존 휴일 Entity를 조회

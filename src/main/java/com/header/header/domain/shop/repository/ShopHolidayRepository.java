@@ -45,6 +45,7 @@ public interface ShopHolidayRepository extends JpaRepository<ShopHoliday, Intege
     * */
     @Query("""
            SELECT 
+            h.shopInfo.shopCode as shopCode,
             h.holStartDate AS holStartDate,
             h.holEndDate AS holEndDate,
             h.isHolRepeat AS isHolRepeat
