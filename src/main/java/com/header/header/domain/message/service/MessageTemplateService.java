@@ -41,11 +41,11 @@ public class MessageTemplateService {
 
         // 변환
         List<MessageTemplateSimpleDto> informationalDtos = systemProvidedTemplates.stream()
-                .map(dto -> new MessageTemplateSimpleDto(dto.getTemplateTitle(), dto.getTemplateContent()))
+                .map(dto -> new MessageTemplateSimpleDto(dto.getTemplateCode(),dto.getTemplateTitle(), dto.getTemplateContent()))
                 .collect(Collectors.toList());
 
         List<MessageTemplateSimpleDto> promotionalDtos = promotionalTemplates.stream()
-                .map(dto -> new MessageTemplateSimpleDto(dto.getTemplateTitle(), dto.getTemplateContent()))
+                .map(dto -> new MessageTemplateSimpleDto(dto.getTemplateCode(),dto.getTemplateTitle(), dto.getTemplateContent()))
                 .collect(Collectors.toList());
 
         // 응답 리스트 생성 및 반환
@@ -204,6 +204,6 @@ public class MessageTemplateService {
     }
 
     private MessageTemplateSimpleDto toSimpleDto(MessageTemplateDTO dto) {
-        return new MessageTemplateSimpleDto(dto.getTemplateTitle(), dto.getTemplateContent());
+        return new MessageTemplateSimpleDto(dto.getTemplateCode(),dto.getTemplateTitle(), dto.getTemplateContent());
     }
 }

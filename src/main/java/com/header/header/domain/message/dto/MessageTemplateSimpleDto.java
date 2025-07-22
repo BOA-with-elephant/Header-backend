@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageTemplateSimpleDto {
+    private Integer templateCode;
     private String title;
     private String content;
 }
