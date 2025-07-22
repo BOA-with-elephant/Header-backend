@@ -48,6 +48,7 @@ public class MessageSendBatchTests {
             System.out.println("제목: " + batch.getSubject());
             System.out.println("발송 날짜: " + batch.getSendDate());
             System.out.println("발송 시간: " + batch.getSendTime());
+            System.out.println("발송 개수: " + batch.getTotalCount());
             System.out.println("발송 타입: " + batch.getSendType());
             System.out.println("------------------------");
         }
