@@ -77,6 +77,7 @@ public class ShopMessageHistoryTests {
             System.out.println("사용자 이름: " + history.getUserName());
             System.out.println("전송 상태: " + history.getSentStatus());
             System.out.println("전송 시간: " + history.getSentAt());
+            System.out.println("비고 : " + history.getErrorMessage());
             System.out.println("------------------------");
         }
     }
