@@ -87,11 +87,10 @@ public class MessageSendBatchService {
      * INDEX 사용을 위해 샵 코드, 배치 코드를 둘 다 사용해서 조회
      * @param shopCode 샵 코드
      * @param batchCode 배치 코드
-     * @param successCount 성공 카운트
-     * @param failCount 실패 카운트
+     * @param result ( true = 성공, false = 실패 )
      * */
     @Transactional
-    protected MessageSendBatchDTO updateMessageBatchResults(Integer shopCode, Integer batchCode,int successCount, int failCount){
+    protected MessageSendBatchDTO updateMessageBatchResults(Integer shopCode, Integer batchCode, boolean result){
         if (shopCode == null || batchCode == null) {
             throw new IllegalArgumentException("shopCode와 batchCode는 필수입니다.");
         }
@@ -99,9 +98,15 @@ public class MessageSendBatchService {
         MessageSendBatch foundMessageBatch = messageSendBatchRepository.findByShopCodeAndBatchCode(shopCode, batchCode)
                 .orElseThrow(() -> InvalidBatchException.invalidBatchCode("존재하지 않는 배치 코드 입니다."));
 
-
+        Integer successCount = foundMessageBatch.getSuccessCount();
+        Integer failCount = foundMessageBatch.getFailCount();
         // 결과 업데이트
-        foundMessageBatch.updateBatchResultsCount(successCount, failCount);
+        if(result){
+            foundMessageBatch.updateBatchResultsCount( successCount+ 1, failCount);
+        }
+        else{
+            foundMessageBatch.updateBatchResultsCount( successCount, failCount + 1);
+        }
 
         return modelMapper.map(foundMessageBatch, MessageSendBatchDTO.class);
     }

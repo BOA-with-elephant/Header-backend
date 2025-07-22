@@ -1,5 +1,6 @@
 package com.header.header.common.exception;
 
+import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+
+import javax.security.auth.login.FailedLoginException;
 
 /**
  * 전역 예외 처리기
@@ -17,7 +20,8 @@ import org.springframework.web.context.request.WebRequest;
  */
 @RestControllerAdvice(basePackages = {
         "com.header.header.domain.visitors",
-        "com.header.header.domain.message"
+        "com.header.header.domain.message",
+        "com.header.header.domain.user"
 })
 @Slf4j
 public class GlobalExeptionHandlerForApiResponse {
@@ -82,5 +86,16 @@ public class GlobalExeptionHandlerForApiResponse {
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail(errorResponse.getMessage(),errorResponse));
+    }
+
+    /**
+     * AuthUserService에서 비밀번호 불일치 시 발생하는 예외 상황 처리
+     *
+     * - HTTP 401 Unauthorized error 상태로 응답*/
+    @ExceptionHandler(FailedLoginException.class)
+    public ResponseEntity<ResponseDTO> handleFailedLoginException(FailedLoginException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED) //401
+                .body(new ResponseDTO(HttpStatus.UNAUTHORIZED, e.getMessage(), null));
     }
 }

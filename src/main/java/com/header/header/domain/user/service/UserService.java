@@ -8,7 +8,6 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +22,6 @@ public class UserService {
 
     private final MainUserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
 
     /***
      * dummy user을 추가한다.
@@ -56,37 +54,7 @@ public class UserService {
         return userRepository.findPhoneByUserCode(userCode);
     }
 
-    /** save : registerNewUser
-    -> SignupDTO 사용
-    @param signupDTO 생성할 user 정보가 담긴 DTO
-    @return 생성된 signupDTO(user관련 DTO)
-     이미 존재하는 아이디나 전화번호일 때 */ /* @throws ApiResponse 이 부분 없는데 써서 오류나서 지웠어요 - 예람*/
-    @Transactional
-    public String registerNewUser(SignupDTO signupDTO) {
-        //중복확인 1 : userId
-        if (userRepository.existsByUserId(signupDTO.getUserId())) {
-            return DUPLICATE_ID.getMessage();
-        }
-
-        //중복확인 2 : userPhone
-        if (userRepository.existsByUserPhone(signupDTO.getUserPhone())) {
-            return DUPLICATE_PHONE.getMessage();
-        }
-
-        // 비밀번호 암호화
-        signupDTO.setUserPwd(passwordEncoder.encode(signupDTO.getUserPwd()));
-
-        // DTO → Entity로 변환 후 저장
-        User userEntity = modelMapper.map(signupDTO, User.class);
-        User savedUser = userRepository.save(userEntity);
-
-        // 저장된 userCode를 다시 DTO에 설정
-        signupDTO.setUserCode(savedUser.getUserCode());
-
-        return SUCCESS_REGISTER_USER.getMessage();
-    }
-
-    /** Read specific : Login
+    /** Read specific : findId
      * ID갖고 회원정보 조회하는 method 생성. 반환은 UserDTO로
      *
      * @param userCode
@@ -94,10 +62,11 @@ public class UserService {
      * @throws IllegalAccessError */
     /**Spring-data-jpa: findById (Repository에서 제공해주는 메소드) 이용하는 방법*/
     public LoginUserDTO findByUserId(String userId) {
+        //이 메소드는 단순히 사용자 ID를 기반으로 데이터베이스에서 사용자 정보를 조회하는 역할만 한다. Id 찾기에서 사용할 것
         User foundUser = userRepository.findByUserId(userId);
 
         if (foundUser == null) {
-            throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원 가입 후 로그인 해주십시오.");
+            throw new UsernameNotFoundException("해당하는 회원이 없습니다. 회원 가입을 먼저 진행해주십시오.");
         }
 
         // Entity → DTO 매핑
@@ -113,7 +82,7 @@ public class UserService {
      * @throws IllegalArgumentException */
     @Transactional
     public String modifyUser(UserDTO userDTO){
-        // 1. 기존 유저 엔티티 조회 (예시로 userCode 또는 userId 기준으로 조회)
+        // 1. 기존 유저 엔티티 조회
         User user = userRepository.findById(userDTO.getUserCode())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
@@ -143,7 +112,6 @@ public class UserService {
         return SUCCESS_MODIFY_USER.getMessage();
     }
 
-
     /** DELETE
      -> deleteById() 말고
      실제론 Update가 사용되어야 함
@@ -158,5 +126,4 @@ public class UserService {
         }
         user.modifyUserLeave(true);
     }
-
 }

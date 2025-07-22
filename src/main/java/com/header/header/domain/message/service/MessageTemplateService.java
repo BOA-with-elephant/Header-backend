@@ -1,20 +1,21 @@
 package com.header.header.domain.message.service;
 
 import com.header.header.domain.message.dto.MessageTemplateDTO;
+import com.header.header.domain.message.dto.MessageTemplateResponse;
+import com.header.header.domain.message.dto.MessageTemplateSimpleDto;
 import com.header.header.domain.message.entity.MessageTemplate;
 import com.header.header.domain.message.enums.TemplateType;
 import com.header.header.domain.message.exception.InvalidTemplateException;
 import com.header.header.domain.message.exception.ValidationResult;
 import com.header.header.domain.message.repository.MessageTemplateRepository;
 import com.header.header.domain.message.validator.TemplateValidator;
-import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,36 @@ public class MessageTemplateService {
     private final MessageTemplateRepository messageTemplateRepository;
     private final ModelMapper modelMapper;
     private final TemplateValidator templateValidator;
+
+    /**
+     * 정보성 + 광고성 템플릿을 모두 조회하여 클라이언트 응답 형식으로 반환합니다.
+     * @param shopCode 샵 코드
+     * @return List<MessageTemplateResponse> 클라이언트 응답 형식으로 반환
+     */
+    public List<MessageTemplateResponse> getAllTypeTemplateList(Integer shopCode){
+        // 시스템 제공 informational 템플릿 조회
+        List<MessageTemplateDTO> systemProvidedTemplates =
+                getSystemProvidedTemplates();
+
+        // 샵 코드로 조회된 promotional 템플릿 조회
+        List<MessageTemplateDTO> promotionalTemplates =
+                getPromotionalTemplatesByShop(shopCode);
+
+        // 변환
+        List<MessageTemplateSimpleDto> informationalDtos = systemProvidedTemplates.stream()
+                .map(dto -> new MessageTemplateSimpleDto(dto.getTemplateCode(),dto.getTemplateTitle(), dto.getTemplateContent()))
+                .collect(Collectors.toList());
+
+        List<MessageTemplateSimpleDto> promotionalDtos = promotionalTemplates.stream()
+                .map(dto -> new MessageTemplateSimpleDto(dto.getTemplateCode(),dto.getTemplateTitle(), dto.getTemplateContent()))
+                .collect(Collectors.toList());
+
+        // 응답 리스트 생성 및 반환
+        return List.of(
+                new MessageTemplateResponse("informational", informationalDtos),
+                new MessageTemplateResponse("promotional", promotionalDtos)
+        );
+    }
 
     /**
      * 정보성 템플릿 리스트 가져오기
@@ -98,7 +129,7 @@ public class MessageTemplateService {
         validateModifiable(foundMessageTemplate); // 수정할 수 있는 템플릿인지 검증
         validateTemplatePalceholder(templateDTO.getTemplateContent()); // 템플릿 placeholder 검증
         
-        foundMessageTemplate.modifyMessageTemplateContent(templateDTO.getTemplateContent());
+        foundMessageTemplate.modifyMessageTemplate(templateDTO.getTemplateTitle(),templateDTO.getTemplateContent());
 
         return modelMapper.map(foundMessageTemplate, MessageTemplateDTO.class);
     }
@@ -106,7 +137,7 @@ public class MessageTemplateService {
     /**
      * 광고성 템플릿 삭제
      *
-     * @param templateCode 생성할 템플릿 DTO
+     * @param templateCode 삭제할 템플릿 DTO
      * @param shopCode 샵 코드
      */
     public void deleteMessageTemplate(Integer templateCode, Integer shopCode){
@@ -170,5 +201,9 @@ public class MessageTemplateService {
             throw InvalidTemplateException.invalidPlaceholder(validationResult.getErrorMessage());
         }
 
+    }
+
+    private MessageTemplateSimpleDto toSimpleDto(MessageTemplateDTO dto) {
+        return new MessageTemplateSimpleDto(dto.getTemplateCode(),dto.getTemplateTitle(), dto.getTemplateContent());
     }
 }
