@@ -2,6 +2,7 @@ package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.menu.entity.Menu;
 import com.header.header.domain.menu.repository.MenuRepository;
+import com.header.header.domain.reservation.dto.ReservationDateAndTimeDTO;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
@@ -32,6 +33,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -302,5 +304,54 @@ public class UserReservationService {
         // for문 빠져나온 result 저장
         return result;
     }
+
+    // 주혜
+    @Transactional(readOnly = true)
+    public List<ReservationDateAndTimeDTO> getReservationDateAndTime(Integer shopCode, int dateRangeToGet){
+        Shop shop = shopRepository.findById(shopCode)
+                .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.SHOP_NOT_FOUND));
+
+        List<ReservationDateAndTimeDTO> result = new ArrayList<>();
+
+        for(int i = 0; i < dateRangeToGet; i++){
+            LocalDate targetDate = LocalDate.now().plusDays(i);
+
+            boolean isHoliday = isHoliday(shopCode, Date.valueOf(targetDate));
+
+            List<Time> reservedTimesSql = userReservationRepository.findReservedTimes(shopCode, Date.valueOf(targetDate));
+            List<LocalTime> reservedTimes = reservedTimesSql.stream()
+                    .map(Time::toLocalTime)
+                    .collect(Collectors.toList());
+
+            if(isHoliday && reservedTimes.isEmpty()) continue;
+
+            if (shop.getShopOpen() == null || shop.getShopClose() == null) {
+                // Logger.warn("샵 운영 시간이 등록되지 않았습니다.");
+                throw new IllegalStateException("샵 운영 시간이 등록되지 않았습니다.");
+            }
+
+            LocalTime openTime = LocalTime.parse(shop.getShopOpen());
+            LocalTime closeTime = LocalTime.parse(shop.getShopClose());
+
+            List<LocalTime> availableTimes = new ArrayList<>();
+            LocalTime time = openTime;
+
+            while(time.isBefore(closeTime)){
+                boolean isAvailableSchedule = userReservationRepository
+                        .isAvailableSchedule(shopCode, Date.valueOf(targetDate), Time.valueOf(time));
+
+                if(isAvailableSchedule){
+                    availableTimes.add(time);
+                }
+
+                time = time.plusMinutes(60);
+            }
+
+            result.add(new ReservationDateAndTimeDTO(targetDate, availableTimes, reservedTimes));
+        }
+
+        return result;
+    }
+
 
 }
