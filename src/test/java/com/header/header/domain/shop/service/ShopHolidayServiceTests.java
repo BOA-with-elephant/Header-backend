@@ -154,13 +154,12 @@ public class ShopHolidayServiceTests {
     void createHoliday() {
         //given
         HolCreationDTO dto = new HolCreationDTO();
-        dto.setShopCode(SHOP_CODE);
         dto.setStartDate(new Date(2025, 7, 1));
         dto.setEndDate(new Date(2025, 7, 10));
         dto.setIsHolRepeat(false);
 
         //when
-        HolResDTO resDTO = shopHolidayService.createShopHoliday(dto);
+        HolResDTO resDTO = shopHolidayService.createShopHoliday(testShopCode, dto);
         int testHolCode = resDTO.getShopHolCode();
 
         //then
@@ -179,14 +178,13 @@ public class ShopHolidayServiceTests {
     void createHolidayInReservedDate() {
         //given (반복하지 않는 일시 휴일, 8/10 ~ 8/30)
         HolCreationDTO dto = new HolCreationDTO();
-        dto.setShopCode(1);
         dto.setStartDate(Date.valueOf(LocalDate.of(2025, 8, 10)));
         dto.setEndDate(Date.valueOf(LocalDate.of(2025, 8, 30)));
         dto.setIsHolRepeat(false);
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.createShopHoliday(dto));
+                () -> shopHolidayService.createShopHoliday(testShopCode, dto));
     }
 
     @Test
@@ -195,14 +193,13 @@ public class ShopHolidayServiceTests {
     void createRegHolidayInReservedDate() {
         //given
         HolCreationDTO dto = new HolCreationDTO();
-        dto.setShopCode(1);
         dto.setStartDate(Date.valueOf(LocalDate.of(2025, 8, 2)));
         dto.setEndDate(null);
         dto.setIsHolRepeat(true);
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.createShopHoliday(dto));
+                () -> shopHolidayService.createShopHoliday(testShopCode, dto));
     }
 
     @Test
@@ -211,15 +208,13 @@ public class ShopHolidayServiceTests {
     void testSuccessModify() {
         // given
         HolUpdateDTO dto = HolUpdateDTO.builder()
-                .shopHolCode(1)
-                .shopCode(1)
                 .startDate(Date.valueOf("2025-09-30"))
                 .endDate(Date.valueOf("2025-10-30"))
                 .isHolRepeat(false)
                 .build();
 
         //when and then
-        HolResDTO resDto = shopHolidayService.updateShopHoliday(dto);
+        HolResDTO resDto = shopHolidayService.updateShopHoliday(SHOP_CODE, HOL_CODE, dto);
         assertNotNull(resDto);
         System.out.println(resDto);
     }
@@ -234,8 +229,6 @@ public class ShopHolidayServiceTests {
     void testModifyWhenReservedDate() {
         //given
         HolUpdateDTO dto = HolUpdateDTO.builder()
-                .shopHolCode(HOL_CODE)
-                .shopCode(SHOP_CODE)
                 .startDate(Date.valueOf("2025-08-02")) // 화요일
                 .endDate(null)
                 .isHolRepeat(true)
@@ -243,7 +236,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.updateShopHoliday(dto));
+                () -> shopHolidayService.updateShopHoliday(SHOP_CODE, HOL_CODE, dto));
     }
 
     @Test
@@ -252,8 +245,6 @@ public class ShopHolidayServiceTests {
     void testModifyTempWhenReservedDate() {
         //given
         HolUpdateDTO dto = HolUpdateDTO.builder()
-                .shopHolCode(HOL_CODE)
-                .shopCode(SHOP_CODE)
                 .startDate(Date.valueOf("2025-08-30"))
                 .endDate(Date.valueOf("2025-09-01"))
                 .isHolRepeat(false)
@@ -261,7 +252,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.updateShopHoliday(dto));
+                () -> shopHolidayService.updateShopHoliday(SHOP_CODE, HOL_CODE, dto));
     }
 
     @Test

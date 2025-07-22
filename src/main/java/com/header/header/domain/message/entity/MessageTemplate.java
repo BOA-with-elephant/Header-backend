@@ -22,7 +22,8 @@ public class MessageTemplate {
     private TemplateType templateType;
 
 
-    public void modifyMessageTemplateContent(String templateContent) {
+    public void modifyMessageTemplate(String templateTitle, String templateContent) {
+        this.templateTitle = templateTitle;
         this.templateContent = templateContent;
     }
 }

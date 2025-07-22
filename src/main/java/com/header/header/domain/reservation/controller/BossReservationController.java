@@ -4,9 +4,12 @@ import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.service.BossReservationService;
+import com.header.header.domain.shop.common.ResponseMessage;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -94,6 +97,62 @@ public class BossReservationController {
             return ResponseEntity.status(400)
                     .header("Content-Type", "application/json")
                     .body(Map.of("message", "등록 실패"));
+        }
+    }
+
+    @PutMapping(value = "/{resvCode}", produces = "application/json")
+    public ResponseEntity<ResponseMessage> updateResvInfo(@PathVariable("shopCode") Integer shopCode, @PathVariable("resvCode") Integer resvCode, @RequestBody Map<String, String> updatedResvInfo){
+        try{
+            Date resvDate = Date.valueOf(updatedResvInfo.get("resvDate"));
+            Time resvTime = Time.valueOf(updatedResvInfo.get("resvTime"));
+
+            BossResvInputDTO inputDTO = new BossResvInputDTO();
+            inputDTO.setResvDate(resvDate);
+            inputDTO.setResvTime(resvTime);
+            inputDTO.setMenuName(updatedResvInfo.get("menuName"));
+            inputDTO.setUserComment(updatedResvInfo.get("userComment"));
+
+            bossReservationService.updateReservation(inputDTO, resvCode, shopCode);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "수정 성공", null));
+        } catch (Exception e){
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+    }
+
+    @PatchMapping(value = "/{resvCode}", produces = "application/json")
+    public ResponseEntity<ResponseMessage> softDeleteReservation(@PathVariable("shopCode") Integer shopCode, @PathVariable("resvCode") Integer resvCode){
+        try{
+            bossReservationService.cancelReservation(resvCode);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "논리적 삭제 성공", null));
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+    }
+
+    @DeleteMapping(value = "/{resvCode}", produces ="application/json")
+    public ResponseEntity<ResponseMessage> hardDeleteReservation(@PathVariable("shopCode") Integer shopCode, @PathVariable("resvCode") Integer resvCode){
+        try{
+            bossReservationService.deleteReservation(resvCode);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "물리적 삭제 성공", null));
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
         }
     }
 }

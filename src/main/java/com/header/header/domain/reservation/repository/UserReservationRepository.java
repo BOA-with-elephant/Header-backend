@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,6 +112,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
            WHERE r.shopInfo.shopCode = :shopCode
            AND r.resvDate = :resvDate
            AND r.resvTime = :resvTime
+           AND r.resvState != '예약취소'
            """)
     boolean isAvailableSchedule(
             @Param("shopCode") Integer shopCode,
@@ -126,10 +128,20 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
           WHERE r.userInfo.userCode = :userCode
           AND r.resvDate = :resvDate
           AND r.resvTime = :resvTime
+          AND NOT r.resvState = 'CANCEL'
           """)
     boolean isUserHasReservationInThisSchedule(
             @Param("userCode") Integer userCode,
             @Param("resvDate") Date resvDate,
             @Param("resvTime") Time resvTime
     );
+
+    // 주혜
+    @Query("""
+            SELECT r.resvTime 
+              FROM BossReservation r 
+             WHERE r.shopInfo.shopCode = :shopCode 
+               AND r.resvDate = :resvDate
+           """)
+    List<Time> findReservedTimes(@Param("shopCode") Integer shopCode, @Param("resvDate") Date resvDate);
 }
