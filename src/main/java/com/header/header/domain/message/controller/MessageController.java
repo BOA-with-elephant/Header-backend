@@ -7,15 +7,12 @@ import com.header.header.domain.message.enums.TemplateType;
 import com.header.header.domain.message.service.MessageSendBatchService;
 import com.header.header.domain.message.service.MessageSendFacadeService;
 import com.header.header.domain.message.service.MessageTemplateService;
-import com.header.header.domain.message.service.MessageHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +21,6 @@ public class MessageController extends MyShopBaseController {
     private final MessageSendFacadeService messageSendFacadeService;
     private final MessageTemplateService messageTemplateService;
     private final MessageSendBatchService messageSendBatchService;
-    private final MessageHistoryService messageHistoryService;
 
     /**
      * 메세지를 발송합니다.(즉시발송 or 예약발송)
@@ -155,4 +151,19 @@ public class MessageController extends MyShopBaseController {
 
         return success(batchListResponses);
     }
+
+    /**
+     * 메세지 배치의 세부 필드를 조회합니다.( Fail/Success Count, 수신자 목록 )
+     * @param shopId 샵 코드
+     * @param batchCode 배치 코드
+     * @return ResponseEntity<ApiResponse<MessageHistoryResponse>>
+     */
+    @GetMapping("/messages/history/{batchCode}")
+    public ResponseEntity<ApiResponse<MessageHistoryResponse>> getMessageBatchDetail(
+            @PathVariable Integer shopId,
+            @PathVariable Integer batchCode
+    ){
+        return success(messageSendBatchService.getMessageHistoryDetail(shopId, batchCode));
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.header.header.domain.message.service;
 
+import com.header.header.domain.message.dto.MessageHistoryResponse;
+import com.header.header.domain.message.dto.MessageReceiver;
 import com.header.header.domain.message.dto.MessageSendBatchDTO;
 import com.header.header.domain.message.entity.MessageSendBatch;
 import com.header.header.domain.message.exception.InvalidBatchException;
@@ -20,7 +22,39 @@ public class MessageSendBatchService {
 
     private final MessageTemplateService messageTemplateService;
     private final MessageSendBatchRepository messageSendBatchRepository;
+    private final MessageHistoryService messageHistoryService;
     private final ModelMapper modelMapper;
+
+    /* FACADE */
+
+    /**
+     * 배치 코드를 통해 배치 성공/실패 결과 및 수신자 정보 리스트를 조회합니다.
+     * @param shopCode 샵 코드
+     * @param batchCode 배치 코드
+     * @return MessageHistoryResponse API 응답용 DTO
+     */
+    public MessageHistoryResponse getMessageHistoryDetail(Integer shopCode, Integer batchCode){
+
+        // 1. 수신자 리스트 조회
+        List<MessageReceiver> receiverList = messageHistoryService.getMessageHistoryListByBatch(batchCode).stream()
+                .map( receiver -> MessageReceiver.builder()
+                        .name(receiver.getUserName())
+                        .sentStatus(receiver.getSentStatus())
+                        .sentAt(receiver.getSentAt().toString())
+                        .etc(receiver.getSentStatus().equals("SUCCESS") ?  "" : receiver.getErrorMessage() )
+                        .build()).toList();
+
+        // 2. 배치 정보 조회.
+        MessageBatchResultCountView batchDetail = getBatchDetails(shopCode, batchCode);
+
+        // 3. 응답 생성 및 반환
+        return MessageHistoryResponse.builder()
+                .successCount(batchDetail.getSuccessCount())
+                .failCount(batchDetail.getFailCount())
+                .receivers(receiverList)
+                .build();
+    }
+
 
     /* READ */
     /**
