@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -132,4 +133,13 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
             @Param("resvDate") Date resvDate,
             @Param("resvTime") Time resvTime
     );
+
+    // 주혜
+    @Query("""
+            SELECT r.resvTime 
+              FROM BossReservation r 
+             WHERE r.shopInfo.shopCode = :shopCode 
+               AND r.resvDate = :resvDate
+           """)
+    List<Time> findReservedTimes(@Param("shopCode") Integer shopCode, @Param("resvDate") Date resvDate);
 }
