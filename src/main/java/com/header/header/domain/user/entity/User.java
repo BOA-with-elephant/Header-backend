@@ -24,6 +24,16 @@ public class User {
     private LocalDate birthday;
     private boolean isLeave;
 
+    public User(String userId, String userPwd, boolean isAdmin, String userName, String userPhone, LocalDate birthday, boolean isLeave) {
+        this.userId = userId;
+        this.userPwd = userPwd;
+        this.isAdmin = isAdmin;
+        this.userName = userName;
+        this.userPhone = userPhone;
+        this.birthday = birthday;
+        this.isLeave = isLeave;
+    }
+
     public void modifyUserLeave(boolean isLeave){
         this.isLeave = isLeave;
     }
@@ -42,10 +52,10 @@ public class User {
 
     /*샵 생성 및 비활성화 시 서비스층에서 유저 <-> 관리자 전환*/
     public void modifyAuthorityToAdmin(boolean isAdmin) {
-        this.isAdmin = true;
+        this.isAdmin = isAdmin;
     }
 
     public void modifyAuthorityToMember(boolean isAdmin) {
-        this.isAdmin = false;
+        this.isAdmin = isAdmin;
     }
 }

@@ -57,7 +57,7 @@ public class ShopService {
                 .shopName(dto.getShopName())
                 .categoryInfo(category)
                 .adminInfo(admin)
-                .shopName(dto.getShopName())
+                //중복되는 줄 제거 - 정아
                 .shopPhone(dto.getShopPhone())
                 .shopLocation(dto.getShopLocation())
                 .shopLong(dto.getShopLong())
@@ -69,7 +69,8 @@ public class ShopService {
 
         // 관리자 권한을 부여
         if (!admin.isAdmin()) {
-            admin.modifyAuthorityToAdmin(admin.isAdmin());
+            admin.modifyAuthorityToAdmin(true);
+            userRepository.save(admin);
         }
 
         return modelMapper.map(shopRepository.save(shop), ShopDTO.class);
@@ -222,7 +223,8 @@ public class ShopService {
         /*해당 사용자가 보유한 샵이 단 한 개 남았다면, 관리자 권한을 제거한다*/
         if (shopRepository.isShopLeft(adminCode)) {
             if (admin.isAdmin()) {
-                admin.modifyAuthorityToMember(admin.isAdmin());
+                admin.modifyAuthorityToMember(false);
+                userRepository.save(admin);
             }
         }
 

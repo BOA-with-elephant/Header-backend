@@ -1,13 +1,12 @@
 package com.header.header.domain.message.dto;
 
 import com.header.header.domain.message.enums.TemplateType;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
-@Getter
-@Setter
-@ToString
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessageTemplateDTO {
     private Integer templateCode;
     private Integer shopCode;

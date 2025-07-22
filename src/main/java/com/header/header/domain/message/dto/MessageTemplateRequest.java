@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class MessageTemplateSimpleDto {
+@AllArgsConstructor
+public class MessageTemplateRequest {
     private Integer templateCode;
     private String title;
     private String content;
