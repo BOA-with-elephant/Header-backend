@@ -4,13 +4,18 @@ import com.header.header.common.controller.MyShopBaseController;
 import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.message.dto.*;
 import com.header.header.domain.message.enums.TemplateType;
+import com.header.header.domain.message.service.MessageSendBatchService;
 import com.header.header.domain.message.service.MessageSendFacadeService;
 import com.header.header.domain.message.service.MessageTemplateService;
+import com.header.header.domain.message.service.MessageHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +23,8 @@ public class MessageController extends MyShopBaseController {
 
     private final MessageSendFacadeService messageSendFacadeService;
     private final MessageTemplateService messageTemplateService;
+    private final MessageSendBatchService messageSendBatchService;
+    private final MessageHistoryService messageHistoryService;
 
     /**
      * 메세지를 발송합니다.(즉시발송 or 예약발송)
@@ -133,9 +140,19 @@ public class MessageController extends MyShopBaseController {
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/history
      */
     @GetMapping("/messages/history")
-    public ResponseEntity<ApiResponse<Object>> getMessageHistoryList(
+    public ResponseEntity<ApiResponse<List<MessageBatchListResponse>>> getMessageHistoryList(
             @PathVariable Integer shopId) {
-        // TODO: 구현 필요
-        return success("");
+
+        List<MessageBatchListResponse> batchListResponses = messageSendBatchService.getBatchListByShop(shopId).stream()
+                .map(batch -> MessageBatchListResponse.builder()
+                        .id(batch.getBatchCode())
+                        .date(new SimpleDateFormat("yyyy.MM.dd").format(batch.getSendDate()))
+                        .time(batch.getSendTime().toString())
+                        .type(batch.getSendType())
+                        .subject(batch.getSubject())
+                        .build())
+                        .toList();
+
+        return success(batchListResponses);
     }
 }

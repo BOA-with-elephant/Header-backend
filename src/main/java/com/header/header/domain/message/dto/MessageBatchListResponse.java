@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageHistoryListResponse {
+public class MessageBatchListResponse {
     private Integer id; // batchCode
     private String date;
     private String time;
     private String type;
-    private String content;
+    private String subject;
 }
