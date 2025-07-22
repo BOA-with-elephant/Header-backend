@@ -89,7 +89,7 @@ public class SecurityConfig {
                     auth.requestMatchers("/shops/**", "/api/v1/**").permitAll();
 //                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
                     // 그 외 모든 요청은 인증된 사용자만 접근 가능합니다.
-                    auth.anyRequest().authenticated();
+                    auth.anyRequest().permitAll();
                 })
                 // 폼 로그인 설정
                 .formLogin(login -> {
