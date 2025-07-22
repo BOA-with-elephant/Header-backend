@@ -17,7 +17,8 @@ public interface ShopMessageHistoryRepository extends JpaRepository<ShopMessageH
             "       h.userCode as userCode, " +
             "       u.userName as userName, " +
             "       h.sendStatus as sentStatus, " +
-            "       h.sentAt as sentAt " +
+            "       h.sentAt as sentAt, " +
+            "       h.errorMessage as errorMessage " +
             "FROM ShopMessageHistory h " +
             "INNER JOIN User u ON h.userCode = u.userCode " +
             "WHERE h.batchCode = :batchCode")

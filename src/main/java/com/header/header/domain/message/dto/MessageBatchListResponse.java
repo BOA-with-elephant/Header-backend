@@ -15,4 +15,5 @@ public class MessageBatchListResponse {
     private String time;
     private String type;
     private String subject;
+    private Integer sendCount;
 }

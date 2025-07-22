@@ -4,6 +4,7 @@ import com.header.header.common.controller.MyShopBaseController;
 import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.message.dto.*;
 import com.header.header.domain.message.enums.TemplateType;
+import com.header.header.domain.message.service.MessageHistoryService;
 import com.header.header.domain.message.service.MessageSendBatchService;
 import com.header.header.domain.message.service.MessageSendFacadeService;
 import com.header.header.domain.message.service.MessageTemplateService;
@@ -21,6 +22,7 @@ public class MessageController extends MyShopBaseController {
     private final MessageSendFacadeService messageSendFacadeService;
     private final MessageTemplateService messageTemplateService;
     private final MessageSendBatchService messageSendBatchService;
+    private final MessageHistoryService messageHistoryService;
 
     /**
      * 메세지를 발송합니다.(즉시발송 or 예약발송)
@@ -146,6 +148,7 @@ public class MessageController extends MyShopBaseController {
                         .time(batch.getSendTime().toString())
                         .type(batch.getSendType())
                         .subject(batch.getSubject())
+                        .sendCount(batch.getTotalCount())
                         .build())
                         .toList();
 
@@ -164,6 +167,23 @@ public class MessageController extends MyShopBaseController {
             @PathVariable Integer batchCode
     ){
         return success(messageSendBatchService.getMessageHistoryDetail(shopId, batchCode));
+    }
+
+
+    /**
+     * 메세지 수신자 개별 내용 조회
+     * @param shopId 샵 코드
+     * @param batchCode 배치 코드
+     * @param historyCode 히스토리 코드
+     * @return ResponseEntity<ApiResponse<String>>
+     */
+    @GetMapping("/messages/history/{batchCode}/{historyCode}")
+    public ResponseEntity<ApiResponse<String>> getReceiverMessageContent(
+            @PathVariable Integer shopId,
+            @PathVariable Integer batchCode,
+            @PathVariable Integer historyCode
+    ){
+        return success(messageHistoryService.getMessageContent(batchCode,historyCode).getMsgContent());
     }
 
 }

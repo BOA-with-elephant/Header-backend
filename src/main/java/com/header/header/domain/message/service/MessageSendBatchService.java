@@ -40,7 +40,7 @@ public class MessageSendBatchService {
                 .map( receiver -> MessageReceiver.builder()
                         .name(receiver.getUserName())
                         .sentStatus(receiver.getSentStatus())
-                        .sentAt(receiver.getSentAt().toString())
+                        .sentAt(receiver.getSentAt() == null ? "-" :receiver.getSentAt().toString())
                         .etc(receiver.getSentStatus().equals("SUCCESS") ?  "" : receiver.getErrorMessage() )
                         .build()).toList();
 
