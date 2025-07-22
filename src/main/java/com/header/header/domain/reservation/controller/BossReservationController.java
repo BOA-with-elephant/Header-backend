@@ -4,9 +4,11 @@ import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.service.BossReservationService;
+import com.header.header.domain.shop.common.ResponseMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -94,6 +96,22 @@ public class BossReservationController {
             return ResponseEntity.status(400)
                     .header("Content-Type", "application/json")
                     .body(Map.of("message", "등록 실패"));
+        }
+    }
+
+    @PatchMapping(value = "/{resvCode}", produces = "application/json")
+    public ResponseEntity<ResponseMessage> softDeleteReservation(@PathVariable("shopCode") Integer shopCode, @PathVariable("resvCode") Integer resvCode){
+        try{
+            bossReservationService.cancelReservation(resvCode);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "조회 성공", null));
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
         }
     }
 }
