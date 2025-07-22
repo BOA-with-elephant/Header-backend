@@ -80,12 +80,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     // 다음 경로들은 인증 없이 모든 사용자에게 허용
                     auth.requestMatchers("/auth/**", "/", "/main").permitAll();
-                    // "/auth/login" (POST) 요청도 허용하여 로그인 시도를 가능하게 합니다.
-                    auth.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
+                    // "/auth/session" (POST) 요청도 허용하여 로그인 시도를 가능하게 합니다.
+                    auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
-                    auth.requestMatchers("/my-shops/**").hasRole("ADMIN");
+                    auth.requestMatchers("/my-shops/**").permitAll();
+//                    auth.requestMatchers("/my-shops/**").hasRole("ADMIN");
                     // "/shops/**" 경로는 USER 역할, ADMIN역할 모두 접근 가능합니다.
-                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
+                    auth.requestMatchers("/shops/**").permitAll();
+//                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
                     // 그 외 모든 요청은 인증된 사용자만 접근 가능합니다.
                     auth.anyRequest().authenticated();
                 })
@@ -119,19 +121,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    //    @Bean
-    //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    //        http
-    //                .cors(withDefaults())  // CORS 설정은 그대로 유지
-    //                .authorizeHttpRequests(auth -> auth
-    //                        .anyRequest().permitAll() // ✅ 모든 요청 허용
-    //                )
-    //                .csrf(AbstractHttpConfigurer::disable)
-    //                .formLogin(AbstractHttpConfigurer::disable)
-    //                .httpBasic(AbstractHttpConfigurer::disable); // 필요시 비활성화
-    //
-    //        return http.build();
-    //    }
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
