@@ -115,17 +115,17 @@ public class MessageController extends MyShopBaseController {
     /**
      * 메세지 템플릿을 삭제합니다.(물리적 삭제)
      * @param shopId 샵 코드
-     * @param requestBody 템플릿 코드
+     * @param templateCode 템플릿 코드
      * @return String 삭제 완료 문구
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @DeleteMapping("/messages/template")
+    @DeleteMapping("/messages/template/{templateCode}")
     public ResponseEntity<ApiResponse<String>> deleteTemplate(
             @PathVariable Integer shopId,
-            @RequestBody MessageTemplateRequest requestBody
+            @PathVariable Integer templateCode
     ){
-        messageTemplateService.deleteMessageTemplate(requestBody.getTemplateCode(), shopId);
+        messageTemplateService.deleteMessageTemplate(templateCode, shopId);
 
         return success("템플릿이 정상적으로 삭제되었습니다.");
     }
