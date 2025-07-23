@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,7 +30,6 @@ public class VisitorsService {
     private final VisitorsRepository visitorsRepository;
     private final ModelMapper modelMapper;
     private final RestClient.Builder builder;
-
 
     /**
      * 샵 고객 리스트 조회
@@ -208,4 +208,14 @@ public class VisitorsService {
                 ));
     }
 
+    /* 주혜 */
+    public List<Integer> findByUserCode(Integer userCode) {
+
+        Visitors visitor = visitorsRepository.findByUserCode(userCode);
+
+        List<Integer> userCodeList = new ArrayList<>();
+        userCodeList.add(visitor.getUserCode());
+
+        return userCodeList;
+    }
 }
