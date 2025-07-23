@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageReceiver {
+    private Integer historyCode;
     private String sentAt;
     private String name;
     private String sentStatus;

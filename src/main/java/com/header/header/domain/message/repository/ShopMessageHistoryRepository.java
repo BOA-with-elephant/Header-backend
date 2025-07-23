@@ -24,7 +24,7 @@ public interface ShopMessageHistoryRepository extends JpaRepository<ShopMessageH
             "WHERE h.batchCode = :batchCode")
     List<MessageHistoryListView> findByBatchCode(@Param("batchCode") Integer batchCode);
 
-    Optional<MessageContentView> findByBatchCodeAndUserCode(Integer batchCode, Integer userCode);
+    Optional<MessageContentView> findByBatchCodeAndHistoryCode(Integer batchCode, Integer historyCode);
 
     Optional<ShopMessageHistory> findByHistoryCode(Integer historyCode);
 }

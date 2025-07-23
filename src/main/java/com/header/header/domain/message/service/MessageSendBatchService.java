@@ -38,6 +38,7 @@ public class MessageSendBatchService {
         // 1. 수신자 리스트 조회
         List<MessageReceiver> receiverList = messageHistoryService.getMessageHistoryListByBatch(batchCode).stream()
                 .map( receiver -> MessageReceiver.builder()
+                        .historyCode(receiver.getHistoryCode())
                         .name(receiver.getUserName())
                         .sentStatus(receiver.getSentStatus())
                         .sentAt(receiver.getSentAt() == null ? "-" :receiver.getSentAt().toString())
