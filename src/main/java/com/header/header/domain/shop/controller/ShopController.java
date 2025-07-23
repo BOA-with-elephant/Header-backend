@@ -1,13 +1,14 @@
 package com.header.header.domain.shop.controller;
 
+import com.header.header.auth.model.AuthDetails;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.service.UserReservationService;
+import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
 import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.service.ShopService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -34,6 +36,8 @@ public class ShopController {
     private final ShopService shopService;
 
     private final UserReservationService userReservationService;
+
+    private final GetUserInfoByAuthDetails getUserInfoByAuthDetails;
 
     /*전체 샵 조회 (거리순, 이름/위치 조회*/
     @GetMapping("")
@@ -82,9 +86,12 @@ public class ShopController {
     /*Post 새로운 예약 생성 */
     @PostMapping("/{shopCode}")
     public ResponseEntity<ResponseMessage> createReservation(
+            @AuthenticationPrincipal AuthDetails authDetails,
             @PathVariable Integer shopCode,
-            @RequestBody @Valid UserReservationDTO dto,
-            HttpServletRequest req){
+            @RequestBody @Valid UserReservationDTO dto){
+
+        Integer userCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
+        dto.setUserCode(userCode);
 
         Optional<UserReservationDetail> reservationResult
                 = userReservationService.createReservation(shopCode, dto);

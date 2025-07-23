@@ -15,7 +15,7 @@ import java.util.Date;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int userCode;
+    private Integer userCode;
     private String userId;
     private String userPwd;
     private boolean isAdmin;

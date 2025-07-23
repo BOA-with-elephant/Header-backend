@@ -1,5 +1,8 @@
 package com.header.header.common.exception;
 
+import com.header.header.auth.exception.DuplicatedPhoneException;
+import com.header.header.auth.exception.DuplicatedUserIdException;
+import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -97,5 +100,45 @@ public class GlobalExeptionHandlerForApiResponse {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED) //401
                 .body(new ResponseDTO(HttpStatus.UNAUTHORIZED, e.getMessage(), null));
+    }
+
+    // DuplicatedUserIdException 처리 (409 Conflict)
+    @ExceptionHandler(DuplicatedUserIdException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicatedUserIdException(DuplicatedUserIdException ex, WebRequest request) {
+        log.warn("DuplicatedUserIdException 발생: {}", ex.getMessage());
+        // ErrorResponse의 of() 팩토리 메소드 사용
+        ErrorResponse errorResponse = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(), // "Conflict"
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "") // 요청 경로 추출
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // DuplicatedPhoneException 처리 (409 Conflict)
+    @ExceptionHandler(DuplicatedPhoneException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicatedPhoneException(DuplicatedPhoneException ex, WebRequest request) {
+        log.warn("DuplicatedPhoneException 발생: {}", ex.getMessage());
+        // ErrorResponse의 of() 팩토리 메소드 사용
+        ErrorResponse errorResponse = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // RegistrationUnknownException 처리 (500 Internal Server Error)
+    @ExceptionHandler(RegistrationUnknownException.class)
+    public ResponseEntity<ErrorResponse> handleRegistrationUnknownException(RegistrationUnknownException ex, WebRequest request) {
+        log.error("RegistrationUnknownException 발생: {}", ex.getMessage(), ex);
+        // ErrorResponse의 internalServerError() 팩토리 메소드 사용
+        ErrorResponse errorResponse = ErrorResponse.internalServerError(
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -159,7 +159,7 @@ public class ShopHolidayServiceTests {
         dto.setIsHolRepeat(false);
 
         //when
-        HolResDTO resDTO = shopHolidayService.createShopHoliday(testShopCode, dto);
+        HolResDTO resDTO = shopHolidayService.createShopHoliday(1, testShopCode, dto);
         int testHolCode = resDTO.getShopHolCode();
 
         //then
@@ -184,7 +184,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.createShopHoliday(testShopCode, dto));
+                () -> shopHolidayService.createShopHoliday(1, testShopCode, dto));
     }
 
     @Test
@@ -199,7 +199,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.createShopHoliday(testShopCode, dto));
+                () -> shopHolidayService.createShopHoliday(1, testShopCode, dto));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class ShopHolidayServiceTests {
                 .build();
 
         //when and then
-        HolResDTO resDto = shopHolidayService.updateShopHoliday(SHOP_CODE, HOL_CODE, dto);
+        HolResDTO resDto = shopHolidayService.updateShopHoliday(1, SHOP_CODE, HOL_CODE, dto);
         assertNotNull(resDto);
         System.out.println(resDto);
     }
@@ -236,7 +236,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.updateShopHoliday(SHOP_CODE, HOL_CODE, dto));
+                () -> shopHolidayService.updateShopHoliday(1, SHOP_CODE, HOL_CODE, dto));
     }
 
     @Test
@@ -252,7 +252,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.updateShopHoliday(SHOP_CODE, HOL_CODE, dto));
+                () -> shopHolidayService.updateShopHoliday(1, SHOP_CODE, HOL_CODE, dto));
     }
 
     @Test
@@ -264,7 +264,7 @@ public class ShopHolidayServiceTests {
 
         //when and then
         List<ShopHolidayInfo> hols
-                = shopHolidayService.getShopHolidayInfo(shopCode);
+                = shopHolidayService.getShopHolidayInfo(1, shopCode);
 
         assertNotNull(hols);
         hols.forEach(hol -> System.out.println(
@@ -289,7 +289,7 @@ public class ShopHolidayServiceTests {
         Integer shopHolCodeToDelete = tempHoliday.getShopHolCode();
 
         //when and then
-        shopHolidayService.deleteShopHoliday(SHOP_CODE, shopHolCodeToDelete);
+        shopHolidayService.deleteShopHoliday(1,  SHOP_CODE, shopHolCodeToDelete);
         assertTrue(shopHolidayRepository.findById(shopHolCodeToDelete).isEmpty());
     }
 
@@ -310,6 +310,6 @@ public class ShopHolidayServiceTests {
 
         //when and then
         assertThrows(ShopHolidayExceptionHandler.class,
-                () -> shopHolidayService.deleteShopHoliday(SHOP_CODE, 100000));
+                () -> shopHolidayService.deleteShopHoliday(1, SHOP_CODE, 100000));
     }
 }
