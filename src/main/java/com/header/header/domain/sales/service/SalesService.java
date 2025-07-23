@@ -7,14 +7,12 @@ import com.header.header.domain.sales.dto.SalesDetailDTO;
 import com.header.header.domain.sales.entity.Sales;
 import com.header.header.domain.sales.enums.PaymentStatus;
 import com.header.header.domain.sales.repository.SalesRepository;
-import com.header.header.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -147,23 +145,39 @@ public class SalesService {
     }
 
     /**
-     * 결제 정보 수정
-     * @param salesCode 매출 코드
-     * @param salesDTO 수정할 결제 정보
-     * @return 수정된 결제 정보
-     * @throws NotFoundException 매출을 찾을 수 없을 때
+     * 결제 정보 수정 (수정된 버전)
+     * @param salesCode 수정할 매출 코드
+     * @param salesDTO 수정할 매출 정보
+     * @return 수정된 매출 정보
      */
     @Transactional
     public SalesDTO updatePayment(Integer salesCode, SalesDTO salesDTO) {
         log.info("결제 수정 시작 - salesCode: {}", salesCode);
+        log.info("수정 요청 데이터: payAmount={}, payMethod={}, finalAmount={}",
+            salesDTO.getPayAmount(), salesDTO.getPayMethod(), salesDTO.getFinalAmount());
 
-        Sales sales = salesRepository.findById(salesCode)
-            .orElseThrow(() -> NotFoundException.sales(salesCode));
+        // 1. 기존 엔티티 조회
+        Sales existingSales = salesRepository.findById(salesCode)
+            .orElseThrow(() -> new NotFoundException("매출을 찾을 수 없습니다: " + salesCode));
 
-        sales.updatePaymentInfo(salesDTO.getPayMethod(), salesDTO.getCancelReason());
+        log.info("기존 매출 데이터 - payAmount: {}, finalAmount: {}, payMethod: {}",
+            existingSales.getPayAmount(), existingSales.getFinalAmount(), existingSales.getPayMethod());
 
-        log.info("결제 수정 완료 - salesCode: {}", salesCode);
-        return toDTO(sales);
+        existingSales.updatePaymentDetails(
+            salesDTO.getPayAmount(),
+            salesDTO.getPayMethod(),
+            salesDTO.getFinalAmount()
+        );
+
+        log.info("수정 후 매출 데이터 - payAmount: {}, finalAmount: {}, payMethod: {}",
+            existingSales.getPayAmount(), existingSales.getFinalAmount(), existingSales.getPayMethod());
+
+        Sales savedSales = salesRepository.saveAndFlush(existingSales);
+
+        log.info("결제 수정 완료 - salesCode: {}, 최종 저장된 금액: {}",
+            salesCode, savedSales.getFinalAmount());
+
+        return toDTO(savedSales);
     }
 
     /**
