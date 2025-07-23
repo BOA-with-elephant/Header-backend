@@ -5,6 +5,7 @@ import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.service.BossReservationService;
+import com.header.header.domain.sales.dto.SalesDTO;
 import com.header.header.domain.shop.common.ResponseMessage;
 import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
@@ -247,7 +248,23 @@ public class BossReservationController {
                     .header("Content-Type", "application/json")
                     .body(null);
         }
+    }
 
+    @PutMapping(value = "/complete-procedure", produces = "application/json")
+    public ResponseEntity<ResponseMessage> completedProcedureHandler(@RequestBody SalesDTO salesDTO){
+        try{
+            bossReservationService.afterProcedure(salesDTO);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "시술 완료 처리 성공", null)
+            );
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(new ResponseMessage(400, "시술 완료 실패", null));
+        }
     }
 
 }
