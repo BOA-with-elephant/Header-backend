@@ -4,21 +4,14 @@ import com.header.header.auth.model.AuthDetails;
 import com.header.header.domain.reservation.dto.ReservationDateAndTimeDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
-import com.header.header.domain.reservation.enums.UserReservationErrorCode;
-import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
-import com.header.header.domain.shop.common.ErrorResponseMessage;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
 import com.header.header.domain.shop.common.ResponseMessage;
-import com.header.header.domain.shop.dto.ShopUserCodeDTO;
-import com.header.header.domain.shop.enums.ShopErrorCode;
-import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -66,11 +59,11 @@ public class UserReservationController {
     /*특정 예약 내역을 상세조회할 경우*/
     @GetMapping("/{resvCode}")
     public ResponseEntity<ResponseMessage> getReservationDetail(
-            ShopUserCodeDTO dto, //@RequestParam이 없어야 dto를 받고, 잘 받아옴
+            @AuthenticationPrincipal AuthDetails authDetails,
             @PathVariable Integer resvCode
     ) {
 
-        Integer userCode = dto.getUserCode();
+        Integer userCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
 
         Optional<UserReservationDetail> resvDetail
                 = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
@@ -84,9 +77,10 @@ public class UserReservationController {
     /*예약을 취소할 경우*/
     @DeleteMapping("/{resvCode}")
     public ResponseEntity<ResponseMessage> cancelReservation(
-            @RequestParam Integer userCode,
+            @AuthenticationPrincipal AuthDetails authDetails,
             @PathVariable Integer resvCode
     ) {
+        Integer userCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
 
         userReservationService.cancelReservation(userCode, resvCode);
 

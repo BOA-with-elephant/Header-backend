@@ -38,7 +38,7 @@ public class ShopHolidayService {
 
     /*새로운 휴일 규칙 생성*/
     @Transactional
-    public HolResDTO createShopHoliday(Integer shopCode, HolCreationDTO dto) {
+    public HolResDTO createShopHoliday(Integer adminCode, Integer shopCode, HolCreationDTO dto) {
 
         /*DTO에서 검증한 값 가져오기*/
         Date startDate = dto.getStartDate();
@@ -46,6 +46,10 @@ public class ShopHolidayService {
         /*존재하는 샵인지 검증*/
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+
+        if (adminCode != shop.getAdminInfo().getUserCode()) {
+            throw new ShopHolidayExceptionHandler(ShopHolidayErrorCode.ADMIN_NOT_FOUND);
+        }
 
         /*해당 날짜에 예약이 있는지 확인*/
 
@@ -92,15 +96,26 @@ public class ShopHolidayService {
     }
 
     public HolResDTO updateShopHoliday(
-            Integer shopCode, Integer shopHolCode, HolUpdateDTO dto
+            Integer adminCode, Integer shopCode, Integer shopHolCode, HolUpdateDTO dto
     ) {
-
         // validated data from dto
         Date startDate = dto.getStartDate();
 
         // ID로 기존 휴일 Entity를 조회
         ShopHoliday hol = shopHolidayRepository.findById(shopHolCode)
                 .orElseThrow(() -> new ShopHolidayExceptionHandler(ShopHolidayErrorCode.HOL_NOT_FOUND));
+
+        /*존재하는 샵인지 검증*/
+        Shop shop = shopRepository.findById(shopCode)
+                .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+
+        // 입력받은 ShopCode의 내부 정보와 admin의 정보가 일치하는지 검증
+        if (adminCode != shop.getAdminInfo().getUserCode()) {
+            throw new ShopHolidayExceptionHandler(ShopHolidayErrorCode.ADMIN_NOT_FOUND);
+        } else if (hol.getShopInfo().getShopCode() != shopCode) {
+            // 입력받은 Shop 정보의 코드와 입력받은 ShopHolCode의 내부 shopCode가 일치하는지 검증
+            throw new ShopHolidayExceptionHandler(ShopHolidayErrorCode.SHOP_NOT_FOUND);
+        }
 
         /* 해당 날짜에 예약이 있는지 확인, 생성일 때와 똑같음 */
         // 1) 일시적 휴일인 경우
@@ -145,28 +160,40 @@ public class ShopHolidayService {
     }
 
     /*각각의 샵이 가진 휴일 정보를 불러옴*/
-    public List<ShopHolidayInfo> getShopHolidayInfo(Integer shopCode) {
-
-        LocalDate getToday = LocalDate.now();
-        Date today = Date.valueOf(getToday); //오늘 날짜 구하기
+    public List<ShopHolidayInfo> getShopHolidayInfo(
+            Integer adminCode, Integer shopCode) {
 
         // 존재하지 않는 샵이면 예외
         Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+
+        // 받아온 adminCode 정보가 shop에 저장된 정보와 같은지 검증
+        if (adminCode != shop.getAdminInfo().getUserCode()) {
+            throw new ShopHolidayExceptionHandler(ShopHolidayErrorCode.ADMIN_NOT_FOUND);
+        }
+
+        LocalDate getToday = LocalDate.now();
+        Date today = Date.valueOf(getToday); //오늘 날짜 구하기
+
 
         return shopHolidayRepository.getShopHolidayInfo(shopCode, today);
     }
 
     // 휴일 정보 삭제, 물리적 삭제
     @Transactional
-    public void deleteShopHoliday(Integer shopCode, Integer shopHolCode) {
+    public void deleteShopHoliday(
+            Integer adminCode, Integer shopCode, Integer shopHolCode) {
         //존재하지 않는 휴일 정보일 경우 예외
         ShopHoliday hol = shopHolidayRepository.findById(shopHolCode)
                 .orElseThrow(() -> new ShopHolidayExceptionHandler(ShopHolidayErrorCode.HOL_NOT_FOUND));
 
         //존재하지 않는 샵 정보 예외, 샵 코드가 더 데이터가 많은 테이블이기 때문에 ShopHoliday 먼저 검증 시도함
-        shopRepository.findById(shopCode)
+        Shop shop = shopRepository.findById(shopCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_NOT_FOUND));
+
+        if (adminCode != shop.getAdminInfo().getUserCode()) {
+            throw new ShopHolidayExceptionHandler(ShopHolidayErrorCode.ADMIN_NOT_FOUND);
+        }
 
         // 그 샵에 해당하는 휴일 정보가 맞는지 검증
         if(!shopHolidayRepository.isHolReal(shopCode, shopHolCode)){

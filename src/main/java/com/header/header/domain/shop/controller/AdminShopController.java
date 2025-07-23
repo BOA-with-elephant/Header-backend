@@ -30,7 +30,6 @@ import java.util.Map;
 public class AdminShopController {
 
     private final ShopService shopService;
-    private final MainUserRepository mainUserRepository;
     private final GetUserInfoByAuthDetails getUserInfoByAuthDetails;
 
     // 샵 생성
