@@ -35,50 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
     methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class SalesController {
 
-    private static final Logger log = LoggerFactory.getLogger(SalesController.class);
-    private final SalesService salesService;
-    private final BossReservationService reservationService; // 예약 서비스 추가
-
-    public SalesController(SalesService salesService,
-        @Autowired(required = false) BossReservationService reservationService) {
-        this.salesService = salesService;
-        this.reservationService = reservationService;
-    }
-
-    // ========== 공통 유틸리티 메서드 ==========
-
-    /**
-     * 날짜 문자열을 LocalDateTime으로 파싱
-     */
-    private LocalDateTime parseDateTime(String dateTimeStr) {
-        return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    }
-
-    /**
-     * API 호출을 공통으로 처리하는 헬퍼 메서드 (에러 처리 개선)
-     */
-    private <T> ResponseEntity<?> handleApiCall(String logMessage, Supplier<T> supplier) {
-        try {
-            log.debug(logMessage);
-            T result = supplier.get();
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            log.error(logMessage + " 중 잘못된 요청", e);
-            Map<String, Object> errorResponse = createErrorResponse(
-                "Bad Request",
-                e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다."
-            );
-            return ResponseEntity.badRequest().body(errorResponse);
-        } catch (Exception e) {
-            log.error(logMessage + " 중 오류 발생", e);
-            Map<String, Object> errorResponse = createErrorResponse(
-                "Internal Server Error",
-                e.getMessage() != null ? e.getMessage() : "서버 내부 오류가 발생했습니다."
-            );
-            return ResponseEntity.internalServerError().body(errorResponse);
-        }
-    }
-
     /**
      * 에러 응답 객체 생성
      */
@@ -125,33 +81,6 @@ public class SalesController {
         }
     }
 
-    /**
-     * 예약 상태를 '시술완료(FINISH)'로 업데이트
-     * @param shopCode 샵 코드
-     * @param resvCode 예약 코드
-     */
-    private void updateReservationStatusToFinish(Integer shopCode, Integer resvCode) {
-        try {
-            log.info("예약 상태 업데이트 시도 - 예약코드: {}, 새 상태: FINISH", resvCode);
-
-            if (reservationService != null) {
-                // 예약 서비스를 통해 직접 상태 업데이트
-                // 실제 BossReservationService에 상태 업데이트 메서드가 있다면 사용
-                // reservationService.updateReservationStatus(resvCode, "FINISH");
-
-                // 현재는 기존 updateReservation 메서드를 활용
-                // (실제 구현은 BossReservationService의 메서드 구조에 따라 조정 필요)
-                log.info("예약 서비스를 통한 상태 업데이트 완료 - 예약코드: {}", resvCode);
-            } else {
-                log.warn("예약 서비스가 주입되지 않음 - 예약 상태 업데이트 건너뛰기");
-            }
-
-        } catch (Exception e) {
-            log.error("예약 상태 업데이트 중 오류 발생 - 예약코드: {}, 오류: {}", resvCode, e.getMessage());
-            throw e;
-        }
-    }
-
     // ========== 매출 등록/수정/삭제 API ==========
 
     /**
@@ -174,40 +103,56 @@ public class SalesController {
         }
 
         return handleApiCall("샵코드 " + shopCode + "의 새로운 매출 등록 요청", () -> {
-            // resvCode가 null이어도 허용 (직접 매출 등록)
-            if (salesDTO.getResvCode() == null) {
+
+            // 예약 기반 매출 등록인 경우
+            if (salesDTO.getResvCode() != null) {
+                log.info("예약 기반 매출 등록 - 예약코드: {}", salesDTO.getResvCode());
+
+                try {
+                    // BossReservationService의 afterProcedure 사용 (void 반환)
+                    reservationService.afterProcedure(salesDTO);
+
+                    log.info("예약 기반 매출 등록 완료 - 예약코드: {}", salesDTO.getResvCode());
+
+                    // afterProcedure 내부에서 매출 등록이 완료되므로 성공 메시지 반환
+                    return Map.of(
+                        "message", "예약 기반 매출이 성공적으로 등록되었습니다.",
+                        "resvCode", salesDTO.getResvCode(),
+                        "shopCode", shopCode,
+                        "status", "completed"
+                    );
+
+                } catch (IllegalArgumentException e) {
+                    log.error("예약 기반 매출 등록 중 잘못된 요청 - 예약코드: {}, 오류: {}",
+                        salesDTO.getResvCode(), e.getMessage());
+                    throw e;
+                } catch (IllegalStateException e) {
+                    log.error("예약 기반 매출 등록 중 상태 오류 - 예약코드: {}, 오류: {}",
+                        salesDTO.getResvCode(), e.getMessage());
+                    throw e;
+                } catch (Exception e) {
+                    log.error("예약 기반 매출 등록 중 예상치 못한 오류 발생 - 예약코드: {}, 오류: {}",
+                        salesDTO.getResvCode(), e.getMessage(), e);
+                    throw new RuntimeException("예약 기반 매출 등록 실패: " + e.getMessage(), e);
+                }
+
+            } else {
+                // 직접 매출 등록 (예약과 연결되지 않은 경우)
                 log.info("예약 연결 없는 직접 매출 등록 - 고객: {}, 시술: {}",
                     salesDTO.getUserName(), salesDTO.getMenuName());
-            } else {
-                log.info("예약 기반 매출 등록 - 예약코드: {}", salesDTO.getResvCode());
+
+                // 기본값 자동 설정
+                setDefaultValues(salesDTO);
+
+                // 전송된 데이터 로깅 (디버깅용)
+                log.info("매출 등록 데이터 - payAmount: {}, payMethod: {}, finalAmount: {}",
+                    salesDTO.getPayAmount(), salesDTO.getPayMethod(), salesDTO.getFinalAmount());
+
+                // 매출 등록 실행
+                return salesService.createPayment(salesDTO);
             }
-
-            // 기본값 자동 설정
-            setDefaultValues(salesDTO);
-
-            // 전송된 데이터 로깅 (디버깅용)
-            log.info("매출 등록 데이터 - payAmount: {}, payMethod: {}, finalAmount: {}",
-                salesDTO.getPayAmount(), salesDTO.getPayMethod(), salesDTO.getFinalAmount());
-
-            // 매출 등록 실행
-            SalesDTO createdSales = salesService.createPayment(salesDTO);
-
-            // 예약 기반 매출 등록인 경우 예약 상태를 '시술완료'로 변경
-            if (salesDTO.getResvCode() != null) {
-                try {
-                    updateReservationStatusToFinish(shopCode, salesDTO.getResvCode());
-                    log.info("예약 상태 업데이트 완료 - 예약코드: {}, 상태: FINISH", salesDTO.getResvCode());
-                } catch (Exception e) {
-                    log.warn("예약 상태 업데이트 실패 - 예약코드: {}, 오류: {}",
-                        salesDTO.getResvCode(), e.getMessage());
-                    // 예약 상태 업데이트 실패해도 매출 등록은 성공으로 처리
-                }
-            }
-
-            return createdSales;
         });
     }
-
     /**
      * 기존 매출 수정 (SalesDTO 직접 사용)
      * @param shopCode 매출이 속한 샵 코드
@@ -390,6 +335,50 @@ public class SalesController {
     public ResponseEntity<?> getMonthlySalesStats(@PathVariable Integer shopCode) {
         return handleApiCall("샵코드 " + shopCode + "의 월별 매출 통계 조회",
             () -> salesService.getMonthlySalesStats(shopCode));
+    }
+    private static final Logger log = LoggerFactory.getLogger(SalesController.class);
+    private final SalesService salesService;
+
+    private final BossReservationService reservationService; // 예약 서비스 추가
+
+    public SalesController(SalesService salesService,
+        @Autowired(required = false) BossReservationService reservationService) {
+        this.salesService = salesService;
+        this.reservationService = reservationService;
+    }
+
+    // ========== 공통 유틸리티 메서드 ==========
+
+    /**
+     * 날짜 문자열을 LocalDateTime으로 파싱
+     */
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
+
+    /**
+     * API 호출을 공통으로 처리하는 헬퍼 메서드 (에러 처리 개선)
+     */
+    private <T> ResponseEntity<?> handleApiCall(String logMessage, Supplier<T> supplier) {
+        try {
+            log.debug(logMessage);
+            T result = supplier.get();
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            log.error(logMessage + " 중 잘못된 요청", e);
+            Map<String, Object> errorResponse = createErrorResponse(
+                "Bad Request",
+                e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다."
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            log.error(logMessage + " 중 오류 발생", e);
+            Map<String, Object> errorResponse = createErrorResponse(
+                "Internal Server Error",
+                e.getMessage() != null ? e.getMessage() : "서버 내부 오류가 발생했습니다."
+            );
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
     }
 
     /**
