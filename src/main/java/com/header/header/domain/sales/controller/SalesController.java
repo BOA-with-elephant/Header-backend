@@ -1,11 +1,13 @@
 package com.header.header.domain.sales.controller;
 
 import com.header.header.domain.sales.dto.SalesDashboardDTO;
+import com.header.header.domain.sales.dto.SalesDTO;
 import com.header.header.domain.sales.dto.SalesDetailDTO;
 import com.header.header.domain.sales.service.SalesService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,11 +48,70 @@ public class SalesController {
             log.debug(logMessage);
             T result = supplier.get();
             return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            log.error(logMessage + " 중 잘못된 요청", e);
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error(logMessage + " 중 오류 발생", e);
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    // ========== 매출 등록/수정 관련 API 엔드포인트 ==========
+
+    /**
+     * 새로운 매출 등록
+     * @param shopCode 매출을 등록할 샵 코드
+     * @param salesDetailDTO 등록할 매출 정보 (SalesDetailDTO 사용)
+     * @return 등록된 매출 정보
+     */
+    @PostMapping("/my-shops/{shopCode}/sales")
+    public ResponseEntity<SalesDTO> createSales(@PathVariable Integer shopCode, @RequestBody SalesDetailDTO salesDetailDTO) {
+        return handleApiCall("샵코드 " + shopCode + "의 새로운 매출 등록 요청", () -> {
+            // SalesDetailDTO를 SalesDTO로 변환
+            SalesDTO salesDTO = convertToSalesDTO(salesDetailDTO, shopCode);
+            return salesService.createPayment(salesDTO);
+        });
+    }
+
+    /**
+     * 기존 매출 수정
+     * @param shopCode 매출이 속한 샵 코드
+     * @param salesCode 수정할 매출 코드
+     * @param salesDetailDTO 수정할 매출 정보 (SalesDetailDTO 사용)
+     * @return 수정된 매출 정보
+     */
+    @PutMapping("/my-shops/{shopCode}/sales/{salesCode}")
+    public ResponseEntity<SalesDTO> updateSales(@PathVariable Integer shopCode,
+        @PathVariable Integer salesCode,
+        @RequestBody SalesDetailDTO salesDetailDTO) {
+        return handleApiCall("샵코드 " + shopCode + ", 매출코드 " + salesCode + "의 매출 수정 요청", () -> {
+            // SalesDetailDTO를 SalesDTO로 변환
+            SalesDTO salesDTO = convertToSalesDTO(salesDetailDTO, shopCode);
+            salesDTO.setSalesCode(salesCode);
+            return salesService.updatePayment(salesCode, salesDTO);
+        });
+    }
+
+    /**
+     * 매출 취소 처리
+     * @param shopCode 매출이 속한 샵 코드
+     * @param salesCode 취소할 매출 코드
+     * @param cancelRequest 취소 요청 정보 (cancelAmount, cancelReason 포함)
+     * @return 취소 처리된 매출 정보
+     */
+    @PutMapping("/my-shops/{shopCode}/sales/{salesCode}/cancel")
+    public ResponseEntity<SalesDTO> cancelSales(@PathVariable Integer shopCode,
+        @PathVariable Integer salesCode,
+        @RequestBody Map<String, Object> cancelRequest) {
+        return handleApiCall("샵코드 " + shopCode + ", 매출코드 " + salesCode + "의 매출 취소 요청", () -> {
+            Integer cancelAmount = Integer.valueOf(cancelRequest.get("cancelAmount").toString());
+            String cancelReason = cancelRequest.get("cancelReason").toString();
+            return salesService.cancelPayment(salesCode, cancelAmount, cancelReason);
+        });
+    }
+
+    // ========== 기존 조회 관련 API 엔드포인트 ==========
 
     /**
      * 특정 샵의 전체 매출 조회 (삭제 제외)
@@ -74,7 +138,7 @@ public class SalesController {
         });
     }
 
-    // ========== 매출 통계 관련 API 엔드포인트 추가 ==========
+    // ========== 매출 통계 관련 API 엔드포인트 ==========
 
     /**
      * 특정 샵의 기간별 총 매출 조회
@@ -206,5 +270,45 @@ public class SalesController {
 
         return handleApiCall("샵코드 " + shopCode + "의 대시보드 통계 조회",
             () -> salesService.getDashboardStats(shopCode, finalStart, finalEnd));
+    }
+
+    // ========== DTO 변환 헬퍼 메서드 ==========
+
+    /**
+     * SalesDetailDTO를 SalesDTO로 변환
+     * @param salesDetailDTO 변환할 SalesDetailDTO
+     * @param shopCode 샵 코드
+     * @return 변환된 SalesDTO
+     */
+    private SalesDTO convertToSalesDTO(SalesDetailDTO salesDetailDTO, Integer shopCode) {
+        SalesDTO salesDTO = new SalesDTO();
+
+        // Sales 관련 필드 복사
+        salesDTO.setSalesCode(salesDetailDTO.getSalesCode());
+        salesDTO.setResvCode(salesDetailDTO.getResvCode());
+        salesDTO.setPayAmount(salesDetailDTO.getPayAmount());
+        salesDTO.setPayMethod(salesDetailDTO.getPayMethod());
+        salesDTO.setPayDatetime(salesDetailDTO.getPayDatetime());
+        salesDTO.setPayStatus(salesDetailDTO.getPayStatus());
+        salesDTO.setCancelAmount(salesDetailDTO.getCancelAmount());
+        salesDTO.setCancelDatetime(salesDetailDTO.getCancelDatetime());
+        salesDTO.setCancelReason(salesDetailDTO.getCancelReason());
+        salesDTO.setFinalAmount(salesDetailDTO.getFinalAmount());
+
+        // 기본값 설정
+        if (salesDTO.getPayDatetime() == null) {
+            salesDTO.setPayDatetime(LocalDateTime.now());
+        }
+        if (salesDTO.getPayStatus() == null) {
+            salesDTO.setPayStatus(com.header.header.domain.sales.enums.PaymentStatus.COMPLETED);
+        }
+        if (salesDTO.getCancelAmount() == null) {
+            salesDTO.setCancelAmount(0);
+        }
+        if (salesDTO.getFinalAmount() == null) {
+            salesDTO.setFinalAmount(salesDTO.getPayAmount());
+        }
+
+        return salesDTO;
     }
 }
