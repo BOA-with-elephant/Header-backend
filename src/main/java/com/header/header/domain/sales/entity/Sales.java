@@ -74,4 +74,25 @@ public class Sales {
     public void calculateFinalAmount() {
         this.finalAmount = this.payAmount - (this.cancelAmount != null ? this.cancelAmount : 0);
     }
+
+    /**
+     * 결제 금액, 결제 방법, 최종 금액을 업데이트하는 메서드
+     * 세터 대신 비즈니스 로직 캡슐화
+     * @param payAmount 결제 금액
+     * @param payMethod 결제 방법
+     * @param finalAmount 최종 금액
+     */
+    public void updatePaymentDetails(Integer payAmount, String payMethod, Integer finalAmount) {
+        // null 체크를 통해 필요한 필드만 업데이트
+        if (payAmount != null) {
+            this.payAmount = payAmount;
+        }
+        if (payMethod != null) {
+            this.payMethod = payMethod;
+        }
+        if (finalAmount != null) {
+            this.finalAmount = finalAmount;
+        }
+    }
+
 }
