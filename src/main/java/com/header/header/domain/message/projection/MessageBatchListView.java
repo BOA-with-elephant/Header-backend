@@ -8,10 +8,7 @@ public interface MessageBatchListView {
 
     Date getSendDate();
     Time getSendTime();
-
+    Integer getTotalCount();
     String getSendType();
     String getSubject();
-
-
-
 }
