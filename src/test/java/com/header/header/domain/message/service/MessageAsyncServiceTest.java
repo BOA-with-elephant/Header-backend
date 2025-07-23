@@ -32,7 +32,7 @@ class MessageAsyncServiceTest {
     private CoolSmsService coolSmsService;
 
     @Mock
-    private ShopMessageHistoryService shopMessageHistoryService;
+    private MessageHistoryService messageHistoryService;
 
     @Mock
     private UserService userService;
@@ -77,7 +77,7 @@ class MessageAsyncServiceTest {
     @DisplayName("메시지 전송 요청 시 즉시 PENDING 응답을 반환한다")
     void sendMessageAsync_ShouldReturnPendingResponse() {
         // Given - Service에서 Entity 반환
-        when(shopMessageHistoryService.createMessageHistory(any(ShopMessageHistoryDTO.class)))
+        when(messageHistoryService.createMessageHistory(any(ShopMessageHistoryDTO.class)))
                 .thenReturn(mockHistoryEntity);
 
         // When
@@ -88,21 +88,21 @@ class MessageAsyncServiceTest {
         assertThat(response.getResult()).isEqualTo(MessageStatus.PENDING.toString());
 
         // DB 저장이 호출되었는지 확인
-        verify(shopMessageHistoryService).createMessageHistory(any(ShopMessageHistoryDTO.class));
+        verify(messageHistoryService).createMessageHistory(any(ShopMessageHistoryDTO.class));
     }
 
     @Test
     @DisplayName("PENDING 상태로 DB에 저장된다")
     void saveAsPending_ShouldSaveWithPendingStatus() {
         // Given
-        when(shopMessageHistoryService.createMessageHistory(any(ShopMessageHistoryDTO.class)))
+        when(messageHistoryService.createMessageHistory(any(ShopMessageHistoryDTO.class)))
                 .thenReturn(mockHistoryEntity);
 
         // When
         messageAsyncService.sendMessageAsync(testRequest);
 
         // Then - 올바른 파라미터로 저장되는지 확인 (DTO로 전달)
-        verify(shopMessageHistoryService).createMessageHistory(argThat(dto ->
+        verify(messageHistoryService).createMessageHistory(argThat(dto ->
                 dto.getUserCode().equals(1) &&
                         dto.getMsgContent().equals("테스트 메시지입니다.") &&
                         dto.getSendStatus().equals(MessageStatus.PENDING.toString())
@@ -193,7 +193,7 @@ class MessageAsyncServiceTest {
         method.invoke(messageAsyncService, mockHistoryEntity, "TEST_001");
 
         // Then - Entity 객체로 업데이트 호출
-        verify(shopMessageHistoryService).updateMessageStatus(mockHistoryEntity.getHistoryCode(),"");
+        verify(messageHistoryService).updateMessageStatus(mockHistoryEntity.getHistoryCode(),"");
     }
 
     @Test
@@ -210,7 +210,7 @@ class MessageAsyncServiceTest {
         method.invoke(messageAsyncService, mockHistoryEntity, testException, "TEST_001");
 
         // Then - Entity 객체로 업데이트 호출
-        verify(shopMessageHistoryService).updateMessageStatus(mockHistoryEntity.getHistoryCode(),testException.getMessage());
+        verify(messageHistoryService).updateMessageStatus(mockHistoryEntity.getHistoryCode(),testException.getMessage());
     }
 
     @Test
@@ -232,7 +232,7 @@ class MessageAsyncServiceTest {
 
         // Then - 전화번호 조회 실패 에러 메시지 확인
         verify(userService, timeout(1000)).getPhoneByUserCode(1);
-        verify(shopMessageHistoryService, timeout(1000))
+        verify(messageHistoryService, timeout(1000))
                 .updateMessageStatus(
                         eq(mockHistoryEntity.getHistoryCode()),
                         eq(expectedErrorMessage)  // ← 전화번호 조회 실패 메시지
@@ -264,7 +264,7 @@ class MessageAsyncServiceTest {
         verify(coolSmsService, timeout(1000)).sendSms(anyString(), anyString(), anyString());
 
         // updateMessageStatus에 에러 메시지가 전달되는지 확인
-        verify(shopMessageHistoryService, timeout(1000))
+        verify(messageHistoryService, timeout(1000))
                 .updateMessageStatus(
                         eq(mockHistoryEntity.getHistoryCode()),
                         eq(expectedErrorMessage)  // ← 에러 메시지 검증
@@ -275,7 +275,7 @@ class MessageAsyncServiceTest {
     @DisplayName("saveAsPending 메서드가 올바른 History 객체를 반환한다")
     void saveAsPending_ShouldReturnCorrectHistory() throws Exception {
         // Given
-        when(shopMessageHistoryService.createMessageHistory(any(ShopMessageHistoryDTO.class)))
+        when(messageHistoryService.createMessageHistory(any(ShopMessageHistoryDTO.class)))
                 .thenReturn(mockHistoryEntity);
 
         // When - 리플렉션으로 private 메서드 테스트

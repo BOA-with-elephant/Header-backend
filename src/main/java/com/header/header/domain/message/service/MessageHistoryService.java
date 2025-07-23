@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ShopMessageHistoryService {
+public class MessageHistoryService {
 
     private final ShopMessageHistoryRepository shopMessageHistoryRepository;
     private final ModelMapper modelMapper;
@@ -39,15 +39,15 @@ public class ShopMessageHistoryService {
      * 수신자에게 발송한 상세 메세지 내용 조회
      * 복합 INDEX 사용을 위해 batchCode와 함께 조회합니다.
      * @param batchCode 어떤 배치의 수신자 목록을 가져올지
-     * @param userCode 어떤 수신자의 메세지 내용을 가져울지
+     * @param historyCode 어떤 history의 메세지 내용을 가져울지
      * @return List<MessageBatchListView>
      */
-    public MessageContentView getMessageContent(Integer batchCode, Integer userCode){
-        if(batchCode == null || userCode == null){
-            throw new IllegalArgumentException("batchCode,userCode는 필수입니다.");
+    public MessageContentView getMessageContent(Integer batchCode, Integer historyCode){
+        if(batchCode == null || historyCode == null){
+            throw new IllegalArgumentException("batchCode,historyCode 필수입니다.");
         }
 
-        return shopMessageHistoryRepository.findByBatchCodeAndUserCode(batchCode,userCode)
+        return shopMessageHistoryRepository.findByBatchCodeAndHistoryCode(batchCode,historyCode)
                 .orElseThrow(() -> InvalidBatchException.invalidBatchCode("해당 수신자 정보가 없습니다.")); // todo. Exception 수정사항!!
     }
 
