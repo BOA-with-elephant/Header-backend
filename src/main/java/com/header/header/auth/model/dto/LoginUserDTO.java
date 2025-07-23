@@ -11,7 +11,7 @@ import java.util.Optional;
 @Setter
 @ToString
 public class LoginUserDTO {
-    private int userCode;
+    private Integer userCode;
     private String userId;
     private String userPwd;
     private String userName;

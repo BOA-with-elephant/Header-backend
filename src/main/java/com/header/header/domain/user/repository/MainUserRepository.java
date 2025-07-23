@@ -1,11 +1,13 @@
 package com.header.header.domain.user.repository;
 
 import com.header.header.domain.user.entity.User;
+import com.header.header.domain.user.projection.UserCode;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MainUserRepository extends JpaRepository<User, Integer> {
 
@@ -31,4 +33,7 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
 
     /* 관리자 정보인지 확인 */
     User findByUserCodeAndIsAdminTrue(Integer userCode);
+
+    /* 유저 id로 유저 코드 가져오기 */
+    Optional<UserCode> findUserCodeByUserId(String userId);
 }
