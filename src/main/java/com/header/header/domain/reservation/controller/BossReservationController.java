@@ -210,7 +210,7 @@ public class BossReservationController {
             bossReservationService.noShowHandler(resvCode);
 
             return ResponseEntity.ok().body(
-                    new ResponseMessage(200, "노쇼 처리 완료", null));
+                    new ResponseMessage(200, "노쇼 단일 처리 완료", null));
         } catch (Exception e){
             e.printStackTrace();
 
