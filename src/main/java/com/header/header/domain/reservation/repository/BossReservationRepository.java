@@ -106,19 +106,9 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
         WHERE r.resvDate < :today 
         AND r.resvState = :resvState
         AND s.shopCode = :shopCode
+        ORDER BY r.resvDate, r.resvTime
     """)
     List<BossResvDetailView> findByResvDateAndResvState(@Param("today") Date today, @Param("resvState") ReservationState resvState, @Param("shopCode") Integer shopCode);
-
-//    @Query("""
-//        SELECT r
-//        FROM BossReservation r
-//        JOIN r.userInfo u
-//        JOIN r.shopInfo s
-//        JOIN r.menuInfo m
-//        JOIN m.menuCategory mc
-//        WHERE r.resvCode = :resvCode
-//    """)
-//    BossReservation findReservationByResvCode(@Param("resvCode") Integer resvCode);
 
     /* 테스트용 */
     @Query("""
@@ -134,4 +124,20 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
     """)
     List<BossResvDetailView> findByUserNameAndUserPhone(@Param("shopCode") Integer shopCode, @Param("userName") String userName, @Param("userPhone") String userPhone);
 
+    /* comment. 노쇼 & 취소 조회 */
+    @Query("""
+        SELECT new com.header.header.domain.reservation.dto.BossResvProjectionDTO(
+            r.resvCode, u.userName, u.userPhone, mc.menuColor, m.menuName, m.isActive,
+            r.resvState, r.resvDate, r.resvTime, r.userComment
+        )
+        FROM BossReservation r
+        JOIN r.userInfo u
+        JOIN r.shopInfo s
+        JOIN r.menuInfo m
+        JOIN m.menuCategory mc  
+        WHERE s.shopCode = :shopCode 
+         AND r.resvState = "예약취소"
+        ORDER BY r.resvDate, r.resvTime
+    """)
+    List<BossResvDetailView> findByResvState(Integer shopCode);
 }

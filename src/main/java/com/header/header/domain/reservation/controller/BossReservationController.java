@@ -3,6 +3,7 @@ package com.header.header.domain.reservation.controller;
 import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
+import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.service.BossReservationService;
 import com.header.header.domain.shop.common.ResponseMessage;
 import org.apache.ibatis.annotations.Delete;
@@ -13,6 +14,8 @@ import retrofit2.http.Path;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -155,4 +158,96 @@ public class BossReservationController {
                     .body(null);
         }
     }
+
+    /* comment. 노쇼 & 취소 조회 */
+    @GetMapping(value = "/canceledAndNoShow")
+    public ResponseEntity<ResponseMessage> selectCanceledAndNoShowList(@PathVariable("shopCode") Integer shopCode){
+        try{
+            List<BossResvProjectionDTO> result = bossReservationService.findCanceledAndNoShowList(shopCode);
+
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("result", result);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "예약 취소, 노쇼 조회 성공", responseMap));
+
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+    }
+
+    /* comment. 노쇼만 조회 */
+    @GetMapping(value = "/onlyNoShow")
+    public ResponseEntity<ResponseMessage> selectOnlyNoShowList(@PathVariable("shopCode") Integer shopCode){
+        try{
+            // 현재 시스템 날짜를 java.util.Date로 생성
+            java.util.Date utilDate = new java.util.Date();
+
+            // java.util.Date를 java.sql.Date로 변환
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+            ReservationState resvState = ReservationState.APPROVE;
+
+            List<BossResvProjectionDTO> noshowList = bossReservationService.findNoShowList(sqlDate, resvState, shopCode);
+
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("result", noshowList);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "노쇼만 조회 성공", responseMap));
+        } catch (Exception e){
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+    }
+
+    @PutMapping(value = "/noshow/{resvCode}", produces ="application/json")
+    public ResponseEntity<ResponseMessage> noShowHandler(@PathVariable("shopCode") Integer shopCode, @PathVariable("resvCode") Integer resvCode){
+        try{
+            bossReservationService.noShowHandler(resvCode);
+
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "노쇼 처리 완료", null));
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+
+    }
+
+    @PutMapping(value = "/noshow-bulk", produces = "application/json")
+    public ResponseEntity<ResponseMessage> totalNoShowHandler(@PathVariable("shopCode") Integer shopCode, @RequestBody Map<String, List<Integer>> payload){
+
+        try {
+            List<Integer> resvCodes = payload.get("resvCodes");
+
+            List<Integer> successList = new ArrayList<>();
+            List<Integer> failedList = new ArrayList<>();
+
+            for (Integer resvCode : resvCodes) {
+                try {
+                    bossReservationService.noShowHandler(resvCode);
+                    successList.add(resvCode);
+                } catch (Exception e) {
+                    failedList.add(resvCode);
+                }
+            }
+            return ResponseEntity.ok().body(
+                    new ResponseMessage(200, "노쇼 일괄 처리 완료", null));
+        } catch (Exception e){
+            e.printStackTrace();
+
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(null);
+        }
+
+    }
+
 }
