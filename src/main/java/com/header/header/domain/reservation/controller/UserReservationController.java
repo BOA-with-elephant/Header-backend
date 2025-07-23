@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.controller;
 
+import com.header.header.auth.model.AuthDetails;
 import com.header.header.domain.reservation.dto.ReservationDateAndTimeDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
@@ -9,6 +10,7 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.ErrorResponseMessage;
+import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
 import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopUserCodeDTO;
 import com.header.header.domain.shop.enums.ShopErrorCode;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -36,14 +39,17 @@ import java.util.Optional;
 public class UserReservationController {
 
     private final UserReservationService userReservationService;
+    private final GetUserInfoByAuthDetails getUserInfoByAuthDetails;
 
     /*회원이 자신이 예약한 내역 전체 목록 조회 (기간 필터)*/
     @GetMapping("")
     public ResponseEntity<ResponseMessage> selectReservations(
-            @RequestParam Integer userCode,
+            @AuthenticationPrincipal AuthDetails authDetails,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
+
+        Integer userCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
 
         UserReservationSearchConditionDTO condition
                 = new UserReservationSearchConditionDTO(userCode, startDate, endDate);
