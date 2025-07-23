@@ -35,6 +35,28 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    //Validation 의존성 추가
+    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+
+    //카카오맵 API용 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'  // WebClient 사용
+    implementation 'com.fasterxml.jackson.core:jackson-databind'           // JSON 파싱
+
+    //CoolSMS SDK
+    implementation 'net.nurigo:sdk:4.2.7'
+
+    // 테스트용 Lombok 추가
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    /* JWT 토큰을 사용하기 위한 라이브러리 */
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 }
 
 tasks.named('test') {

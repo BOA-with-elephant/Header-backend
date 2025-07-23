@@ -13,11 +13,19 @@ public class Visitors {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private int clientCode;
+    private Integer clientCode;
     private Integer userCode;
     private Integer shopCode;
     private String memo;
     private boolean sendable;
     private boolean isActive;
 
+
+    public void modifyClientMemo(String memo){
+        this.memo = memo;
+    }
+
+    public void deleteLogical(){
+        this.isActive = false;
+    }
 }
