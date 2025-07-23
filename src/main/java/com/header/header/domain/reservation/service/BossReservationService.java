@@ -218,7 +218,7 @@ public class BossReservationService {
         bossReservationRepository.deleteById(resvCode);
     }
 
-    /* 시술 후 사장님이 시술 완료로 상태 변경하면 매출 테이블로 해당 데이터 넘기기(insert) */
+    /* comment. 시술 후 사장님이 시술 완료로 상태 변경하면 매출 테이블로 해당 데이터 넘기기(insert) */
     public void afterProcedure(SalesDTO salesDTO){
 
         BossReservation reservation = bossReservationRepository.findById(salesDTO.getResvCode()).orElseThrow(IllegalArgumentException::new);
@@ -248,7 +248,7 @@ public class BossReservationService {
 
     }
 
-    /* 노쇼 갯수 반환 - 예약 확정 이면서 날짜가 오늘 이전인 것들 조회 */
+    /* comment. 노쇼 리스트 반환 - 예약 확정 이면서 날짜가 오늘 이전인 것들 조회 */
     public List<BossResvProjectionDTO> findNoShowList(Date today, ReservationState resvState, Integer shopCode){
 
         List<BossResvDetailView> noShowList = bossReservationRepository.findByResvDateAndResvState(today, resvState, shopCode);
@@ -258,7 +258,7 @@ public class BossReservationService {
                 .toList();
     }
 
-    /* 노쇼 처리 메소드 만들기 */
+    /* comment. 노쇼 처리 메소드 만들기 */
     public void noShowHandler(Integer resvCode){
         /*
         * 1. 사장님이 노쇼 리스트 조회 시 findNoShowList()가 실행됨
@@ -280,6 +280,15 @@ public class BossReservationService {
         } else {
             throw new IllegalStateException("해당 예약 건은 노쇼가 아닙니다.");
         }
+    }
+
+    /* comment. 노쇼 & 취소 조회 */
+    public List<BossResvProjectionDTO> findCanceledAndNoShowList(Integer shopCode) {
+        List<BossResvDetailView> resultList = bossReservationRepository.findByResvState(shopCode);
+
+        return resultList.stream()
+                .map(list -> modelMapper.map(list, BossResvProjectionDTO.class))
+                .toList();
     }
 
     /* 테스트용 */
