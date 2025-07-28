@@ -72,4 +72,5 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
     @Query("SELECT v.userCode FROM Visitors v WHERE v.clientCode = :clientCode")
     Optional<Integer> findUserCodeByClientCode(@Param("clientCode") Integer clientCode);
 
+    Visitors findByUserCode(Integer userCode);
 }

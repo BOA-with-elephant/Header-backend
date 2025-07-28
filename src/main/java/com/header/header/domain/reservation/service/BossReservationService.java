@@ -300,4 +300,11 @@ public class BossReservationService {
                 .map(reservation -> modelMapper.map(reservation, BossResvProjectionDTO.class))
                 .toList();
     }
+
+    /* 메시지 전송 파라미터인 cliendCode를 조회할 userCode 조회 */
+    public Integer findUserCodeByUserName(String userName){
+        User user = userRepository.findByUserName(userName);
+
+        return user.getUserCode();
+    }
 }

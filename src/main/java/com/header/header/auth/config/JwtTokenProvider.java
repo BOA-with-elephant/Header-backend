@@ -16,6 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class JwtTokenProvider {
                             @Value("${jwt.expiration}") long tokenValidityTime,
                             @Lazy AuthUserService authUserService) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = tokenValidityTime;
         this.authUserService = authUserService;
     }
