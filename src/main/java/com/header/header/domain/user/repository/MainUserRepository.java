@@ -34,8 +34,13 @@ public interface MainUserRepository extends JpaRepository<User, Integer> {
     /* 관리자 정보인지 확인 */
     User findByUserCodeAndIsAdminTrue(Integer userCode);
 
-    User findByUserName(String userName);
-
     /* 유저 id로 유저 코드 가져오기 */
     Optional<UserCode> findUserCodeByUserId(String userId);
+
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE u.userName = :userName AND u.userPhone = :userPhone
+    """)
+    Optional<User> findByNameAndPhone(@Param("userName") String userName, @Param("userPhone") String userPhone);
 }

@@ -65,12 +65,17 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "  AND r.resvState = '결제완료' " +
             "ORDER BY r.resvDate DESC")
     List<VisitorHistoryView> getVisitHistoryByClientCode(@Param("clientCode") Integer clientCode);
-    
+
     // (5) clientCode로 샵 회원 조회
     Optional<Visitors> findByClientCode(Integer clientCode);
 
     @Query("SELECT v.userCode FROM Visitors v WHERE v.clientCode = :clientCode")
     Optional<Integer> findUserCodeByClientCode(@Param("clientCode") Integer clientCode);
 
-    Visitors findByUserCode(Integer userCode);
+    @Query("""
+        SELECT v
+         FROM Visitors v
+         WHERE v.userCode = :userCode
+    """)
+    Visitors findByUserCode(@Param("userCode") Integer userCode);
 }

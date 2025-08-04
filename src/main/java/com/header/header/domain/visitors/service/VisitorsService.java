@@ -61,21 +61,21 @@ public class VisitorsService {
 
                     return  VisitorDetailResponse.from(
                             VisitorDetailDTO.builder()
-                            .clientCode(visitor.getClientCode())
-                            .userCode(visitor.getUserCode())
-                            .memo(visitor.getMemo())
-                            .sendable(visitor.getSendable())
-                            .userName(visitor.getUserName())
-                            .userPhone(visitor.getUserPhone())
-                            .birthday(visitor.getBirthday() != null ?
-                                    visitor.getBirthday() : null)
-                            // 통계 정보
-                            .visitCount(stats != null ? stats.getVisitCount() : 0)
-                            .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
-                            .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
-                            // 선호 메뉴
-                            .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
-                            .build());
+                                    .clientCode(visitor.getClientCode())
+                                    .userCode(visitor.getUserCode())
+                                    .memo(visitor.getMemo())
+                                    .sendable(visitor.getSendable())
+                                    .userName(visitor.getUserName())
+                                    .userPhone(visitor.getUserPhone())
+                                    .birthday(visitor.getBirthday() != null ?
+                                            visitor.getBirthday() : null)
+                                    // 통계 정보
+                                    .visitCount(stats != null ? stats.getVisitCount() : 0)
+                                    .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
+                                    .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
+                                    // 선호 메뉴
+                                    .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
+                                    .build());
                 })
                 .collect(Collectors.toList());
     }
@@ -217,5 +217,29 @@ public class VisitorsService {
         userCodeList.add(visitor.getUserCode());
 
         return userCodeList;
+    }
+
+    @Transactional
+    public Visitors createVisitorsByUserNameAndUserPhone(Integer shopCode , VisitorCreateRequest request){
+        // 이미 user로 존재하는지 체크
+        Integer userCode = userService.findUserByNameAndPhone(request.getName(), request.getPhone());
+
+        // 없다면 추가해서 userId를 받아온다.
+        if(userCode == null){
+            userCode = userService.createUserByNameAndPhone(request.getName(), request.getPhone()).getUserCode();
+        }
+
+        VisitorsDTO visitorsDTO = VisitorsDTO.builder()
+                .userCode(userCode)
+                .shopCode(shopCode)
+                .sendable(request.getSendable())
+                .memo(request.getMemo())
+                .isActive(true)
+                .build();
+
+        Visitors visitors = visitorsRepository.save(modelMapper.map(visitorsDTO, Visitors.class));
+
+        // Visitors Table에 생성.
+        return visitors;
     }
 }

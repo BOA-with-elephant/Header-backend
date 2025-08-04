@@ -3,7 +3,7 @@
 # 여기선 하나의 서비스인 header-backend-server만 정의한다.
 services:
   # 서비스 이름, 나중에 docker compose up 명령으로 이 이름을 기준으로 컨테이너가 실행됨
-  header-backend-server:
+  header_backend:
     # 이 섹션은 Docker 이미지를 직접 빌드할 것임을 나타낸다.
     build:
       # context : . -> 현재 디렉토리를 빌드 컨텍스트로 사용하겠다는 의미.
@@ -13,7 +13,7 @@ services:
       dockerfile: Dockerfile
       # 컨테이너 이름 수동으로 설정
       # 지정하지 않으면 프로젝트이름_서비스이름_번호 형식으로 자동 생성
-    container_name: header-backend-server
+    container_name: header_backend
     # environment란
     # Spring Boot의 application.properties/application.yml 설정을 외부에서 주입할 수 있게 해준다.
     # 즉 Spring Boot에서 이 값들을 자동으로 읽는다.
@@ -28,27 +28,28 @@ services:
     # header-backend-server 실행하기 전에 database-server 부터 실행하라는 의미
     # 단, DB가 완전히 준비되었는지까지 보장하지 않기 때문에, 애플리케이션 코드에서 재시도 로직이 있는 것이 더 안전하다.
     depends_on:
-      - header-db-server
+      - header_db
 
-  test-frontend-server:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: header-frontend-server
-    # 3000:80 : Docker 컨테이너 안에서 React앱은 nginx 등이 80번 포트로 서비스된다.
-    #           호스트(EC2 등)에서는 3000번 포트로도 접근 가능하다.
-    # 3000:3000 : 컨테이너 내부에서도 npm start 같은 dev server가 3000번 포트 사용한다.
-    #             로컬 개발 중에는 이 방식을 사용한다.
-    ports:
-      - "3000:3000" # 개발용 -> npm start 실행 시
-    #      - "3000:80"   # 실제 배포용 -> npm run build 후 서빙
-    depends_on:
-      - header-backend-server
+  # 프론트, 백엔드 레포지토리 다름으로 하위 주석 부분은 필요 없음.
+  #  test-frontend-server:
+  #    build:
+  #      context: ./frontend
+  #      dockerfile: Dockerfile
+  #    container_name: header-frontend-server
+  #    # 3000:80 : Docker 컨테이너 안에서 React앱은 nginx 등이 80번 포트로 서비스된다.
+  #    #           호스트(EC2 등)에서는 3000번 포트로도 접근 가능하다.
+  #    # 3000:3000 : 컨테이너 내부에서도 npm start 같은 dev server가 3000번 포트 사용한다.
+  #    #             로컬 개발 중에는 이 방식을 사용한다.
+  #    ports:
+  #      - "3000:3000" # 개발용 -> npm start 실행 시
+  #    #      - "3000:80"   # 실제 배포용 -> npm run build 후 서빙
+  #    depends_on:
+  #      - header-backend-server
 
-  header-db-server:
+  header_db:
     # 사용할 MySQL 버전 명시
     image: mysql:8.0.33
-    container_name: header-db-server
+    container_name: header_db
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
