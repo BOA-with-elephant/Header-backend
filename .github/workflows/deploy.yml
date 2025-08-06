@@ -2,7 +2,7 @@ name: Header Backend DEPLOY
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "develope" ]
 
 jobs:
   header_backend:
@@ -55,7 +55,7 @@ jobs:
       # 환경별 yml파일 생성(1) - application.yml
       - name: make application.yml
         if: |
-          contains(github.ref, 'master')
+          contains(github.ref, 'master') || contains(github.ref, 'develope')
         run: |
           mkdir -p ./src/main/resources
           echo "${{ secrets.APPLICATION_PROPERTIES }}" | base64 --decode > ./src/main/resources/application.yml
@@ -69,13 +69,14 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
-      # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - master 브랜치
+      # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - master/develope 브랜치
       - name: Docker build & push to prod
-        if: contains(github.ref, 'master')
+        if: contains(github.ref, 'master') || contains(github.ref, 'develope')
         run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:master .
-          docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME} .
 
       # deploy to EC2 - master
       - name: Deploy to prod
