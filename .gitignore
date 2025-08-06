@@ -44,3 +44,4 @@ out/
 *.md
 *.html
 *.yml
+!docker-compose.yml
