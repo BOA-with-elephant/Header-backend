@@ -72,17 +72,19 @@ jobs:
       # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - master/develope 브랜치
       - name: Docker build & push to prod
         if: contains(github.ref, 'master') || contains(github.ref, 'develope')
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           set -e
           BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
-          DOCKER_USER=${{ secrets.DOCKER_USERNAME }}
 
           echo "Branch: $BRANCH_NAME"
-          echo "Docker User: $DOCKER_USER"
+          echo "Docker User: $DOCKER_USERNAME"
 
-          docker login -u $DOCKER_USER -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t $DOCKER_USER/header-back-img:$BRANCH_NAME .
-          docker push $DOCKER_USER/header-back-img:$BRANCH_NAME
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker build -t $DOCKER_USERNAME/header-back-img:$BRANCH_NAME .
+          docker push $DOCKER_USERNAME/header-back-img:$BRANCH_NAME
 
       # deploy to EC2 - master
       - name: Deploy to EC2 with docker-compose
