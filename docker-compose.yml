@@ -59,7 +59,7 @@ services:
       - "3366:3306"
     # mysql-data:/var/lib/mysql : MySQL 데이터가 컨테이너 재시작 시에도 유지되도록 로컬 볼륨에 저장
     # ./init.sql:/docker-entrypoint-initdb.d/init.sql : 컨테이너 시작 시 init.sql을 자동 실행(테이블 생성 등 초기화 작업 가능)
-    privileged: true
+#    privileged: true
     volumes:
       - mysql-data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:rw
