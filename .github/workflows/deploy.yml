@@ -93,31 +93,31 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: |
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        script: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
 #           1. 애플리케이션 폴더로 이동 및 최신 코드 pull
-            mkdir -p ~/app/header-backend
-            cd ~/app/header-backend
-            git pull origin master
+          mkdir -p ~/app/header-backend
+          cd ~/app/header-backend
+          git pull origin master
 
 #           2. 최신 이미지 pull(먼저 해야 down/up 할 때 최신 이미지 적용됨)
-            docker pull ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
+          docker pull ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
 
 #           3. 이전 컨테이너/네트워크/볼륨 제거
-            docker-compose -f docker-compose.yml down -v || true
-            
+          docker-compose -f docker-compose.yml down -v || true
+          
 #           4. env 파일 생성(up 전에 반드시 필요)
-            echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" > .env
-            echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
-            echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
-            echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
-            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-            echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-            echo "COOLSMS_API_KEY=${{ secrets.COOLSMS_API_KEY }}" >> .env
-            echo "COOLSMS_API_SECRET=${{ secrets.COOLSMS_API_SECRET }}" >> .env
-            echo "COOLSMS_BASE_URL=${{ secrets.COOLSMS_BASE_URL }}" >> .env
-            
+          echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" > .env
+          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
+          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "COOLSMS_API_KEY=${{ secrets.COOLSMS_API_KEY }}" >> .env
+          echo "COOLSMS_API_SECRET=${{ secrets.COOLSMS_API_SECRET }}" >> .env
+          echo "COOLSMS_BASE_URL=${{ secrets.COOLSMS_BASE_URL }}" >> .env
+          
 #           5. docker-compose 실행(build 포함, 백그라운드 실행)
-            docker-compose -f docker-compose.yml up -d --build
+          docker-compose -f docker-compose.yml up -d --build
