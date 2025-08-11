@@ -2,7 +2,9 @@ name: Header Backend DEPLOY
 
 on:
   push:
-    branches: [ "master", "develope" ]
+    branches:
+      - master
+      - develope
 
 jobs:
   header_backend:
