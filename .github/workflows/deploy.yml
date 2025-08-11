@@ -73,12 +73,14 @@ jobs:
       - name: Docker build & push to prod
         if: contains(github.ref, 'master') || contains(github.ref, 'develope')
         run: |
+          set -e
           BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:$BRANCH_NAME .
+          docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:$BRANCH_NAME
+  
 
-      # deploy to EC2 - master
+  # deploy to EC2 - master
       - name: Deploy to EC2 with docker-compose
         uses: appleboy/ssh-action@v1.0.3
         id: deploy-prod
