@@ -14,7 +14,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 모든 경로에 대해
         registry.addMapping("/**")
                 // Origin이 http:localhost:3000에 대해
-                .allowedOrigins("https://your-app.vercel.app", "http://localhost:3000")
+                .allowedOrigins("https://header.vercel.app", "http://localhost:3000")
                 // GET, POST, PUT, PATCH, DELETE 메소드를 허용
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
                 // 클라이언트가 요청할 때 어떤 헤더를 포함해도 허용(Authrization, Content-Type, X-Custom-Header 등)
