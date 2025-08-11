@@ -88,7 +88,7 @@ jobs:
       - name: Deploy to EC2 with docker-compose
         uses: appleboy/ssh-action@v1.0.3
         id: deploy-prod
-        if: contains(github.ref, 'master')
+        if: cgithub.ref == 'refs/heads/master'
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
