@@ -73,14 +73,14 @@ jobs:
 
       # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - master/develope 브랜치
       - name: Docker build & push (master)
-        if: github.ref == 'refs/heads/master'
+        if: contains(github.ref, 'master')
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:master .
           docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
 
       - name: Docker build & push (develope)
-        if: github.ref == 'refs/heads/develope'
+        if: contains(github.ref, 'develope')
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:develope .
@@ -90,7 +90,7 @@ jobs:
       - name: Deploy to EC2 with docker-compose
         uses: appleboy/ssh-action@v1.0.3
         id: deploy-prod
-        if: github.ref == 'refs/heads/master'
+        if: contains(github.ref, 'master')
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
