@@ -76,7 +76,7 @@ jobs:
           BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}")
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:${BRANCH_NAME}
 
       # deploy to EC2 - master
       - name: Deploy to EC2 with docker-compose
