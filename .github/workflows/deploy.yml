@@ -71,7 +71,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
-      # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - master/develope 브랜치
+      # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - master 브랜치
       - name: Docker build & push (master)
         if: contains(github.ref, 'master')
         run: |
@@ -79,6 +79,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:master .
           docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
 
+      # Docker 이미지 빌드 후 Docker Hub에 푸쉬 - develope 브랜치
       - name: Docker build & push (develope)
         if: contains(github.ref, 'develope')
         run: |
