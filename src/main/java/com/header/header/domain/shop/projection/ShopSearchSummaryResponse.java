@@ -10,5 +10,7 @@ public interface ShopSearchSummaryResponse {
     Double getShopLa();
     String getCategoryName();
     Double getDistance();
+    String getMenuName();
+    Integer getMenuRevCount();
 
 }
