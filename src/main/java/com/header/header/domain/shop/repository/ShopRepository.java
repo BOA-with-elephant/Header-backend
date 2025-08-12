@@ -54,7 +54,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
     @Query(
             value = """
-        SELECT 
+        SELECT DISTINCT 
             s.SHOP_CODE AS shopCode,
             s.SHOP_NAME AS shopName,
             s.SHOP_PHONE AS shopPhone,
@@ -68,17 +68,26 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
                 
         FROM TBL_SHOP s
         JOIN TBL_SHOP_CATEGORY sc ON s.CATEGORY_CODE = sc.CATEGORY_CODE
+        LEFT JOIN TBL_MENU m ON m.SHOP_CODE = s.SHOP_CODE
         WHERE (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
-          AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
+          AND (:keyword IS NULL
+                        OR s.SHOP_NAME LIKE %:keyword%
+                        OR s.SHOP_LOCATION LIKE %:keyword%
+                        OR m.MENU_NAME LIKE %:keyword%)
           AND s.IS_ACTIVE = 1
+        GROUP BY s.SHOP_CODE
         ORDER BY distance ASC
         """,
             countQuery = """
-        SELECT COUNT(*)
+        SELECT COUNT(DISTINCT s.SHOP_CODE)
         FROM TBL_SHOP s
+        LEFT JOIN TBL_MENU m ON m.SHOP_CODE = s.SHOP_CODE
         WHERE s.IS_ACTIVE = 1
           AND (:categoryCode IS NULL OR s.CATEGORY_CODE = :categoryCode)
-          AND (:keyword IS NULL OR s.SHOP_NAME LIKE %:keyword% OR s.SHOP_LOCATION LIKE %:keyword%)
+          AND (:keyword IS NULL
+                        OR s.SHOP_NAME LIKE %:keyword%
+                        OR s.SHOP_LOCATION LIKE %:keyword%
+                        OR m.MENU_NAME LIKE %:keyword%)
         """,
             nativeQuery = true
     )
