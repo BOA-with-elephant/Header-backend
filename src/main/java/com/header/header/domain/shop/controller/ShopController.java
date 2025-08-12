@@ -8,7 +8,6 @@ import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
 import com.header.header.domain.shop.common.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopWithMenusSummaryDTO;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
-import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
