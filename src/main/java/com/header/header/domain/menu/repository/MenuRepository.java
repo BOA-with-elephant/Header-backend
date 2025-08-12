@@ -1,6 +1,7 @@
 package com.header.header.domain.menu.repository;
 
 import com.header.header.domain.menu.entity.Menu;
+import com.header.header.domain.shop.projection.MenuSummaryWithRevCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -104,5 +105,28 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         @Param("categoryCode") Integer categoryCode,
         @Param("shopCode") Integer shopCode,
         @Param("currentIsActive") Boolean currentIsActive);
+
+    /*
+    * 샵 검색시 메뉴 정보 (코드, 이름, 누적 예약 수) 가져오기
+    * 가져오는 정보는 누적 예약 수를 기준으로 내림차순임
+    *
+    * @param shopCode 샵 코드
+    * @return List<MenuSummaryDTO> 샵 코드, 메뉴 정보 (코드, 이름, 누적 예약 수)
+    * */
+    @Query("""
+        SELECT 
+                m.menuCategory.id.shopCode as shopCode,
+                m.menuCode as menuCode,
+                m.menuName as menuName,
+                COUNT(r.resvCode) as menuRevCount
+        FROM Menu m
+        LEFT JOIN BossReservation r ON r.menuInfo.menuCode = m.menuCode
+        WHERE m.menuCategory.id.shopCode IN :shopCode
+        GROUP BY m.menuCategory.id.shopCode, m.menuCode, m.menuName
+        ORDER BY menuRevCount DESC
+        """)
+    List<MenuSummaryWithRevCount> getMenuSummaryByShopCode(
+            @Param("shopCode") List<Integer> shopCode
+    );
 
 }

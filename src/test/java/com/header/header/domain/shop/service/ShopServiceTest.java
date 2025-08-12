@@ -3,6 +3,7 @@ package com.header.header.domain.shop.service;
 import com.header.header.domain.shop.dto.ShopCreationDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.dto.ShopUpdateDTO;
+import com.header.header.domain.shop.dto.ShopWithMenusSummaryDTO;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
@@ -124,11 +125,11 @@ class ShopServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
+        Page<ShopWithMenusSummaryDTO> result = shopService.findShopsByCondition(
                 userLat, userLong, categoryCode, null, pageable
         );
 
-        List<ShopSearchSummaryResponse> content = result.getContent();
+        List<ShopWithMenusSummaryDTO> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -148,11 +149,11 @@ class ShopServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         String keyword = "멀리";
 
-        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
+        Page<ShopWithMenusSummaryDTO> result = shopService.findShopsByCondition(
                 userLat, userLong, categoryCode, keyword, pageable
         );
 
-        List<ShopSearchSummaryResponse> content = result.getContent();
+        List<ShopWithMenusSummaryDTO> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
@@ -172,11 +173,11 @@ class ShopServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ShopSearchSummaryResponse> result = shopService.findShopsByCondition(
+        Page<ShopWithMenusSummaryDTO> result = shopService.findShopsByCondition(
                 null, null, categoryCode, null, pageable
         );
 
-        List<ShopSearchSummaryResponse> content = result.getContent();
+        List<ShopWithMenusSummaryDTO> content = result.getContent();
 
         content.forEach(dto -> {
             System.out.println(
