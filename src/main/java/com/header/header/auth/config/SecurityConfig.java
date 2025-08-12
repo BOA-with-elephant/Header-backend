@@ -128,8 +128,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("https://header-frontend-alpha.vercel.app");
+        config.addAllowedOrigin("http://localhost:3000");  // 개발용
+        config.addAllowedOrigin("https://header-frontend-alpha.vercel.app");  // 배포용
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
