@@ -6,8 +6,8 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
 import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.domain.shop.dto.ShopWithMenusSummaryDTO;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
-import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class ShopController {
         // 기본 로딩 개수는 10개
             Pageable pageable = PageRequest.of(page, 10);
 
-        Page<ShopSearchSummaryResponse> shopsWithPaging
+        Page<ShopWithMenusSummaryDTO> shopsWithPaging
                 = shopService.findShopsByCondition(
                 latitude,
                 longitude,
