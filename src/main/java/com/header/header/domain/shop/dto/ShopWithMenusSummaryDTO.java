@@ -16,8 +16,17 @@ public class ShopWithMenusSummaryDTO {
     private Double shopLa;
     private String categoryName;
     private Double distance;
-    private String menuName;
-    private Integer menuRevCount;
 
     private List<MenuSummaryDTO> menus;
+
+    public ShopWithMenusSummaryDTO(Integer shopCode, String shopName, String shopPhone, String shopLocation, Double shopLong, Double shopLa, String categoryName, Double distance) {
+        this.shopCode = shopCode;
+        this.shopName = shopName;
+        this.shopPhone = shopPhone;
+        this.shopLocation = shopLocation;
+        this.shopLong = shopLong;
+        this.shopLa = shopLa;
+        this.categoryName = categoryName;
+        this.distance = distance;
+    }
 }

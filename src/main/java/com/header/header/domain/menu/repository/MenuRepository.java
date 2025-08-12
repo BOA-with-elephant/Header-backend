@@ -119,7 +119,7 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         GROUP BY s.shopCode, m.menuCode, m.menuName
         """)
     List<MenuSummaryDTO> getMenuSummaryByShopCode(
-            @Param("shopCode") Integer shopCode
+            @Param("shopCode") List<Integer> shopCode
     );
 
 }

@@ -18,10 +18,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,7 +86,7 @@ public class ShopService {
     /*사용자가 검색하는 경우, 페이징 처리된 요약 조회 메소드
       필터: 카테고리 or 키워드
       정렬: 기끼운 거리순*/
-    public Page<ShopSearchSummaryResponse> findShopsByCondition(
+    public Page<ShopWithMenusSummaryDTO> findShopsByCondition(
             Double lat, Double lon, Integer categoryCode, String keyword, Pageable pageable
     ) {
 
@@ -103,12 +107,31 @@ public class ShopService {
                 .map(ShopSearchSummaryResponse::getShopCode)
                 .collect(Collectors.toList());
 
-        for ( Integer shopCode: shopCodes) {
-            List<MenuSummaryDTO> allMenus = menuRepository.getMenuSummaryByShopCode(shopCode);
-        }
-        //TODO. shopCode List로 가져오는 문제 수정 필요
+        List<MenuSummaryDTO> allMenus = menuRepository.getMenuSummaryByShopCode(shopCodes);
 
-        return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
+        Map<Integer, List<MenuSummaryDTO>> shopMenus = allMenus.stream()
+                .collect(Collectors.groupingBy(MenuSummaryDTO::getShopCode));
+
+        List<ShopWithMenusSummaryDTO> responseList = shopSummaryPage.getContent().stream()
+                .map(shop -> {
+                    ShopWithMenusSummaryDTO response
+                            = new ShopWithMenusSummaryDTO(
+                            shop.getShopCode(),
+                            shop.getShopName(),
+                            shop.getShopPhone(),
+                            shop.getShopLocation(),
+                            shop.getShopLong(),
+                            shop.getShopLa(),
+                            shop.getCategoryName(),
+                            shop.getDistance());
+
+                    List<MenuSummaryDTO> menus = shopMenus.getOrDefault(shop.getShopCode(), Collections.emptyList());
+                    menus.sort(Comparator.comparing(MenuSummaryDTO::getMenuRevCount).reversed()); // 메뉴 예약순 정렬
+                    response.setMenus(menus);
+                    return response;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(responseList, shopSummaryPage.getPageable(), shopSummaryPage.getTotalElements());
     }
 
     /*관리자 혹은 사용자의 상세조회*/
