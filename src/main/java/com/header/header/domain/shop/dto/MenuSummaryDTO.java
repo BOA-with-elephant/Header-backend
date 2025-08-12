@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class MenuSummaryDTO {
+    private Integer shopCode;
+    private Integer menuCode;
     private String menuName;
     private Integer menuRevCount;
 }

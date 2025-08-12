@@ -1,5 +1,6 @@
 package com.header.header.domain.shop.service;
 
+import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.shop.dto.*;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +32,11 @@ public class ShopService {
     private final ModelMapper modelMapper;
     private final MapService mapService;
 
-
     private final MainUserRepository userRepository;
 
     private final ShopCategoryRepository shopCategoryRepository;
+
+    private final MenuRepository menuRepository;
 
     //CREATE 샵 생성
     public ShopDTO createShop(ShopCreationDTO dto) {
@@ -93,6 +96,17 @@ public class ShopService {
         ShopCategory category = shopCategoryRepository.findById(categoryCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
+
+        Page<ShopSearchSummaryResponse> shopSummaryPage = shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
+
+        List<Integer> shopCodes = shopSummaryPage.getContent().stream()
+                .map(ShopSearchSummaryResponse::getShopCode)
+                .collect(Collectors.toList());
+
+        for ( Integer shopCode: shopCodes) {
+            List<MenuSummaryDTO> allMenus = menuRepository.getMenuSummaryByShopCode(shopCode);
+        }
+        //TODO. shopCode List로 가져오는 문제 수정 필요
 
         return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
     }

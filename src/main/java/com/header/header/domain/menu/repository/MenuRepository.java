@@ -1,6 +1,7 @@
 package com.header.header.domain.menu.repository;
 
 import com.header.header.domain.menu.entity.Menu;
+import com.header.header.domain.shop.dto.MenuSummaryDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -104,5 +105,21 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         @Param("categoryCode") Integer categoryCode,
         @Param("shopCode") Integer shopCode,
         @Param("currentIsActive") Boolean currentIsActive);
+
+    @Query("""
+        SELECT 
+                s.shopCode,
+                m.menuCode,
+                m.menuName,
+                COUNT(r.resvCode) as menuRevCount
+        FROM Menu m
+        JOIN BossReservation r ON r.menuInfo.menuCode = m.menuCode
+        JOIN Shop s ON s.shopCode = r.shopInfo.shopCode
+        WHERE s.shopCode = :shopCode
+        GROUP BY s.shopCode, m.menuCode, m.menuName
+        """)
+    List<MenuSummaryDTO> getMenuSummaryByShopCode(
+            @Param("shopCode") Integer shopCode
+    );
 
 }
