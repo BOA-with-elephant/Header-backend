@@ -262,4 +262,15 @@ public class ShopService {
 
         return mapServiceDTO.getDocuments().get(0);
     }
+
+    /* Shop 정보에서 AdminCode(=UserCode)를 받아오기 위한 메소드 */
+    public ShopDTO findFirstShopByAdminCode(Integer adminCode) {
+        List<ShopSummary> shops = shopRepository.readShopSummaryByAdminCode(adminCode);
+        if(shops.isEmpty()) {
+            return null;
+        }
+        ShopSummary firstShop = shops.get(0);
+
+        return modelMapper.map(firstShop, ShopDTO.class);
+    }
 }

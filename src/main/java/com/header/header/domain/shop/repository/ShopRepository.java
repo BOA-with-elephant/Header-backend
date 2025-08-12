@@ -127,4 +127,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     """)
     boolean isShopLeft (@Param("adminCode") Integer adminCode);
 
+    /* shop DB의 adminCode를 찾아온다 */
+    @Query("SELECT s FROM Shop s WHERE s.adminInfo.userCode = :adminCode")
+    Optional<Shop> findByAdminCode(@Param("adminCode") Integer adminCode);
 }

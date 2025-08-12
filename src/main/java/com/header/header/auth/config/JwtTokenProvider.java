@@ -3,6 +3,7 @@ package com.header.header.auth.config;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
+import com.header.header.domain.shop.dto.ShopDTO;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -38,14 +39,15 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
                             @Value("${jwt.expiration}") long tokenValidityTime,
-                            @Lazy AuthUserService authUserService) {
+                            @Lazy AuthUserService authUserService
+                            ) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = tokenValidityTime;
         this.authUserService = authUserService;
     }
 
-    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO) {
+    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO, ShopDTO shopDTO) {
         log.info("[TokenProvider] generateTokenDTO() Start");
 
         long now = System.currentTimeMillis();
@@ -61,6 +63,9 @@ public class JwtTokenProvider {
                 .setSubject(loginUserDTO.getUserId())
                 // 권한 정보를 클레임으로 추가
                 .claim(AUTHORITIES_KEY, authorities)
+                //shopCode 클레임으로 추가
+//                .claim(shopDTO.getShopName(), shopDTO.getShopCode())
+                .claim(String.valueOf(shopDTO.getAdminCode()), shopDTO.getShopCode())
                 // 토큰 만료 시간 설정
                 .setExpiration(accessTokenExpiresIn)
                 // 서명에 사용할 키와 알고리즘
