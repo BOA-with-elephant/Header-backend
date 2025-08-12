@@ -1,5 +1,6 @@
 package com.header.header.domain.shop.dto;
 
+import com.header.header.domain.shop.projection.MenuSummaryWithRevCount;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +18,7 @@ public class ShopWithMenusSummaryDTO {
     private String categoryName;
     private Double distance;
 
-    private List<MenuSummaryDTO> menus;
+    private List<MenuSummaryWithRevCount> menus;
 
     public ShopWithMenusSummaryDTO(Integer shopCode, String shopName, String shopPhone, String shopLocation, Double shopLong, Double shopLa, String categoryName, Double distance) {
         this.shopCode = shopCode;

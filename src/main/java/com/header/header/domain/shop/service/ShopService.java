@@ -7,6 +7,7 @@ import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
+import com.header.header.domain.shop.projection.MenuSummaryWithRevCount;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
@@ -107,10 +108,10 @@ public class ShopService {
                 .map(ShopSearchSummaryResponse::getShopCode)
                 .collect(Collectors.toList());
 
-        List<MenuSummaryDTO> allMenus = menuRepository.getMenuSummaryByShopCode(shopCodes);
+        List<MenuSummaryWithRevCount> allMenus = menuRepository.getMenuSummaryByShopCode(shopCodes);
 
-        Map<Integer, List<MenuSummaryDTO>> shopMenus = allMenus.stream()
-                .collect(Collectors.groupingBy(MenuSummaryDTO::getShopCode));
+        Map<Integer, List<MenuSummaryWithRevCount>> shopMenus = allMenus.stream()
+                .collect(Collectors.groupingBy(MenuSummaryWithRevCount::getShopCode));
 
         List<ShopWithMenusSummaryDTO> responseList = shopSummaryPage.getContent().stream()
                 .map(shop -> {
@@ -125,8 +126,8 @@ public class ShopService {
                             shop.getCategoryName(),
                             shop.getDistance());
 
-                    List<MenuSummaryDTO> menus = shopMenus.getOrDefault(shop.getShopCode(), Collections.emptyList());
-                    menus.sort(Comparator.comparing(MenuSummaryDTO::getMenuRevCount).reversed()); // 메뉴 예약순 정렬
+                    List<MenuSummaryWithRevCount> menus = shopMenus.getOrDefault(shop.getShopCode(), Collections.emptyList());
+                    menus.sort(Comparator.comparing(MenuSummaryWithRevCount::getMenuRevCount).reversed()); // 메뉴 예약순 정렬
                     response.setMenus(menus);
                     return response;
                 }).collect(Collectors.toList());

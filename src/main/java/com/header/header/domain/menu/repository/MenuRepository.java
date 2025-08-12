@@ -1,7 +1,7 @@
 package com.header.header.domain.menu.repository;
 
 import com.header.header.domain.menu.entity.Menu;
-import com.header.header.domain.shop.dto.MenuSummaryDTO;
+import com.header.header.domain.shop.projection.MenuSummaryWithRevCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -124,7 +124,7 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         GROUP BY m.menuCategory.id.shopCode, m.menuCode, m.menuName
         ORDER BY menuRevCount DESC
         """)
-    List<MenuSummaryDTO> getMenuSummaryByShopCode(
+    List<MenuSummaryWithRevCount> getMenuSummaryByShopCode(
             @Param("shopCode") List<Integer> shopCode
     );
 
