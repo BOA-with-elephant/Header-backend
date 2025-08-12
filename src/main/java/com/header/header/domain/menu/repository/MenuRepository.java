@@ -106,17 +106,23 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         @Param("shopCode") Integer shopCode,
         @Param("currentIsActive") Boolean currentIsActive);
 
+    /*
+    * 샵 검색시 메뉴 정보 (코드, 이름, 누적 예약 수) 가져오기
+    *
+    * @param shopCode 샵 코드
+    * @return List<MenuSummaryDTO> 샵 코드, 메뉴 정보 (코드, 이름, 누적 예약 수)
+    * */
     @Query("""
         SELECT 
-                s.shopCode,
-                m.menuCode,
-                m.menuName,
+                m.menuCategory.id.shopCode as shopCode,
+                m.menuCode as menuCode,
+                m.menuName as menuName,
                 COUNT(r.resvCode) as menuRevCount
         FROM Menu m
-        JOIN BossReservation r ON r.menuInfo.menuCode = m.menuCode
-        JOIN Shop s ON s.shopCode = r.shopInfo.shopCode
-        WHERE s.shopCode = :shopCode
-        GROUP BY s.shopCode, m.menuCode, m.menuName
+        LEFT JOIN BossReservation r ON r.menuInfo.menuCode = m.menuCode
+        WHERE m.menuCategory.id.shopCode IN :shopCode
+        GROUP BY m.menuCategory.id.shopCode, m.menuCode, m.menuName
+        ORDER BY menuRevCount DESC
         """)
     List<MenuSummaryDTO> getMenuSummaryByShopCode(
             @Param("shopCode") List<Integer> shopCode
