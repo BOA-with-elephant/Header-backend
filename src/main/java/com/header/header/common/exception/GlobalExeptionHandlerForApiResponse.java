@@ -5,6 +5,7 @@ import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
+import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +25,27 @@ import javax.security.auth.login.FailedLoginException;
 @RestControllerAdvice(basePackages = {
         "com.header.header.domain.visitors",
         "com.header.header.domain.message",
-        "com.header.header.domain.user"
+        "com.header.header.domain.user",
+        "com.header.header.domain.shop"
 })
 @Slf4j
 public class GlobalExeptionHandlerForApiResponse {
+
+    @ExceptionHandler(ShopExceptionHandler.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleShopExceptionHandler(
+            ShopExceptionHandler ex, WebRequest request
+    ){
+        log.error("ShopException 발생: {} - {} ", ex.getShopErrorCode(), ex.getMessage(), ex);
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                ex.getShopErrorCode().ordinal(),
+                String.valueOf(ex.getShopErrorCode()),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.status(ex.getShopErrorCode().ordinal()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+    }
 
     /**
      * NotFoundException 처리
