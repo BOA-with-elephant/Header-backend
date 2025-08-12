@@ -96,23 +96,29 @@ public class ShopService {
             lon = 127.1067; //사용자가 위치를 허용하지 않았을 때의 기본값, 송파구 중심 좌표
         }
 
+        /*사용자가 카테고리 검색을 했을 때 유효성 검사 실시*/
         if (categoryCode != null) {
 
         ShopCategory category = shopCategoryRepository.findById(categoryCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
 
+        /*샵 정보 가져오기*/
         Page<ShopSearchSummaryResponse> shopSummaryPage = shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
 
+        /*위에서 가져온 샵 정보에서 샵 코드를 추출하여 리스트 형태로 가공*/
         List<Integer> shopCodes = shopSummaryPage.getContent().stream()
                 .map(ShopSearchSummaryResponse::getShopCode)
                 .collect(Collectors.toList());
 
+        /*메뉴 정보와 메뉴 예약 누적 수를 합한 결과를 리스트 형태로 가져오기*/
         List<MenuSummaryWithRevCount> allMenus = menuRepository.getMenuSummaryByShopCode(shopCodes);
 
+        /*위에서 가져온 메뉴 및 메뉴 예약 수를 맵에 담기*/
         Map<Integer, List<MenuSummaryWithRevCount>> shopMenus = allMenus.stream()
                 .collect(Collectors.groupingBy(MenuSummaryWithRevCount::getShopCode));
 
+        /*샵 정보와 메뉴 정보를 리스트로 가공하기*/
         List<ShopWithMenusSummaryDTO> responseList = shopSummaryPage.getContent().stream()
                 .map(shop -> {
                     ShopWithMenusSummaryDTO response
@@ -132,6 +138,7 @@ public class ShopService {
                     return response;
                 }).collect(Collectors.toList());
 
+        /*가공한 정보를 페이징 가능한 객체로 반환*/
         return new PageImpl<>(responseList, shopSummaryPage.getPageable(), shopSummaryPage.getTotalElements());
     }
 

@@ -108,6 +108,7 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
 
     /*
     * 샵 검색시 메뉴 정보 (코드, 이름, 누적 예약 수) 가져오기
+    * 가져오는 정보는 누적 예약 수를 기준으로 내림차순임
     *
     * @param shopCode 샵 코드
     * @return List<MenuSummaryDTO> 샵 코드, 메뉴 정보 (코드, 이름, 누적 예약 수)
