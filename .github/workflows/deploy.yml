@@ -97,10 +97,11 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            mkdir -p ~/app/header-backend
             cd ~/app/header-backend
             git pull origin master
             docker pull ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
-            docker compose -f docker-compose.yml down -v || true
+            docker-compose -f docker-compose.yml down -v || true
             echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" > .env
             echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
             echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
@@ -111,4 +112,4 @@ jobs:
             echo "COOLSMS_API_KEY=${{ secrets.COOLSMS_API_KEY }}" >> .env
             echo "COOLSMS_API_SECRET=${{ secrets.COOLSMS_API_SECRET }}" >> .env
             echo "COOLSMS_BASE_URL=${{ secrets.COOLSMS_BASE_URL }}" >> .env
-            docker compose -f docker-compose.yml up -d --build
+            docker-compose -f docker-compose.yml up -d --build
