@@ -17,7 +17,13 @@ import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
+import com.header.header.domain.visitors.dto.VisitorCreateRequest;
+import com.header.header.domain.visitors.dto.VisitorCreateResponse;
+import com.header.header.domain.visitors.enitity.Visitors;
+import com.header.header.domain.visitors.repository.VisitorsRepository;
+import com.header.header.domain.visitors.service.VisitorsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +33,9 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -40,6 +48,8 @@ public class BossReservationService {
     private final MenuRepository menuRepository;
     private final SalesService salesService;
     private final ModelMapper modelMapper;
+    private final VisitorsService visitorsService;
+    private VisitorsRepository visitorsRepository;
 
     /* 가게 예약 내역 전체 조회하기 */
     public List<BossResvProjectionDTO> findReservationList(Integer shopCode, String thisMonth){
@@ -94,17 +104,17 @@ public class BossReservationService {
     }
 
     /* 새 예약 등록하기 */
-    public void registNewReservation(BossResvInputDTO inputDTO, Integer shopCode){
+    public Integer registNewReservation(BossResvInputDTO inputDTO, Integer shopCode){
         /*
-        * 1. 예약 정보 입력받기(userName, userPhone, MenuName, resvDate, resvTime, userComment, resvState(예약 확정))
-        * 2. 입력받은 정보를 DTO에 담아서 받기
-        * 3. 입력 받은 정보 등록하기
-        * 3-1. 기존 회원 O -> userName과 userPhone을 기반으로 userCode 가져오기
-        *                    menuName을 기반으로 menuCode 가져오기
-        * 3-2. 기존 회원 X -> user 테이블에 userName, userPhone 등록 후 userCode 가져오기
-        *                    menuName을 기반으로 menuCode 가져오기
-        * 4. 가져온 값을 다시 DTO에 저장하기
-        */
+         * 1. 예약 정보 입력받기(userName, userPhone, MenuName, resvDate, resvTime, userComment, resvState(예약 확정))
+         * 2. 입력받은 정보를 DTO에 담아서 받기
+         * 3. 입력 받은 정보 등록하기
+         * 3-1. 기존 회원 O -> userName과 userPhone을 기반으로 userCode 가져오기
+         *                    menuName을 기반으로 menuCode 가져오기
+         * 3-2. 기존 회원 X -> user 테이블에 userName, userPhone 등록 후 userCode 가져오기
+         *                    menuName을 기반으로 menuCode 가져오기
+         * 4. 가져온 값을 다시 DTO에 저장하기
+         */
 
         BossReservationDTO registDTO = new BossReservationDTO();
         registDTO.setMenuInfo(new BossResvMenuDTO());
@@ -120,14 +130,21 @@ public class BossReservationService {
             registDTO.getUserInfo().setUserCode(user.getUserCode());
         } else {
             // 새로운 회원 등록 후 해당 회원의 userCode 저장
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUserName(inputDTO.getUserName());
-            userDTO.setUserPhone(inputDTO.getUserPhone());
-            userDTO.setIsAdmin(0);
-            userDTO.setIsLeave(0);
-
-            newUser = userRepository.save(modelMapper.map(userDTO, User.class));
-            registDTO.getUserInfo().setUserCode(newUser.getUserCode());
+//            UserDTO userDTO = new UserDTO();
+//            userDTO.setUserName(inputDTO.getUserName());
+//            userDTO.setUserPhone(inputDTO.getUserPhone());
+//            userDTO.setIsAdmin(0);
+//            userDTO.setIsLeave(0);
+//
+//            newUser = userRepository.save(modelMapper.map(userDTO, User.class));
+            VisitorCreateRequest visitorCreateRequest = VisitorCreateRequest.builder()
+                    .name(inputDTO.getUserName())
+                    .phone(inputDTO.getUserPhone())
+                    .sendable(true)
+                    .build();
+            Visitors visitor = visitorsService.createVisitorsByUserNameAndUserPhone(shopCode, visitorCreateRequest);
+            registDTO.getUserInfo().setUserCode(visitor.getUserCode());
+            newUser = userRepository.findById(visitor.getUserCode()).orElseThrow(() -> new RuntimeException("User not found after visitor creation"));
         }
 
         // reservationDTO에 입력받은 menuName과 shopCode로 menuCode 찾아서 넣기
@@ -150,20 +167,22 @@ public class BossReservationService {
         reservation.setUser(user != null ? user : newUser);
         reservation.setShop(shop);
         bossReservationRepository.save(reservation);
+        Integer finalUserCode = user.getUserCode();
+        return finalUserCode;
     }
 
     /* 예약 내용 수정하기 */
     public void updateReservation(BossResvInputDTO inputDTO, Integer resvCode, Integer shopCode){
         /*
-        * 예약 날짜, 예약 시간, 시술 메뉴, 사용자코멘트만 변경 가능
-        * 순서
-        * 1. 전달 받은 resvCode로 해당 데이터 가져오기.
-        * 2. DB에서 넘어온 값은 menuCode로 받아오지만 클라이언트에서 전달 받은 값은 menuName로 받아온다.
-        * 3. 클라이언트에게 전달받은 menuName으로 menuCode 조회하기
-        * 4. 조회해온 menuCode를 basicReservationDTO에 넣기
-        * 5. 그 외의 클라이언트에게 전달받은 값들도 basicReservationDTO에 넣기
-        * 6. basicReservationDTO를 BossReservation 엔티티로 변환하여 DB에 넣기(수정)
-        */
+         * 예약 날짜, 예약 시간, 시술 메뉴, 사용자코멘트만 변경 가능
+         * 순서
+         * 1. 전달 받은 resvCode로 해당 데이터 가져오기.
+         * 2. DB에서 넘어온 값은 menuCode로 받아오지만 클라이언트에서 전달 받은 값은 menuName로 받아온다.
+         * 3. 클라이언트에게 전달받은 menuName으로 menuCode 조회하기
+         * 4. 조회해온 menuCode를 basicReservationDTO에 넣기
+         * 5. 그 외의 클라이언트에게 전달받은 값들도 basicReservationDTO에 넣기
+         * 6. basicReservationDTO를 BossReservation 엔티티로 변환하여 DB에 넣기(수정)
+         */
 
         // 1 ~ 2번
         BossReservation foundReservation = bossReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
@@ -209,12 +228,12 @@ public class BossReservationService {
     public void deleteReservation(Integer resvCode){
 
         /*
-        * 사장이 예약 내역 삭제 버튼 선택 시
-        * 예약 내역을 삭제하면 "해당 내역을 삭제하면 매출에 영향을 미칠 수 있습니다. 삭제하시겠습니까?" 경고창 띄우기
-        * 사장님이 그럼에도 불구하고 삭제한다는 버튼을 선택  / 취소 선택시(삭제 안하겠다) resvCode는 서버로 전달하지 않음
-        * 클라이언트에서 서버로 resvCode 넘기기
-        * 클라이언트에서 받은 resvCode로 해당 내역을 DB에서 삭제
-        */
+         * 사장이 예약 내역 삭제 버튼 선택 시
+         * 예약 내역을 삭제하면 "해당 내역을 삭제하면 매출에 영향을 미칠 수 있습니다. 삭제하시겠습니까?" 경고창 띄우기
+         * 사장님이 그럼에도 불구하고 삭제한다는 버튼을 선택  / 취소 선택시(삭제 안하겠다) resvCode는 서버로 전달하지 않음
+         * 클라이언트에서 서버로 resvCode 넘기기
+         * 클라이언트에서 받은 resvCode로 해당 내역을 DB에서 삭제
+         */
         bossReservationRepository.deleteById(resvCode);
     }
 
@@ -261,12 +280,12 @@ public class BossReservationService {
     /* comment. 노쇼 처리 메소드 만들기 */
     public void noShowHandler(Integer resvCode){
         /*
-        * 1. 사장님이 노쇼 리스트 조회 시 findNoShowList()가 실행됨
-        * 2. 해당 리스트의 예약건을 노쇼 처리 버튼 클릭시 해당 메소드 noShowHandler() 실행됨
-        * 3. 해당 예약건의 resvState는 예약 취소로 바꾸고, userComment는 "노쇼"라고 변경됨
-        *
-        * 일괄 처리 해야할까...?
-        */
+         * 1. 사장님이 노쇼 리스트 조회 시 findNoShowList()가 실행됨
+         * 2. 해당 리스트의 예약건을 노쇼 처리 버튼 클릭시 해당 메소드 noShowHandler() 실행됨
+         * 3. 해당 예약건의 resvState는 예약 취소로 바꾸고, userComment는 "노쇼"라고 변경됨
+         *
+         * 일괄 처리 해야할까...?
+         */
         LocalDate today = LocalDate.now();
 
         BossReservation noShow = bossReservationRepository.findById(resvCode).orElseThrow(IllegalArgumentException::new);
@@ -276,7 +295,7 @@ public class BossReservationService {
                 noShow.getResvDate().toLocalDate().isBefore(today)){
             noShow.noShowHandling();
         } else if(noShow.getUserComment().equals("노쇼")){
-          throw new IllegalStateException("해당 예약은 이미 노쇼처리 되었습니다.");
+            throw new IllegalStateException("해당 예약은 이미 노쇼처리 되었습니다.");
         } else {
             throw new IllegalStateException("해당 예약 건은 노쇼가 아닙니다.");
         }
@@ -302,9 +321,11 @@ public class BossReservationService {
     }
 
     /* 메시지 전송 파라미터인 cliendCode를 조회할 userCode 조회 */
-    public Integer findUserCodeByUserName(String userName){
-        User user = userRepository.findByUserName(userName);
+    public Integer findUserCodeByUserName(String userName, String userPhone){
 
-        return user.getUserCode();
+        Optional<User> user = userRepository.findByNameAndPhone(userName, userPhone);
+        return user.map(User::getUserCode)
+                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
     }
+
 }

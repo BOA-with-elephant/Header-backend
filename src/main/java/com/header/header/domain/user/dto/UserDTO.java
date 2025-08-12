@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @ToString
 public class UserDTO {
 
-    private int userCode;
+    private Integer userCode;
     private String userId;
     private String userPwd;
     private int isAdmin;

@@ -38,9 +38,10 @@ out/
 ### VS Code ###
 .vscode/
 /src/main/resources/application.yml
-/settings.gradle
+#/settings.gradle
 
 ### ignore all md, html, yml file ###
 *.md
 *.html
 *.yml
+!docker-compose.yml

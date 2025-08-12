@@ -10,8 +10,12 @@ import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.service.BossReservationService;
 import com.header.header.domain.sales.dto.SalesDTO;
 import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.domain.visitors.dto.VisitorCreateRequest;
 import com.header.header.domain.visitors.enitity.Visitors;
+import com.header.header.domain.visitors.repository.VisitorsRepository;
 import com.header.header.domain.visitors.service.VisitorsService;
+import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.XSlf4j;
 import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +30,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/my-shops/{shopCode}/reservation")
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
@@ -36,12 +41,14 @@ public class BossReservationController {
     private final BossReservationService bossReservationService;
     private final MessageSendFacadeService messageSendFacadeService;
     private final VisitorsService visitorsService;
+    private final VisitorsRepository visitorsRepository;
 //    private final GetUserInfoByAuthDetails getUserInfoByAuthDetails;
 
-    public BossReservationController(BossReservationService bossReservationService, MessageSendFacadeService messageSendFacadeService, VisitorsService visitorsService){
+    public BossReservationController(BossReservationService bossReservationService, MessageSendFacadeService messageSendFacadeService, VisitorsService visitorsService, VisitorsRepository visitorsRepository){
         this.bossReservationService = bossReservationService;
         this.messageSendFacadeService = messageSendFacadeService;
         this.visitorsService = visitorsService;
+        this.visitorsRepository = visitorsRepository;
     }
 
     /* 당월 가게 에약 내역 조회 */
@@ -101,13 +108,22 @@ public class BossReservationController {
             inputDTO.setMenuName(newReservationInfo.get("menuName"));
             inputDTO.setUserComment(newReservationInfo.get("userComment"));
 
-           bossReservationService.registNewReservation(inputDTO, shopCode);
+            Integer userCode = bossReservationService.registNewReservation(inputDTO, shopCode);
             System.out.println("넘어온 값 : " + inputDTO);
 
-//            // 메시지 발송 전 커스텀
-//            // userName으로 userCode 받아오기
-//            Integer userCode = bossReservationService.findUserCodeByUserName(newReservationInfo.get("userName"));
-//
+            // 메시지 발송 전 커스텀
+            // userName으로 userCode 받아오기
+//            Integer userCode = bossReservationService.findUserCodeByUserName(newReservationInfo.get("userName"), newReservationInfo.get("userPhone"));
+
+//            Visitors visitor = visitorsRepository.findByUserCode(userCode);
+//            if (visitor == null) {
+//                VisitorCreateRequest request = VisitorCreateRequest.builder()
+//                        .name(newReservationInfo.get("userName"))
+//                        .phone(newReservationInfo.get("userPhone"))
+//                        .sendable(true)
+//                        .build();
+//                visitor = visitorsService.createVisitorsByUserNameAndUserPhone(shopCode, request);
+//            }
 //            // visitors의 client코드를 받아오기.
 //            List<Integer> clientCode = visitorsService.findByUserCode(userCode);
 //
@@ -138,7 +154,7 @@ public class BossReservationController {
 
             ResponseEntity<?> response = ResponseEntity.ok(Map.of("message", "등록 완료"));
             System.out.println("Response headers : " + response.getHeaders());
-           return response;
+            return response;
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(400)
