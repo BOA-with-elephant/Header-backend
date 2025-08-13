@@ -85,7 +85,7 @@ services:
       - mysql-data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:rw
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-p$MYSQL_ROOT_PASSWORD" ]
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD" ]
       interval: 5s
       timeout: 3s
       retries: 5
