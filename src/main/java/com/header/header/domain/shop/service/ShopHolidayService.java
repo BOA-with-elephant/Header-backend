@@ -16,6 +16,8 @@ import com.header.header.domain.shop.repository.ShopRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
@@ -23,6 +25,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ public class ShopHolidayService {
 
     private final ShopHolidayRepository shopHolidayRepository;
     private final ModelMapper modelMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /* 가게 정보 조회 */
     private final ShopRepository shopRepository;
@@ -91,6 +95,8 @@ public class ShopHolidayService {
         } else {
             resDTO.setDescription("휴무일이 정상적으로 반영되었습니다.");
         }
+
+        evictByShopCode(shopCode);
 
         return resDTO;
     }
@@ -156,6 +162,8 @@ public class ShopHolidayService {
             resDTO.setDescription("휴무일이 정상적으로 반영되었습니다.");
         }
 
+        evictByShopCode(shopCode);
+
         return resDTO;
     }
 
@@ -202,6 +210,8 @@ public class ShopHolidayService {
 
         // jpa 기본 메소드로 삭제
         shopHolidayRepository.delete(hol);
+
+        evictByShopCode(shopCode);
     }
 
     /* 반복 휴일인 경우 해당 날짜에 예약이 있는지 확인하는 메소드 */
@@ -256,4 +266,16 @@ public class ShopHolidayService {
             throw new ShopHolidayExceptionHandler(ShopHolidayErrorCode.DATE_HAS_RESV);
         }
     }
+
+    /*특정 샵 코드를 기반으로 캐시를 삭제함*/
+    public void evictByShopCode(Integer shopCode) {
+        String pattern = "holidays::" + shopCode + "_*";
+        Set<String> keys = redisTemplate.keys(pattern);
+        System.out.println("Redis key 확인 : " + keys);
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
+    }
+
+
 }
