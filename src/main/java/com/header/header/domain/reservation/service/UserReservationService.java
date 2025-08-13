@@ -165,11 +165,15 @@ public class UserReservationService {
         /* 예약 생성 */
         userReservationRepository.save(newReservation);
 
+        // 캐시 키 생성
         String cacheKey = shopCode + "_" +
                 resvDate.toString() + "_" +
                 resvTime.toString();
 
+        // 캐시 찾아오기
         Cache cache = cacheManager.getCache("reserved-schedule");
+
+        // 새로운 캐시 생성
         cache.put(cacheKey, "reserved-schedule");
 
         return userReservationRepository.readDetailByUserCodeAndResvCode(userCode, newReservation.getResvCode());
@@ -209,12 +213,16 @@ public class UserReservationService {
             /*위 유효성 검사를 모두 통과했을 경우, 엔티티 내부 취소 메소드 사용*/
             reservation.cancelReservation();
 
+            // 캐시 키 생성
             String cacheKey = reservation.getShopInfo().getShopCode() + "_" +
                     reservation.getResvDate().toString() + "_" +
                     reservation.getResvTime().toString();
 
+            // 캐시 찾아오기
             Cache cache = cacheManager.getCache("reserved-schedule");
+
             if (cache != null) {
+                // 삭제한 예약에 해당하는 캐시 삭제
                 Cache.ValueWrapper cacheValue = cache.get(cacheKey);
                 if (cacheValue != null) {
                     cache.evict(cacheKey);
