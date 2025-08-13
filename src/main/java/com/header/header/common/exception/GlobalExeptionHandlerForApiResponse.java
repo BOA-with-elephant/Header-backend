@@ -47,16 +47,18 @@ public class GlobalExeptionHandlerForApiResponse {
     public ResponseEntity<ApiResponse<ErrorResponse>> handleShopExceptionHandler(
             ShopExceptionHandler ex, WebRequest request
     ){
-        log.error("ShopException 발생: {} - {} ", ex.getShopErrorCode(), ex.getMessage(), ex);
         ShopErrorCode errorCode = ex.getShopErrorCode();
+
+        log.error("ShopException 발생: {} - {} ", errorCode, errorCode.getMessage(), ex);
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 errorCode.getHttpStatus().value(),
-                String.valueOf(errorCode.getCode()),
+                errorCode.getCode(),
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
     }
 
     /*
@@ -69,16 +71,17 @@ public class GlobalExeptionHandlerForApiResponse {
     public ResponseEntity<ApiResponse<ErrorResponse>> handleShopHolidayExceptionHandler(
             ShopHolidayExceptionHandler ex, WebRequest request
     ){
-        log.error("ShopHolidayException 발생: {} - {} ", ex.getShopHolidayErrorCode(), ex.getMessage(), ex);
         ShopHolidayErrorCode errorCode = ex.getShopHolidayErrorCode();
+
+        log.error("ShopHolidayException 발생: {} - {} ", errorCode, errorCode.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.of(
                 errorCode.getHttpStatus().value(),
-                String.valueOf(errorCode.getCode()),
-                ex.getMessage(),
+                errorCode.getCode(),
+                errorCode.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
-        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
     }
 
     /*
@@ -91,16 +94,18 @@ public class GlobalExeptionHandlerForApiResponse {
     public ResponseEntity<ApiResponse<ErrorResponse>> handleUserReservationExceptionHandler(
             UserReservationExceptionHandler ex, WebRequest request
     ){
-        log.error("UserReservationException 발생: {} - {} ", ex.getURErrorCode(), ex.getMessage(), ex);
         UserReservationErrorCode errorCode = ex.getURErrorCode();
+
+        log.error("UserReservationException 발생: {} - {} ", errorCode, errorCode.getMessage(), ex);
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 errorCode.getHttpStatus().value(),
-                String.valueOf(errorCode.getCode()),
-                ex.getMessage(),
+                errorCode.getCode(),
+                errorCode.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
     }
 
     /**
