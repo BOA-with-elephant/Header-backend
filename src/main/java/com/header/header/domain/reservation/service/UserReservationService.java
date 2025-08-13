@@ -46,6 +46,7 @@ public class UserReservationService {
     private final ShopRepository shopRepository;
     private final MenuRepository menuRepository;
     private final ShopHolidayRepository shopHolidayRepository;
+    private final HolidayExaminationForCache examinationForCache;
 
     /*사용자가 자신의 예약 내역을 상세 조회할 경우*/
     public Optional<UserReservationDetail> readDetailByUserCodeAndResvCode(Integer userCode, Integer resvCode) {
@@ -122,7 +123,7 @@ public class UserReservationService {
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.SHOP_NOT_FOUND));
 
         // 예약 시도 날짜가 샵 휴무일인 경우 예외
-        if (isHoliday(shopCode, resvDate)) {
+        if (examinationForCache.isHoliday(shopCode, resvDate)) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.DATE_HAS_HOL);
         }
 
@@ -210,31 +211,6 @@ public class UserReservationService {
         log.info("예약 취소 완료");
     }
 
-    /*사용자가 접근하려는 날짜가 휴일인지 검증하는 메소드
-     * */
-    public boolean isHoliday(Integer shopCode, Date dateToScan) {
-
-        /*임시 휴일 확인 - 단 하루만 검사하는 쿼리 */
-        if (shopHolidayRepository.isTempHoliday(shopCode, dateToScan)) return true;
-
-        /*정기 휴일 확인 - 스캔하려는 날짜보다 이전에 설정된 휴일이 있는지 확인 */
-        List<ShopHoliday> repeatHols = shopHolidayRepository.findRegHoliday(shopCode, dateToScan);
-
-        /* 반환된 값이 비어있지 않을 때만 검증 */
-        if (!repeatHols.isEmpty()) {
-            /*java.time의 요일 계산 클래스*/
-            DayOfWeek day = dateToScan.toLocalDate().getDayOfWeek();
-            for (ShopHoliday hol : repeatHols) {
-                if (hol.getHolStartDate().toLocalDate().getDayOfWeek() == day) {
-                    return true;
-                }
-            }
-        }
-
-        /* 휴일 아님 false 반환*/
-        return false;
-    }
-
     /* 프론트에 예약 가능한 날짜와 시간을 모아서 보내주는 용도 */
     // @Param: shopCode, dateRangeToGet (for 문에서 스캔할 날짜의 개수... 일단 한 달 줄 예정)
     @Transactional(readOnly = true)
@@ -266,7 +242,7 @@ public class UserReservationService {
             LocalDate targetDate = LocalDate.now().plusDays(i);
 
             // targetDate가 휴일인 경우 continue로 건너뛰고 다음 날짜 검증
-            if (isHoliday(shopCode, Date.valueOf(targetDate))) continue;
+            if (examinationForCache.isHoliday(shopCode, Date.valueOf(targetDate))) continue;
 
             // 예약 가능한 시간들을 담을 list
             List<LocalTime> availableTimes = new ArrayList<>();
@@ -316,7 +292,7 @@ public class UserReservationService {
         for(int i = 0; i < dateRangeToGet; i++){
             LocalDate targetDate = LocalDate.now().plusDays(i);
 
-            boolean isHoliday = isHoliday(shopCode, Date.valueOf(targetDate));
+            boolean isHoliday = examinationForCache.isHoliday(shopCode, Date.valueOf(targetDate));
 
             /* comment. 예약된 시간 가져오기 - 예약 취소가 아닌 경우 */
             List<Time> reservedTimesSql = userReservationRepository.findReservedTimes(shopCode, Date.valueOf(targetDate));
