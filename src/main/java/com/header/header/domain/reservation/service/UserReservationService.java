@@ -22,6 +22,7 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,6 +106,7 @@ public class UserReservationService {
 
     /* 새로운 예약 생성, 반환값은 상세조회 프로젝션 인터페이스 사용 */
     @Transactional
+    @CacheEvict(value = "reserved-schedule", allEntries = true)
     public Optional<UserReservationDetail> createReservation(
             Integer shopCode, UserReservationDTO dto
     ) {
@@ -204,6 +206,8 @@ public class UserReservationService {
 
             /*위 유효성 검사를 모두 통과했을 경우, 엔티티 내부 취소 메소드 사용*/
             reservation.cancelReservation();
+
+
         }
 
         userReservationRepository.save(reservation);
