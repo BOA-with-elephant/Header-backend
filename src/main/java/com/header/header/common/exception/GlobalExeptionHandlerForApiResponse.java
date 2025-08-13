@@ -37,6 +37,12 @@ import javax.security.auth.login.FailedLoginException;
 @Slf4j
 public class GlobalExeptionHandlerForApiResponse {
 
+    /*
+    * ShopException 처리
+    *
+    * - Shop 도메인의 예외 처리 시 발생
+    * - ShopErrorCode enum에 처리해둔 HttpStatus에 따라 응답
+    * */
     @ExceptionHandler(ShopExceptionHandler.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleShopExceptionHandler(
             ShopExceptionHandler ex, WebRequest request
@@ -53,6 +59,12 @@ public class GlobalExeptionHandlerForApiResponse {
         return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
     }
 
+    /*
+     * ShopHolidayException 처리
+     *
+     * - Shop 도메인 - Shop Holiday의 예외 처리 시 발생
+     * - ShopHolidayErrorCode enum에 처리해둔 HttpStatus에 따라 응답
+     * */
     @ExceptionHandler(ShopHolidayExceptionHandler.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleShopHolidayExceptionHandler(
             ShopHolidayExceptionHandler ex, WebRequest request
@@ -69,8 +81,12 @@ public class GlobalExeptionHandlerForApiResponse {
         return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
     }
 
-    // TODO. Exception Class 주석 추가
-
+    /*
+     * UserReservationException 처리
+     *
+     * - UserReservation 도메인의 예외 처리 시 발생
+     * - UserReservationErrorCode enum에 처리해둔 HttpStatus에 따라 응답
+     * */
     @ExceptionHandler(UserReservationExceptionHandler.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleUserReservationExceptionHandler(
             UserReservationExceptionHandler ex, WebRequest request
