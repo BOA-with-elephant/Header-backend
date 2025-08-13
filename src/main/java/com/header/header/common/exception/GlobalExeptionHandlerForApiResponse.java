@@ -5,8 +5,12 @@ import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
+import com.header.header.domain.reservation.enums.UserReservationErrorCode;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.shop.enums.ShopErrorCode;
+import com.header.header.domain.shop.enums.ShopHolidayErrorCode;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
+import com.header.header.domain.shop.exception.ShopHolidayExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,31 +42,49 @@ public class GlobalExeptionHandlerForApiResponse {
             ShopExceptionHandler ex, WebRequest request
     ){
         log.error("ShopException 발생: {} - {} ", ex.getShopErrorCode(), ex.getMessage(), ex);
-
+        ShopErrorCode errorCode = ex.getShopErrorCode();
         ErrorResponse errorResponse = ErrorResponse.of(
-                ex.getShopErrorCode().ordinal(),
-                String.valueOf(ex.getShopErrorCode()),
+                errorCode.getHttpStatus().value(),
+                String.valueOf(errorCode.getCode()),
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(ex.getShopErrorCode().ordinal()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
     }
+
+    @ExceptionHandler(ShopHolidayExceptionHandler.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleShopHolidayExceptionHandler(
+            ShopHolidayExceptionHandler ex, WebRequest request
+    ){
+        log.error("ShopHolidayException 발생: {} - {} ", ex.getShopHolidayErrorCode(), ex.getMessage(), ex);
+        ShopHolidayErrorCode errorCode = ex.getShopHolidayErrorCode();
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                errorCode.getHttpStatus().value(),
+                String.valueOf(errorCode.getCode()),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+    }
+
+    // TODO. Exception Class 주석 추가
 
     @ExceptionHandler(UserReservationExceptionHandler.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleUserReservationExceptionHandler(
             UserReservationExceptionHandler ex, WebRequest request
     ){
         log.error("UserReservationException 발생: {} - {} ", ex.getURErrorCode(), ex.getMessage(), ex);
-
+        UserReservationErrorCode errorCode = ex.getURErrorCode();
         ErrorResponse errorResponse = ErrorResponse.of(
-                ex.getURErrorCode().ordinal(),
-                String.valueOf(ex.getURErrorCode()),
+                errorCode.getHttpStatus().value(),
+                String.valueOf(errorCode.getCode()),
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
 
-        return ResponseEntity.status(ex.getURErrorCode().ordinal()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
     }
 
     /**
