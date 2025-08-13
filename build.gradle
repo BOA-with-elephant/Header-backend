@@ -60,6 +60,10 @@ dependencies {
 
     // 캐싱 처리를 위한 Redis 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // 로컬 캐싱 처리 라이브러리
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 }
 
 tasks.named('test') {

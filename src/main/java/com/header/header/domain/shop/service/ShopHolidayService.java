@@ -17,6 +17,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +36,13 @@ public class ShopHolidayService {
 
     private final ShopHolidayRepository shopHolidayRepository;
     private final ModelMapper modelMapper;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     /* 가게 정보 조회 */
     private final ShopRepository shopRepository;
     /* 예약 정보 조회 */
     private final UserReservationRepository userReservationRepository;
+
+    private final CaffeineCacheManager caffeineCacheManager;
 
     /*새로운 휴일 규칙 생성*/
     @Transactional
@@ -269,11 +273,12 @@ public class ShopHolidayService {
 
     /*특정 샵 코드를 기반으로 캐시를 삭제함*/
     public void evictByShopCode(Integer shopCode) {
-        String pattern = "holidays::" + shopCode + "_*";
-        Set<String> keys = redisTemplate.keys(pattern);
-        System.out.println("Redis key 확인 : " + keys);
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
+
+        CaffeineCache holCache = (CaffeineCache) caffeineCacheManager.getCache("holidays");
+
+        if (holCache != null) {
+            ConcurrentMap<Object, Object> nativeCache = holCache.getNativeCache().asMap();
+            nativeCache.keySet().removeIf(key -> key.toString().startsWith(shopCode + "_"));
         }
     }
 
