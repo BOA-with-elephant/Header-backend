@@ -32,10 +32,36 @@ services:
     # 브라우저에서 http://localhost:8080로 접근하면 Spring Boot 앱에 접속 가능
     ports:
       - "8080:8080"
+    networks:
+      - webnet
     # header-backend-server 실행하기 전에 database-server 부터 실행하라는 의미
     depends_on:
       headerdb:
         condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - header_backend
+    networks:
+      - webnet
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 1; done'"
+    networks:
+      - webnet
 
   headerdb:
     # 사용할 MySQL 버전 명시
@@ -72,3 +98,6 @@ services:
 
 volumes:
   mysql-data:
+
+networks:
+  webnet:
