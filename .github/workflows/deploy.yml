@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout source code
         # JDK setting - 깃허브 actions에서 사용할 JDK 설정(프로젝트나 AWS의 java 버전과 달라도 무방하다.)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: access to secrets
         run: |
