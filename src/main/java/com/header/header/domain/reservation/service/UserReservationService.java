@@ -22,6 +22,8 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,7 @@ public class UserReservationService {
     private final MenuRepository menuRepository;
     private final ShopHolidayRepository shopHolidayRepository;
     private final HolidayExaminationForCache examinationForCache;
+    private final CacheManager cacheManager;
 
     /*사용자가 자신의 예약 내역을 상세 조회할 경우*/
     public Optional<UserReservationDetail> readDetailByUserCodeAndResvCode(Integer userCode, Integer resvCode) {
@@ -162,6 +165,13 @@ public class UserReservationService {
         /* 예약 생성 */
         userReservationRepository.save(newReservation);
 
+        String cacheKey = shopCode + "_" +
+                resvDate.toString() + "_" +
+                resvTime.toString();
+
+        Cache cache = cacheManager.getCache("reserved-schedule");
+        cache.put(cacheKey, "reserved-schedule");
+
         return userReservationRepository.readDetailByUserCodeAndResvCode(userCode, newReservation.getResvCode());
     }
 
@@ -198,6 +208,18 @@ public class UserReservationService {
 
             /*위 유효성 검사를 모두 통과했을 경우, 엔티티 내부 취소 메소드 사용*/
             reservation.cancelReservation();
+
+            String cacheKey = reservation.getShopInfo().getShopCode() + "_" +
+                    reservation.getResvDate().toString() + "_" +
+                    reservation.getResvTime().toString();
+
+            Cache cache = cacheManager.getCache("reserved-schedule");
+            if (cache != null) {
+                Cache.ValueWrapper cacheValue = cache.get(cacheKey);
+                if (cacheValue != null) {
+                    cache.evict(cacheKey);
+                }
+            }
 
         }
 
