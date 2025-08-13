@@ -169,50 +169,39 @@ public class UserReservationService {
     @Transactional
     public void cancelReservation(Integer userCode, Integer resvCode) {
 
-        log.info("예약 취소 시작");
-
         /* 사용자 정보 유효성 검사 */
         User user = userRepository.findById(userCode)
                 /*존재하지 않는 유저 정보 예외*/
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
 
-                log.info("사용자 유효성 검사 완료");
 
         if (user.isLeave()) {
             /*탈퇴한 유저 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_HAS_LEFT);
         }
 
-        log.info("사용자 유효성 검사 - 탈퇴 검사 완료");
-
         /*예약 정보 유효성 검사*/
         BossReservation reservation = userReservationRepository.findById(resvCode)
 
                 /*존재하지 않는 예약 정보 예외*/
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
-                log.info("예약 정보 유효성 검사1");
+
         if (reservation.getResvState() == ReservationState.CANCEL) {
 
-            log.info("예약 정보 유효성 검사2");
             /*이미 취소된 예약 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
         } else if (reservation.getResvState() == ReservationState.FINISH) {
-            log.info("예약 정보 유효성 검사3");
 
             /*시술 완료된 예약 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
         } else {
-            log.info("예약 정보 유효성 검사4, cacel 진입");
 
             /*위 유효성 검사를 모두 통과했을 경우, 엔티티 내부 취소 메소드 사용*/
             reservation.cancelReservation();
 
-
         }
 
         userReservationRepository.save(reservation);
-
-        log.info("예약 취소 완료");
     }
 
     /* 프론트에 예약 가능한 날짜와 시간을 모아서 보내주는 용도 */
@@ -307,7 +296,7 @@ public class UserReservationService {
             if(isHoliday && reservedTimes.isEmpty()) continue;
 
             if (shop.getShopOpen() == null || shop.getShopClose() == null) {
-                // Logger.warn("샵 운영 시간이 등록되지 않았습니다.");
+
                 throw new IllegalStateException("샵 운영 시간이 등록되지 않았습니다.");
             }
 
