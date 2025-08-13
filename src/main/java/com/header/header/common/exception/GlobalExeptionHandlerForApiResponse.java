@@ -5,6 +5,7 @@ import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
+import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,8 @@ import javax.security.auth.login.FailedLoginException;
         "com.header.header.domain.visitors",
         "com.header.header.domain.message",
         "com.header.header.domain.user",
-        "com.header.header.domain.shop"
+        "com.header.header.domain.shop",
+        "com.header.header.domain.reservation"
 })
 @Slf4j
 public class GlobalExeptionHandlerForApiResponse {
@@ -45,6 +47,22 @@ public class GlobalExeptionHandlerForApiResponse {
         );
 
         return ResponseEntity.status(ex.getShopErrorCode().ordinal()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
+    }
+
+    @ExceptionHandler(UserReservationExceptionHandler.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUserReservationExceptionHandler(
+            UserReservationExceptionHandler ex, WebRequest request
+    ){
+        log.error("UserReservationException 발생: {} - {} ", ex.getURErrorCode(), ex.getMessage(), ex);
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                ex.getURErrorCode().ordinal(),
+                String.valueOf(ex.getURErrorCode()),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.status(ex.getURErrorCode().ordinal()).body(ApiResponse.fail(ex.getMessage(), errorResponse));
     }
 
     /**
