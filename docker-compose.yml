@@ -17,8 +17,6 @@ services:
     # environment란
     # Spring Boot의 application.properties/application.yml 설정을 외부에서 주입할 수 있게 해준다.
     # 즉 Spring Boot에서 이 값들을 자동으로 읽는다.
-    env_file:
-      - .env
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
@@ -34,10 +32,36 @@ services:
     # 브라우저에서 http://localhost:8080로 접근하면 Spring Boot 앱에 접속 가능
     ports:
       - "8080:8080"
+    networks:
+      - webnet
     # header-backend-server 실행하기 전에 database-server 부터 실행하라는 의미
     depends_on:
       headerdb:
         condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - header_backend
+    networks:
+      - webnet
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 1; done'"
+    networks:
+      - webnet
 
   headerdb:
     # 사용할 MySQL 버전 명시
@@ -45,9 +69,6 @@ services:
     restart: always
     container_name: headerdb
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -63,9 +84,6 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:rw
-    #      - /D:/Songpa_Backend_Java_Spring/Project_Header/Backend2/testdb/init.sql:/docker-entrypoint-initdb.d/init.sql
-    #      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    #      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-p$MYSQL_ROOT_PASSWORD" ]
@@ -77,7 +95,9 @@ services:
     command:
       - --character-set-server=utf8mb4  # MySQL 서버 기본 문자셋을 UTF-8로 설정
       - --collation-server=utf8mb4_unicode_ci  # 정렬 기준 설정
-#      - --skip-character-set-client-handshake  # 클라이언트가 다른 문자셋을 요구하더라도 무시하고 서버 설정 강제 적용
 
 volumes:
   mysql-data:
+
+networks:
+  webnet:

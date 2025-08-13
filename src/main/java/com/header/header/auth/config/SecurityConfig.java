@@ -89,7 +89,7 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/v1/my-shops/**").permitAll();
 //                    auth.requestMatchers("/my-shops/**").hasRole("ADMIN");
                     // "/shops/**" 경로는 USER 역할, ADMIN역할 모두 접근 가능합니다.
-                    auth.requestMatchers("/api/v1/shops/**").permitAll();
+                    auth.requestMatchers("/api/v1/shops", "/api/v1/shops/**").permitAll();
 //                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
                     // 그 외 모든 요청은 인증된 사용자만 접근 가능합니다.
                     auth.anyRequest().authenticated();
@@ -128,8 +128,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("https://header-frontend-alpha.vercel.app");
+        config.addAllowedOrigin("http://localhost:3000");  // 로컬 개발용
+        config.addAllowedOrigin("https://www.headercrm.site");  // www 도메인도 허용
+        config.addAllowedOrigin("https://headercrm.site");  // 커스텀 도메인
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
