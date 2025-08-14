@@ -511,11 +511,11 @@ public class UserReservationTests {
     @DisplayName("캐싱 테스트")
     void caffeineCacheTests() {
 
-        int shop_code = 124;
-        int user_code = 113;
-        int rev_code = 164;
+        int shopCode = 124;
+        int userCode = 113;
+        int revCode = 164;
 
-        List<UserResvAvailableScheduleDTO> result = userReservationService.getAvailableSchedule(124, 30);
+        List<UserResvAvailableScheduleDTO> result = userReservationService.getAvailableSchedule(shopCode, 30);
 
         assertNotNull(result);
 
@@ -530,7 +530,7 @@ public class UserReservationTests {
         assertTrue(caffeineCache.getNativeCache().asMap().isEmpty());
 
         System.out.println("캐시 삭제 테스트 : ");
-        userReservationService.cancelReservation(user_code, rev_code);
+        userReservationService.cancelReservation(userCode, revCode);
 
         Cache cache = cacheManager.getCache("reserved-schedule");
 
