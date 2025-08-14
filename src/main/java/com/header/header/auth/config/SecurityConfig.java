@@ -3,6 +3,7 @@ package com.header.header.auth.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.header.header.auth.config.handler.AuthFailHandler;
 import com.header.header.auth.config.handler.LoginSuccessHandler;
+import com.header.header.domain.shop.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +27,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Spring Security 설정을 담당하는 클래스입니다.
@@ -73,7 +72,7 @@ public class SecurityConfig {
      * @throws Exception 예외 발생 시
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, ShopService shopService) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(withDefaults()) // CORS 설정은 그대로 유지 (예람님 코드에서 갖고 옴)
@@ -87,7 +86,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
                     auth.requestMatchers("/api/v1/my-shops/**").permitAll();
-//                    auth.requestMatchers("/my-shops/**").hasRole("ADMIN");
+//                    auth.requestMatchers("/api/v1/myshops/**").hasRole("ADMIN");
                     // "/shops/**" 경로는 USER 역할, ADMIN역할 모두 접근 가능합니다.
                     auth.requestMatchers("/api/v1/shops", "/api/v1/shops/**").permitAll();
 //                    auth.requestMatchers("/shops/**").hasAnyRole("ADMIN", "USER");
@@ -101,14 +100,18 @@ public class SecurityConfig {
                     login.usernameParameter("userId");
                     login.passwordParameter("userPwd");
                     // 로그인 성공 시 LoginSuccessHandler를 사용합니다.
-                    login.successHandler(new LoginSuccessHandler(jwtTokenProvider, objectMapper));
+                    login.successHandler(new LoginSuccessHandler(jwtTokenProvider, objectMapper, shopService));
                     // 로그인 실패 시 AuthFailHandler를 사용합니다.
                     login.failureHandler(authFailHandler);
                 })
-
                 // 로그아웃 설정
                 .logout(logout -> {
-                    logout.logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout", HttpMethod.POST.name())); // 로그아웃 요청 URL (POST)
+                    /*
+                    logoutUrl()은 기본적으로 POST 요청을 처리하며,
+                    사용금지(deprecated)된 AntPathRequestMatcher보다 더 간결하다.
+                    Spring Security의 최신 권장 방식이다.
+                    */
+                    logout.logoutUrl("/auth/logout"); // 로그아웃 요청 URL (POST)
                     // JWT는 세션을 사용하지 않으므로 JSESSIONID 삭제나 세션 무효화는 필요 없다.
                     // 로그아웃 성공 시 200 OK 상태 코드를 반환
                     logout.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
@@ -117,7 +120,6 @@ public class SecurityConfig {
                 // 직접 작성한 커스텀 필터인 JwtAuthenticationFilter를 필터 체인에 추가 (이 필터는 모든 요청에서 JWT 토큰을 검증한다)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
 
-                //.csrf(AbstractHttpConfigurer::disable) //맨 위에서 http.csrf(csrf -> csrf.disable());로 해결, 주석처리함 - 정아
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
 

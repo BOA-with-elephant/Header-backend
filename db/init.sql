@@ -1,230 +1,230 @@
-CREATE DATABASE IF NOT EXISTS `headerdb`;
-GRANT ALL PRIVILEGES ON headerdb.* TO 'ohgiraffers'@'%';
+create database if not exists `headerdb`;
+grant all privileges on headerdb.* to 'ohgiraffers'@'%';
 
-USE `headerdb`;
+use `headerdb`;
 
 -- drop table
-DROP TABLE IF EXISTS TBL_SHOP_MSG_HISTORY;
-DROP TABLE IF EXISTS TBL_MSG_SEND_BATCH;
-DROP TABLE IF EXISTS TBL_VISITORS;
-DROP TABLE IF EXISTS TBL_SALES;
-DROP TABLE IF EXISTS TBL_RESERVATION;
-DROP TABLE IF EXISTS TBL_MESSAGE_TEMPLATE;
-DROP TABLE IF EXISTS TBL_MENU;
-DROP TABLE IF EXISTS TBL_MENU_CATEGORY;
-DROP TABLE IF EXISTS TBL_SHOP_HOLIDAY;
-DROP TABLE IF EXISTS TBL_SHOP;
-DROP TABLE IF EXISTS TBL_SHOP_CATEGORY;
-DROP TABLE IF EXISTS TBL_USER;
+drop table if exists tbl_shop_msg_history;
+drop table if exists tbl_msg_send_batch;
+drop table if exists tbl_visitors;
+drop table if exists tbl_sales;
+drop table if exists tbl_reservation;
+drop table if exists tbl_message_template;
+drop table if exists tbl_menu;
+drop table if exists tbl_menu_category;
+drop table if exists tbl_shop_holiday;
+drop table if exists tbl_shop;
+drop table if exists tbl_shop_category;
+drop table if exists tbl_user;
 
--- USER table
-CREATE TABLE IF NOT EXISTS `TBL_USER`
+-- user table
+create table if not exists `tbl_user`
 (
-    `USER_CODE`  INT PRIMARY KEY AUTO_INCREMENT,
-    `USER_ID`    VARCHAR(20)  NULL COMMENT '아이디',
-    `USER_PWD`   VARCHAR(255) NULL COMMENT '비밀번호',
-    `IS_ADMIN`   BOOLEAN      NOT NULL DEFAULT 0 COMMENT '관리자여부',
-    `USER_NAME`  VARCHAR(255) NOT NULL COMMENT '이름',
-    `USER_PHONE` VARCHAR(20)  NOT NULL COMMENT '전화번호',
-    `BIRTHDAY`   DATE         NULL COMMENT '고객생일',
-    `IS_LEAVE`   BOOLEAN      NOT NULL DEFAULT 0 COMMENT '탈퇴여부'
+    `user_code`  int primary key auto_increment,
+    `user_id`    varchar(20)  null comment '아이디',
+    `user_pwd`   varchar(255) null comment '비밀번호',
+    `is_admin`   boolean      not null default 0 comment '관리자여부',
+    `user_name`  varchar(255) not null comment '이름',
+    `user_phone` varchar(20)  not null comment '전화번호',
+    `birthday`   date         null comment '고객생일',
+    `is_leave`   boolean      not null default 0 comment '탈퇴여부'
     );
 
--- SHOP_CATEGORY table
-CREATE TABLE IF NOT EXISTS `TBL_SHOP_CATEGORY`
+-- shop_category table
+create table if not exists `tbl_shop_category`
 (
-    `CATEGORY_CODE` INT PRIMARY KEY AUTO_INCREMENT,
-    `CATEGORY_NAME` VARCHAR(50) NOT NULL COMMENT '카테고리 이름'
+    `category_code` int primary key auto_increment,
+    `category_name` varchar(50) not null comment '카테고리 이름'
     );
 
--- SHOP table
-CREATE TABLE IF NOT EXISTS `TBL_SHOP`
+-- shop table
+create table if not exists `tbl_shop`
 (
-    `SHOP_CODE`     INT PRIMARY KEY AUTO_INCREMENT,
-    `CATEGORY_CODE` INT            NOT NULL COMMENT '샵 유형 코드',
-    `ADMIN_CODE`    INT            NOT NULL COMMENT '관리자 코드',
-    `SHOP_NAME`     VARCHAR(50)    NOT NULL COMMENT '샵 이름',
-    `SHOP_PHONE`    VARCHAR(20)    NOT NULL COMMENT '샵 전화번호',
-    `SHOP_LOCATION` VARCHAR(255)   NOT NULL COMMENT '샵 주소',
-    `SHOP_LONG`     DECIMAL(10, 7) NOT NULL COMMENT '샵 경도',
-    `SHOP_LA`       DECIMAL(10, 7) NOT NULL COMMENT '샵 위도', -- 샵 휴일 테이블 추가 후 샵 상태 컬럼 삭제
-    `SHOP_OPEN`     VARCHAR(5)     NOT NULL COMMENT '샵 운영시간',
-    `SHOP_CLOSE`    VARCHAR(5)     NOT NULL COMMENT '샵 닫는시간',
-    `IS_ACTIVE`     BOOLEAN        NOT NULL DEFAULT 1 COMMENT '활성 여부'
+    `shop_code`     int primary key auto_increment,
+    `category_code` int            not null comment '샵 유형 코드',
+    `admin_code`    int            not null comment '관리자 코드',
+    `shop_name`     varchar(50)    not null comment '샵 이름',
+    `shop_phone`    varchar(20)    not null comment '샵 전화번호',
+    `shop_location` varchar(255)   not null comment '샵 주소',
+    `shop_long`     decimal(10, 7) not null comment '샵 경도',
+    `shop_la`       decimal(10, 7) not null comment '샵 위도', -- 샵 휴일 테이블 추가 후 샵 상태 컬럼 삭제
+    `shop_open`     varchar(5)     not null comment '샵 운영시간',
+    `shop_close`    varchar(5)     not null comment '샵 닫는시간',
+    `is_active`     boolean        not null default 1 comment '활성 여부'
     );
 
-CREATE TABLE IF NOT EXISTS `TBL_SHOP_HOLIDAY`
+create table if not exists `tbl_shop_holiday`
 (
-    `SHOP_HOL_CODE` INT PRIMARY KEY AUTO_INCREMENT,
-    `SHOP_CODE`    INT     NOT NULL,
-    `HOL_START_DATE`   DATE    NOT NULL COMMENT '적용 시작 날짜',
-    `HOL_END_DATE`     DATE    NULL COMMENT '적용 종료 날짜',
-    `IS_HOL_REPEAT`    BOOLEAN NOT NULL DEFAULT 0 COMMENT '반복 여부'
+    `shop_hol_code` int primary key auto_increment,
+    `shop_code`    int     not null,
+    `hol_start_date`   date    not null comment '적용 시작 날짜',
+    `hol_end_date`     date    null comment '적용 종료 날짜',
+    `is_hol_repeat`    boolean not null default 0 comment '반복 여부'
 );
 
--- MENU_CATEGORY table (modified to include SHOP_CODE as FK and composite PK)
-CREATE TABLE IF NOT EXISTS `TBL_MENU_CATEGORY`
+-- menu_category table (modified to include shop_code as fk and composite pk)
+create table if not exists `tbl_menu_category`
 (
-    `CATEGORY_CODE` INT         NOT NULL COMMENT '카테고리 코드',
-    `SHOP_CODE`     INT         NOT NULL COMMENT '샵 코드',
-    `CATEGORY_NAME` VARCHAR(40) NOT NULL COMMENT '카테고리명',
-    `MENU_COLOR`    VARCHAR(20) NOT NULL COMMENT '대표 색상',
-    `IS_ACTIVE`     BOOLEAN     NOT NULL DEFAULT 1 COMMENT '활성 여부',
-    PRIMARY KEY (`CATEGORY_CODE`, `SHOP_CODE`)
+    `category_code` int         not null comment '카테고리 코드',
+    `shop_code`     int         not null comment '샵 코드',
+    `category_name` varchar(40) not null comment '카테고리명',
+    `menu_color`    varchar(20) not null comment '대표 색상',
+    `is_active`     boolean     not null default 1 comment '활성 여부',
+    primary key (`category_code`, `shop_code`)
     );
 
--- MENU table (modified to remove SHOP_CODE direct FK, now references through MENU_CATEGORY)
-CREATE TABLE IF NOT EXISTS `TBL_MENU`
+-- menu table (modified to remove shop_code direct fk, now references through menu_category)
+create table if not exists `tbl_menu`
 (
-    `MENU_CODE`     INT PRIMARY KEY AUTO_INCREMENT,
-    `CATEGORY_CODE` INT         NOT NULL COMMENT '카테고리 코드',
-    `SHOP_CODE`     INT         NOT NULL COMMENT '샵 코드',
-    `MENU_NAME`     VARCHAR(40) NOT NULL COMMENT '시술명',
-    `MENU_PRICE`    INT         NOT NULL COMMENT '시술가격',
-    `EST_TIME`      INT         NOT NULL COMMENT '예상소요시간',
-    `IS_ACTIVE`     BOOLEAN     NOT NULL DEFAULT 1 COMMENT '활성 여부'
+    `menu_code`     int primary key auto_increment,
+    `category_code` int         not null comment '카테고리 코드',
+    `shop_code`     int         not null comment '샵 코드',
+    `menu_name`     varchar(40) not null comment '시술명',
+    `menu_price`    int         not null comment '시술가격',
+    `est_time`      int         not null comment '예상소요시간',
+    `is_active`     boolean     not null default 1 comment '활성 여부'
     );
 
--- MESSAGE_TEMPLATE table
-CREATE TABLE IF NOT EXISTS `TBL_MESSAGE_TEMPLATE`
+-- message_template table
+create table if not exists `tbl_message_template`
 (
-    `TEMPLATE_CODE`    INT PRIMARY KEY AUTO_INCREMENT,
-    `SHOP_CODE`        INT COMMENT '샵 코드',
-    `TEMPLATE_TITLE`   VARCHAR(50)  NOT NULL COMMENT '템플릿 제목',
-    `TEMPLATE_CONTENT` VARCHAR(255) NOT NULL COMMENT '템플릿 내용',
-    `TEMPLATE_TYPE`    VARCHAR(20)  NOT NULL COMMENT '템플릿 타입'
+    `template_code`    int primary key auto_increment,
+    `shop_code`        int comment '샵 코드',
+    `template_title`   varchar(50)  not null comment '템플릿 제목',
+    `template_content` varchar(255) not null comment '템플릿 내용',
+    `template_type`    varchar(20)  not null comment '템플릿 타입'
     );
 
--- RESERVATION table
-CREATE TABLE IF NOT EXISTS `TBL_RESERVATION`
+-- reservation table
+create table if not exists `tbl_reservation`
 (
-    `RESV_CODE`    INT PRIMARY KEY AUTO_INCREMENT,
-    `USER_CODE`    INT          NOT NULL COMMENT '회원코드',
-    `SHOP_CODE`    INT          NOT NULL COMMENT '샵 코드',
-    `MENU_CODE`    INT          NOT NULL COMMENT '시술 코드',
-    `RESV_DATE`    DATE         NOT NULL COMMENT '예약 날짜',
-    `RESV_TIME`    TIME         NOT NULL COMMENT '예약 시간',
-    `USER_COMMENT` VARCHAR(255) NULL COMMENT '메모',
-    `RESV_STATE`   VARCHAR(20)  NOT NULL DEFAULT '예약확정' COMMENT '예약 상태'
+    `resv_code`    int primary key auto_increment,
+    `user_code`    int          not null comment '회원코드',
+    `shop_code`    int          not null comment '샵 코드',
+    `menu_code`    int          not null comment '시술 코드',
+    `resv_date`    date         not null comment '예약 날짜',
+    `resv_time`    time         not null comment '예약 시간',
+    `user_comment` varchar(255) null comment '메모',
+    `resv_state`   varchar(20)  not null default '예약확정' comment '예약 상태'
     );
 
--- SALES table (modified PAY_DATETIME to DATETIME)
-CREATE TABLE IF NOT EXISTS `TBL_SALES`
+-- sales table (modified pay_datetime to datetime)
+create table if not exists `tbl_sales`
 (
-    `SALES_CODE`      INT PRIMARY KEY AUTO_INCREMENT,
-    `RESV_CODE`       INT          NOT NULL COMMENT '예약코드',
-    `PAY_AMOUNT`      INT          NOT NULL COMMENT '결제 금액',
-    `PAY_METHOD`      VARCHAR(20)  NOT NULL COMMENT '결제 수단',
-    `PAY_DATETIME`    DATETIME     NOT NULL COMMENT '결제일시',
-    `PAY_STATUS`      VARCHAR(20)  NOT NULL DEFAULT 'COMPLETED' COMMENT '결제상태 (COMPLETED, CANCELLED, PARTIAL_CANCELLED, DELETED)',
+    `sales_code`      int primary key auto_increment,
+    `resv_code`       int          not null comment '예약코드',
+    `pay_amount`      int          not null comment '결제 금액',
+    `pay_method`      varchar(20)  not null comment '결제 수단',
+    `pay_datetime`    datetime     not null comment '결제일시',
+    `pay_status`      varchar(20)  not null default 'completed' comment '결제상태 (completed, cancelled, partial_cancelled, deleted)',
 
     -- 취소 관련 컬럼 추가
-    `CANCEL_AMOUNT`   INT          NULL     DEFAULT 0 COMMENT '취소 금액',
-    `CANCEL_DATETIME` DATETIME     NULL COMMENT '취소일시',
-    `CANCEL_REASON`   VARCHAR(255) NULL COMMENT '취소 사유',
-    `FINAL_AMOUNT`    INT          NOT NULL COMMENT '최종 결제 금액 (결제금액 - 취소금액)'
+    `cancel_amount`   int          null     default 0 comment '취소 금액',
+    `cancel_datetime` datetime     null comment '취소일시',
+    `cancel_reason`   varchar(255) null comment '취소 사유',
+    `final_amount`    int          not null comment '최종 결제 금액 (결제금액 - 취소금액)'
     );
 
--- VISITORS table
-CREATE TABLE IF NOT EXISTS `TBL_VISITORS`
+-- visitors table
+create table if not exists `tbl_visitors`
 (
-    `CLIENT_CODE` INT PRIMARY KEY AUTO_INCREMENT,
-    `USER_CODE`   INT          NOT NULL COMMENT '회원코드',
-    `SHOP_CODE`   INT          NOT NULL COMMENT '샵 코드',
-    `MEMO`        VARCHAR(255) NULL COMMENT '메모',
-    `SENDABLE`    BOOLEAN      NOT NULL DEFAULT 0 COMMENT '광고성수신여부',
-    `IS_ACTIVE`   BOOLEAN      NOT NULL DEFAULT 1 COMMENT '활성여부'
+    `client_code` int primary key auto_increment,
+    `user_code`   int          not null comment '회원코드',
+    `shop_code`   int          not null comment '샵 코드',
+    `memo`        varchar(255) null comment '메모',
+    `sendable`    boolean      not null default 0 comment '광고성수신여부',
+    `is_active`   boolean      not null default 1 comment '활성여부'
     );
 
--- TBL_MSG_SEND_BATCH
-CREATE TABLE IF NOT EXISTS `TBL_MSG_SEND_BATCH`
+-- tbl_msg_send_batch
+create table if not exists `tbl_msg_send_batch`
 (
-    `BATCH_CODE`    INT PRIMARY KEY AUTO_INCREMENT COMMENT '발송 배치 코드',
-    `SHOP_CODE`     INT         NOT NULL COMMENT '샵 코드',
-    `TEMPLATE_CODE` INT COMMENT '사용된 템플릿 코드',
-    `SEND_DATE`     DATE        NOT NULL COMMENT '발송 날짜',
-    `SEND_TIME`     TIME        NOT NULL COMMENT '발송 시간',
-    `SEND_TYPE`     VARCHAR(20) NOT NULL COMMENT '발송 타입 (INDIVIDUAL, GROUP)',
+    `batch_code`    int primary key auto_increment comment '발송 배치 코드',
+    `shop_code`     int         not null comment '샵 코드',
+    `template_code` int comment '사용된 템플릿 코드',
+    `send_date`     date        not null comment '발송 날짜',
+    `send_time`     time        not null comment '발송 시간',
+    `send_type`     varchar(20) not null comment '발송 타입 (individual, group)',
 
-    `SUBJECT`       VARCHAR(100) COMMENT '메시지 제목/요약',
+    `subject`       varchar(100) comment '메시지 제목/요약',
 
-    `TOTAL_COUNT`   INT       DEFAULT 0 COMMENT '총 발송 건수',
-    `SUCCESS_COUNT` INT       DEFAULT 0 COMMENT '성공 건수',
-    `FAIL_COUNT`    INT       DEFAULT 0 COMMENT '실패 건수',
-    `CREATED_AT`    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_shop_batch (`SHOP_CODE`, `BATCH_CODE`),
-    INDEX idx_shop_date (`SHOP_CODE`, `SEND_DATE`),
-    INDEX idx_created_at (CREATED_AT)
+    `total_count`   int       default 0 comment '총 발송 건수',
+    `success_count` int       default 0 comment '성공 건수',
+    `fail_count`    int       default 0 comment '실패 건수',
+    `created_at`    timestamp default current_timestamp,
+    index idx_shop_batch (`shop_code`, `batch_code`),
+    index idx_shop_date (`shop_code`, `send_date`),
+    index idx_created_at (created_at)
     );
 
--- SHOP_MSG_HISTORY table
-CREATE TABLE IF NOT EXISTS `TBL_SHOP_MSG_HISTORY`
+-- shop_msg_history table
+create table if not exists `tbl_shop_msg_history`
 (
-    `HISTORY_CODE`  INT PRIMARY KEY AUTO_INCREMENT COMMENT '히스토리 코드',
-    `BATCH_CODE`    INT         NOT NULL COMMENT '발송 배치 코드',
-    `USER_CODE`     INT         NOT NULL COMMENT '수신자',
-    `MSG_CONTENT`   TEXT        NOT NULL COMMENT '실제 발송된 메시지 내용',
-    `SEND_STATUS`   VARCHAR(20) NOT NULL COMMENT '발송 상태 (PENDING, SUCCESS, FAIL)',
-    `ERROR_MESSAGE` VARCHAR(255) COMMENT '오류 메시지',
-    `SENT_AT`       TIMESTAMP COMMENT '실제 발송 시간',
+    `history_code`  int primary key auto_increment comment '히스토리 코드',
+    `batch_code`    int         not null comment '발송 배치 코드',
+    `user_code`     int         not null comment '수신자',
+    `msg_content`   text        not null comment '실제 발송된 메시지 내용',
+    `send_status`   varchar(20) not null comment '발송 상태 (pending, success, fail)',
+    `error_message` varchar(255) comment '오류 메시지',
+    `sent_at`       timestamp comment '실제 발송 시간',
 
-    FOREIGN KEY (`BATCH_CODE`) REFERENCES `TBL_MSG_SEND_BATCH` (`BATCH_CODE`) ON DELETE CASCADE,
-    INDEX idx_batch_code (`BATCH_CODE`),
-    INDEX idx_user_code (`USER_CODE`),
-    INDEX idx_send_status (`SEND_STATUS`),
-    INDEX idx_history_user (`HISTORY_CODE`, `USER_CODE`)
+    foreign key (`batch_code`) references `tbl_msg_send_batch` (`batch_code`) on delete cascade,
+    index idx_batch_code (`batch_code`),
+    index idx_user_code (`user_code`),
+    index idx_send_status (`send_status`),
+    index idx_history_user (`history_code`, `user_code`)
     );
 
--- Set Foreign Key Constraints
-ALTER TABLE `TBL_SHOP`
-    ADD CONSTRAINT `FK_TBL_SHOP_CATEGORY_TO_SHOP_1` FOREIGN KEY (`CATEGORY_CODE`) REFERENCES `TBL_SHOP_CATEGORY` (`CATEGORY_CODE`);
-ALTER TABLE `TBL_SHOP`
-    ADD CONSTRAINT `FK_TBL_USER_TO_SHOP_1` FOREIGN KEY (`ADMIN_CODE`) REFERENCES `TBL_USER` (`USER_CODE`);
+-- set foreign key constraints
+alter table `tbl_shop`
+    add constraint `fk_tbl_shop_category_to_shop_1` foreign key (`category_code`) references `tbl_shop_category` (`category_code`);
+alter table `tbl_shop`
+    add constraint `fk_tbl_user_to_shop_1` foreign key (`admin_code`) references `tbl_user` (`user_code`);
 
--- TBL_SHOP_HOLIDAY에 대한 FK(SHOP_CODE) 추가
-ALTER TABLE `TBL_SHOP_HOLIDAY`
-    ADD CONSTRAINT `FK_TBL_SHOP_TO_SHOP_HOLIDAY_1` FOREIGN KEY (`SHOP_CODE`) REFERENCES `TBL_SHOP` (`SHOP_CODE`);
+-- tbl_shop_holiday에 대한 fk(shop_code) 추가
+alter table `tbl_shop_holiday`
+    add constraint `fk_tbl_shop_to_shop_holiday_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 
--- Modified FK for MENU_CATEGORY (now references SHOP table)
-ALTER TABLE `TBL_MENU_CATEGORY`
-    ADD CONSTRAINT `FK_TBL_SHOP_TO_MENU_CATEGORY_1` FOREIGN KEY (`SHOP_CODE`) REFERENCES `TBL_SHOP` (`SHOP_CODE`);
+-- modified fk for menu_category (now references shop table)
+alter table `tbl_menu_category`
+    add constraint `fk_tbl_shop_to_menu_category_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 
--- Modified FK for MENU (now references MENU_CATEGORY with composite key)
-ALTER TABLE `TBL_MENU`
-    ADD CONSTRAINT `FK_TBL_MENU_CATEGORY_TO_MENU_1` FOREIGN KEY (`CATEGORY_CODE`, `SHOP_CODE`) REFERENCES `TBL_MENU_CATEGORY` (`CATEGORY_CODE`, `SHOP_CODE`);
+-- modified fk for menu (now references menu_category with composite key)
+alter table `tbl_menu`
+    add constraint `fk_tbl_menu_category_to_menu_1` foreign key (`category_code`, `shop_code`) references `tbl_menu_category` (`category_code`, `shop_code`);
 
-ALTER TABLE `TBL_MESSAGE_TEMPLATE`
-    ADD CONSTRAINT `FK_TBL_SHOP_TO_MESSAGE_TEMPLATE_1` FOREIGN KEY (`SHOP_CODE`) REFERENCES `TBL_SHOP` (`SHOP_CODE`);
+alter table `tbl_message_template`
+    add constraint `fk_tbl_shop_to_message_template_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 
-ALTER TABLE `TBL_RESERVATION`
-    ADD CONSTRAINT `FK_TBL_USER_TO_RESERVATION_1` FOREIGN KEY (`USER_CODE`) REFERENCES `TBL_USER` (`USER_CODE`);
-ALTER TABLE `TBL_RESERVATION`
-    ADD CONSTRAINT `FK_TBL_SHOP_TO_RESERVATION_1` FOREIGN KEY (`SHOP_CODE`) REFERENCES `TBL_SHOP` (`SHOP_CODE`);
-ALTER TABLE `TBL_RESERVATION`
-    ADD CONSTRAINT `FK_TBL_MENU_TO_RESERVATION_1` FOREIGN KEY (`MENU_CODE`) REFERENCES `TBL_MENU` (`MENU_CODE`);
+alter table `tbl_reservation`
+    add constraint `fk_tbl_user_to_reservation_1` foreign key (`user_code`) references `tbl_user` (`user_code`);
+alter table `tbl_reservation`
+    add constraint `fk_tbl_shop_to_reservation_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
+alter table `tbl_reservation`
+    add constraint `fk_tbl_menu_to_reservation_1` foreign key (`menu_code`) references `tbl_menu` (`menu_code`);
 
-ALTER TABLE `TBL_SALES`
-    ADD CONSTRAINT `FK_TBL_RESERVATION_TO_SALES_1` FOREIGN KEY (`RESV_CODE`) REFERENCES `TBL_RESERVATION` (`RESV_CODE`);
+alter table `tbl_sales`
+    add constraint `fk_tbl_reservation_to_sales_1` foreign key (`resv_code`) references `tbl_reservation` (`resv_code`);
 
-ALTER TABLE `TBL_VISITORS`
-    ADD CONSTRAINT `FK_TBL_USER_TO_VISITORS_1` FOREIGN KEY (`USER_CODE`) REFERENCES `TBL_USER` (`USER_CODE`);
-ALTER TABLE `TBL_VISITORS`
-    ADD CONSTRAINT `FK_TBL_SHOP_TO_VISITORS_1` FOREIGN KEY (`SHOP_CODE`) REFERENCES `TBL_SHOP` (`SHOP_CODE`);
+alter table `tbl_visitors`
+    add constraint `fk_tbl_user_to_visitors_1` foreign key (`user_code`) references `tbl_user` (`user_code`);
+alter table `tbl_visitors`
+    add constraint `fk_tbl_shop_to_visitors_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 
-ALTER TABLE `TBL_SHOP_MSG_HISTORY`
-    ADD CONSTRAINT `FK_TBL_USER_TO_SHOP_MSG_HISTORY_1` FOREIGN KEY (`USER_CODE`) REFERENCES `TBL_USER` (`USER_CODE`);
-ALTER TABLE `TBL_SHOP_MSG_HISTORY`
-    ADD CONSTRAINT `FK_TBL_MSG_SEND_BATCH_TO_SHOP_MSG_HISTORY_1` FOREIGN KEY (`BATCH_CODE`) REFERENCES `TBL_MSG_SEND_BATCH` (`BATCH_CODE`);
+alter table `tbl_shop_msg_history`
+    add constraint `fk_tbl_user_to_shop_msg_history_1` foreign key (`user_code`) references `tbl_user` (`user_code`);
+alter table `tbl_shop_msg_history`
+    add constraint `fk_tbl_msg_send_batch_to_shop_msg_history_1` foreign key (`batch_code`) references `tbl_msg_send_batch` (`batch_code`);
 
-ALTER TABLE `TBL_MSG_SEND_BATCH`
-    ADD CONSTRAINT `FK_TBL_MESSAGE_TEMPLATE_TO_MSG_SEND_BATCH_1` FOREIGN KEY (`TEMPLATE_CODE`) REFERENCES `TBL_MESSAGE_TEMPLATE` (`TEMPLATE_CODE`);
-ALTER TABLE `TBL_MSG_SEND_BATCH`
-    ADD CONSTRAINT `FK_TBL_SHOP_TO_MSG_SEND_BATCH_1` FOREIGN KEY (`SHOP_CODE`) REFERENCES `TBL_SHOP` (`SHOP_CODE`);
+alter table `tbl_msg_send_batch`
+    add constraint `fk_tbl_message_template_to_msg_send_batch_1` foreign key (`template_code`) references `tbl_message_template` (`template_code`);
+alter table `tbl_msg_send_batch`
+    add constraint `fk_tbl_shop_to_msg_send_batch_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 
 -- 테이블별 데이터 삽입
--- TBL_USER (2명 관리자, 98명 일반)
-INSERT INTO TBL_USER (USER_ID, USER_PWD, IS_ADMIN, USER_NAME, USER_PHONE, BIRTHDAY, IS_LEAVE)
-VALUES
+-- tbl_user (2명 관리자, 98명 일반)
+insert into tbl_user (user_id, user_pwd, is_admin, user_name, user_phone, birthday, is_leave)
+values
 -- 관리자
 ('hwangkyungmi', 'hwangkyungmi', 1, '황경미', '010-1001-1001', '1985-03-15', 0),
 ('kwoneunji', 'kwoneunji', 1, '권은지', '010-1002-1002', '1987-07-22', 0),
@@ -329,19 +329,19 @@ VALUES
 ('kimyoobin', 'kimyoobin', 0, '김유빈', '010-1099-1099', '2002-09-02', 0),
 ('parkseoeun', 'parkseoeun', 0, '박서은', '010-1100-1100', '2003-01-21', 0);
 
--- TBL_SHOP_CATEGORY (6 rows)
-INSERT INTO TBL_SHOP_CATEGORY (CATEGORY_NAME)
-VALUES ('헤어샵'),
+-- tbl_shop_category (6 rows)
+insert into tbl_shop_category (category_name)
+values ('헤어샵'),
        ('네일샵'),
        ('왁싱샵'),
        ('마사지샵'),
        ('에스테틱'),
        ('바버샵');
 
--- TBL_SHOP (5 rows - 관리자별로 2-3개씩)
-INSERT INTO TBL_SHOP (CATEGORY_CODE, ADMIN_CODE, SHOP_NAME, SHOP_PHONE, SHOP_LOCATION, SHOP_LONG, SHOP_LA,
-                      SHOP_OPEN, SHOP_CLOSE, IS_ACTIVE)
-VALUES
+-- tbl_shop (5 rows - 관리자별로 2-3개씩)
+insert into tbl_shop (category_code, admin_code, shop_name, shop_phone, shop_location, shop_long, shop_la,
+                      shop_open, shop_close, is_active)
+values
 -- 황경미 관리자 (3개 샵)
 (1, 1, '뷰티헤어 강남점', '02-111-2222', '서울 강남구 강남대로 123', 127.0275830, 37.4979420, '09:00', '21:00', 1),
 (1, 1, '뷰티헤어 홍대점', '02-333-4444', '서울 마포구 양화로 44', 126.9106540, 37.5563700, '10:00', '20:00', 1),
@@ -350,75 +350,75 @@ VALUES
 (1, 2, '엘레강스 헤어 잠실점', '02-777-8888', '서울 송파구 올림픽로 300', 127.0983120, 37.5133070, '09:00', '21:00', 1),
 (1, 2, '엘레강스 헤어 압구정점', '02-999-0000', '서울 강남구 압구정로 145', 127.0276430, 37.5272970, '10:00', '20:00', 1);
 
--- TBL_SHOP_HOLIDAY
-INSERT INTO TBL_SHOP_HOLIDAY(SHOP_CODE, HOL_START_DATE, HOL_END_DATE, IS_HOL_REPEAT)
-VALUES
--- SHOP_CODE 1 (일시 + 정기 토, 일)
-(1, '2025-06-17', '2025-06-20', FALSE),
-(1, '2025-01-04', NULL, TRUE), -- 토요일
-(1, '2025-01-05', NULL, TRUE), -- 일요일
+-- tbl_shop_holiday
+insert into tbl_shop_holiday(shop_code, hol_start_date, hol_end_date, is_hol_repeat)
+values
+-- shop_code 1 (일시 + 정기 토, 일)
+(1, '2025-06-17', '2025-06-20', false),
+(1, '2025-01-04', null, true), -- 토요일
+(1, '2025-01-05', null, true), -- 일요일
 
--- SHOP_CODE 2 (일시 + 정기 토, 일)
-(2, '2025-06-20', '2025-06-20', FALSE),
-(2, '2025-01-04', NULL, TRUE), -- 토요일
-(2, '2025-01-05', NULL, TRUE), -- 일요일
+-- shop_code 2 (일시 + 정기 토, 일)
+(2, '2025-06-20', '2025-06-20', false),
+(2, '2025-01-04', null, true), -- 토요일
+(2, '2025-01-05', null, true), -- 일요일
 
--- SHOP_CODE 3 (일시 + 정기 수)
-(3, '2025-07-10', '2025-07-15', FALSE),
-(3, '2025-01-01', NULL, TRUE), -- 수요일
+-- shop_code 3 (일시 + 정기 수)
+(3, '2025-07-10', '2025-07-15', false),
+(3, '2025-01-01', null, true), -- 수요일
 
--- SHOP_CODE 4 (일시 + 정기 금)
-(4, '2025-07-15', '2025-07-15', FALSE),
-(4, '2025-01-03', NULL, TRUE), -- 금요일
+-- shop_code 4 (일시 + 정기 금)
+(4, '2025-07-15', '2025-07-15', false),
+(4, '2025-01-03', null, true), -- 금요일
 
--- SHOP_CODE 5 (일시 + 정기 목)
-(5, '2025-08-01', '2025-08-03', FALSE),
-(5, '2025-01-02', NULL, TRUE);
+-- shop_code 5 (일시 + 정기 목)
+(5, '2025-08-01', '2025-08-03', false),
+(5, '2025-01-02', null, true);
 -- 목요일
 
 
--- TBL_MENU_CATEGORY (수정: 각 샵별로 카테고리 생성, 복합키 사용)
-INSERT INTO TBL_MENU_CATEGORY (CATEGORY_CODE, SHOP_CODE, CATEGORY_NAME, MENU_COLOR, IS_ACTIVE)
-VALUES
--- 뷰티헤어 강남점 (SHOP_CODE: 1)
-(1, 1, '컷', '#F7CAC9', 1),
-(2, 1, '염색', '#779ECB', 1),
-(3, 1, '파마', '#F49AC2', 1),
-(4, 1, '스타일링', '#B284BE', 1),
-(5, 1, '두피케어', '#FFB347', 1),
+-- tbl_menu_category (수정: 각 샵별로 카테고리 생성, 복합키 사용)
+insert into tbl_menu_category (category_code, shop_code, category_name, menu_color, is_active)
+values
+-- 뷰티헤어 강남점 (shop_code: 1)
+(1, 1, '컷', '#f7cac9', 1),
+(2, 1, '염색', '#779ecb', 1),
+(3, 1, '파마', '#f49ac2', 1),
+(4, 1, '스타일링', '#b284be', 1),
+(5, 1, '두피케어', '#ffb347', 1),
 
--- 뷰티헤어 홍대점 (SHOP_CODE: 2)
-(1, 2, '컷', '#F7CAC9', 1),
-(2, 2, '염색', '#779ECB', 1),
-(3, 2, '파마', '#F49AC2', 1),
-(4, 2, '스타일링', '#B284BE', 1),
-(5, 2, '두피케어', '#FFB347', 1),
+-- 뷰티헤어 홍대점 (shop_code: 2)
+(1, 2, '컷', '#f7cac9', 1),
+(2, 2, '염색', '#779ecb', 1),
+(3, 2, '파마', '#f49ac2', 1),
+(4, 2, '스타일링', '#b284be', 1),
+(5, 2, '두피케어', '#ffb347', 1),
 
--- 뷰티헤어 신촌점 (SHOP_CODE: 3)
-(1, 3, '컷', '#F7CAC9', 1),
-(2, 3, '염색', '#779ECB', 1),
-(3, 3, '파마', '#F49AC2', 1),
-(4, 3, '스타일링', '#B284BE', 1),
-(5, 3, '두피케어', '#FFB347', 1),
+-- 뷰티헤어 신촌점 (shop_code: 3)
+(1, 3, '컷', '#f7cac9', 1),
+(2, 3, '염색', '#779ecb', 1),
+(3, 3, '파마', '#f49ac2', 1),
+(4, 3, '스타일링', '#b284be', 1),
+(5, 3, '두피케어', '#ffb347', 1),
 
--- 엘레강스 헤어 잠실점 (SHOP_CODE: 4)
-(1, 4, '컷', '#F7CAC9', 1),
-(2, 4, '염색', '#779ECB', 1),
-(3, 4, '파마', '#F49AC2', 1),
-(4, 4, '스타일링', '#B284BE', 1),
-(5, 4, '두피케어', '#FFB347', 1),
+-- 엘레강스 헤어 잠실점 (shop_code: 4)
+(1, 4, '컷', '#f7cac9', 1),
+(2, 4, '염색', '#779ecb', 1),
+(3, 4, '파마', '#f49ac2', 1),
+(4, 4, '스타일링', '#b284be', 1),
+(5, 4, '두피케어', '#ffb347', 1),
 
--- 엘레강스 헤어 압구정점 (SHOP_CODE: 5)
-(1, 5, '컷', '#F7CAC9', 1),
-(2, 5, '염색', '#779ECB', 1),
-(3, 5, '파마', '#F49AC2', 1),
-(4, 5, '스타일링', '#B284BE', 1),
-(5, 5, '두피케어', '#FFB347', 1);
+-- 엘레강스 헤어 압구정점 (shop_code: 5)
+(1, 5, '컷', '#f7cac9', 1),
+(2, 5, '염색', '#779ecb', 1),
+(3, 5, '파마', '#f49ac2', 1),
+(4, 5, '스타일링', '#b284be', 1),
+(5, 5, '두피케어', '#ffb347', 1);
 
--- TBL_MENU (수정: 복합키 참조 CATEGORY_CODE, SHOP_CODE 사용)
-INSERT INTO TBL_MENU (CATEGORY_CODE, SHOP_CODE, MENU_NAME, MENU_PRICE, EST_TIME, IS_ACTIVE)
-VALUES
--- 뷰티헤어 강남점 (SHOP_CODE: 1)
+-- tbl_menu (수정: 복합키 참조 category_code, shop_code 사용)
+insert into tbl_menu (category_code, shop_code, menu_name, menu_price, est_time, is_active)
+values
+-- 뷰티헤어 강남점 (shop_code: 1)
 (1, 1, '여성 컷', 25000, 30, 1),
 (1, 1, '남성 컷', 20000, 25, 1),
 (2, 1, '전체 염색', 80000, 120, 1),
@@ -428,7 +428,7 @@ VALUES
 (4, 1, '업스타일링', 40000, 45, 1),
 (5, 1, '두피 스케일링', 50000, 60, 1),
 
--- 뷰티헤어 홍대점 (SHOP_CODE: 2)
+-- 뷰티헤어 홍대점 (shop_code: 2)
 (1, 2, '여성 컷', 23000, 30, 1),
 (1, 2, '남성 컷', 18000, 25, 1),
 (2, 2, '전체 염색', 75000, 120, 1),
@@ -438,7 +438,7 @@ VALUES
 (4, 2, '웨딩 스타일링', 80000, 90, 1),
 (5, 2, '탈모 케어', 70000, 80, 1),
 
--- 뷰티헤어 신촌점 (SHOP_CODE: 3)
+-- 뷰티헤어 신촌점 (shop_code: 3)
 (1, 3, '여성 컷', 22000, 30, 1),
 (1, 3, '남성 컷', 17000, 25, 1),
 (2, 3, '전체 염색', 70000, 120, 1),
@@ -447,7 +447,7 @@ VALUES
 (4, 3, '일반 스타일링', 35000, 40, 1),
 (5, 3, '두피 마사지', 40000, 50, 1),
 
--- 엘레강스 헤어 잠실점 (SHOP_CODE: 4)
+-- 엘레강스 헤어 잠실점 (shop_code: 4)
 (1, 4, '프리미엄 여성 컷', 35000, 40, 1),
 (1, 4, '프리미엄 남성 컷', 28000, 30, 1),
 (2, 4, '프리미엄 염색', 100000, 150, 1),
@@ -456,60 +456,60 @@ VALUES
 (4, 4, '특별 스타일링', 60000, 60, 1),
 (5, 4, '프리미엄 두피케어', 80000, 90, 1),
 
--- 엘레강스 헤어 압구정점 (SHOP_CODE: 5)
+-- 엘레강스 헤어 압구정점 (shop_code: 5)
 (1, 5, '럭셔리 여성 컷', 40000, 45, 1),
 (1, 5, '럭셔리 남성 컷', 32000, 35, 1),
 (2, 5, '럭셔리 염색', 120000, 180, 1),
 (2, 5, '발레아주 염색', 150000, 210, 1),
 (3, 5, '럭셔리 파마', 180000, 200, 1),
 (4, 5, '럭셔리 스타일링', 70000, 70, 1),
-(5, 5, 'VIP 두피케어', 100000, 100, 1);
+(5, 5, 'vip 두피케어', 100000, 100, 1);
 
--- TBL_MESSAGE_TEMPLATE (각 샵별 템플릿)
-INSERT INTO TBL_MESSAGE_TEMPLATE (SHOP_CODE, TEMPLATE_TITLE, TEMPLATE_CONTENT, TEMPLATE_TYPE)
-VALUES
--- 공통 템플릿 (SHOP_CODE NULL)
-(NULL, '예약 확정 안내', '안녕하세요 {고객명}님! 예약이 완료되었습니다.\n{예약날짜} {예약시간}에 {시술명} 예약이 확정되었습니다.\n장소: {샵명} ({샵주소})\n감사합니다.', 'INFORMATIONAL'),
-(NULL, '예약 취소 안내', '{고객명}님, 안녕하세요.\n{예약날짜} {예약시간} {시술명} 예약이 취소되었습니다.\n다시 예약을 원하시면 언제든 연락주세요.\n{샵명}', 'INFORMATIONAL'),
-(NULL, '예약 변경 안내', '{고객명}님, 예약 변경이 완료되었습니다.\n변경된 예약: {예약날짜} {예약시간} {시술명}\n장소: {샵명} ({샵주소})\n변경된 시간에 맞춰 방문해주세요.', 'INFORMATIONAL'),
-(NULL, '예약 리마인더', '{고객명}님, 내일 예약을 확인해드립니다.\n{예약날짜} {예약시간} {시술명}\n장소: {샵명} ({샵주소})\n시간에 맞춰 방문해주시기 바랍니다.', 'INFORMATIONAL'),
+-- tbl_message_template (각 샵별 템플릿)
+insert into tbl_message_template (shop_code, template_title, template_content, template_type)
+values
+-- 공통 템플릿 (shop_code null)
+(null, '예약 확정 안내', '안녕하세요 {고객명}님! 예약이 완료되었습니다.\n{예약날짜} {예약시간}에 {시술명} 예약이 확정되었습니다.\n장소: {샵명} ({샵주소})\n감사합니다.', 'informational'),
+(null, '예약 취소 안내', '{고객명}님, 안녕하세요.\n{예약날짜} {예약시간} {시술명} 예약이 취소되었습니다.\n다시 예약을 원하시면 언제든 연락주세요.\n{샵명}', 'informational'),
+(null, '예약 변경 안내', '{고객명}님, 예약 변경이 완료되었습니다.\n변경된 예약: {예약날짜} {예약시간} {시술명}\n장소: {샵명} ({샵주소})\n변경된 시간에 맞춰 방문해주세요.', 'informational'),
+(null, '예약 리마인더', '{고객명}님, 내일 예약을 확인해드립니다.\n{예약날짜} {예약시간} {시술명}\n장소: {샵명} ({샵주소})\n시간에 맞춰 방문해주시기 바랍니다.', 'informational'),
 
--- PROMOTIONAL 템플릿 (각 샵별 3-4개씩)
+-- promotional 템플릿 (각 샵별 3-4개씩)
 
--- 뷰티헤어 강남점 (SHOP_CODE: 1)
-(1, '강남점 신규고객 할인', '🎉 뷰티헤어 강남점 신규고객 특가! 🎉\n첫 방문 고객님께 모든 시술 20% 할인!\n예약문의: 02-111-2222\n주소: 서울 강남구 강남대로 123', 'PROMOTIONAL'),
-(1, '강남점 VIP 이벤트', '💎 VIP 고객님만을 위한 특별 이벤트 💎\n프리미엄 트리트먼트 + 헤드스파 50% 할인\n뷰티헤어 강남점 | 02-111-2222', 'PROMOTIONAL'),
-(1, '강남점 여름 시즌 특가', '☀️ 여름맞이 특가 이벤트! ☀️\n염색+컷 패키지 30% 할인 (~8/31까지)\n뷰티헤어 강남점에서 새로운 스타일로 변신하세요!', 'PROMOTIONAL'),
-(1, '강남점 친구추천 이벤트', '👫 친구추천 이벤트! 👫\n친구와 함께 방문 시 둘 다 15% 할인!\n뷰티헤어 강남점 | 예약: 02-111-2222', 'PROMOTIONAL'),
+-- 뷰티헤어 강남점 (shop_code: 1)
+(1, '강남점 신규고객 할인', '🎉 뷰티헤어 강남점 신규고객 특가! 🎉\n첫 방문 고객님께 모든 시술 20% 할인!\n예약문의: 02-111-2222\n주소: 서울 강남구 강남대로 123', 'promotional'),
+(1, '강남점 vip 이벤트', '💎 vip 고객님만을 위한 특별 이벤트 💎\n프리미엄 트리트먼트 + 헤드스파 50% 할인\n뷰티헤어 강남점 | 02-111-2222', 'promotional'),
+(1, '강남점 여름 시즌 특가', '☀️ 여름맞이 특가 이벤트! ☀️\n염색+컷 패키지 30% 할인 (~8/31까지)\n뷰티헤어 강남점에서 새로운 스타일로 변신하세요!', 'promotional'),
+(1, '강남점 친구추천 이벤트', '👫 친구추천 이벤트! 👫\n친구와 함께 방문 시 둘 다 15% 할인!\n뷰티헤어 강남점 | 예약: 02-111-2222', 'promotional'),
 
--- 뷰티헤어 홍대점 (SHOP_CODE: 2)
-(2, '홍대점 대학생 할인', '🎓 대학생 특가 이벤트! 🎓\n학생증 제시 시 모든 시술 25% 할인!\n뷰티헤어 홍대점 | 02-333-4444\n젊은 감각의 트렌디한 스타일로!', 'PROMOTIONAL'),
-(2, '홍대점 커플 패키지', '💕 커플 패키지 특가! 💕\n남녀 커플 동시 방문 시 20% 할인\n뷰티헤어 홍대점에서 함께 예뻐지세요!', 'PROMOTIONAL'),
-(2, '홍대점 주말 특가', '🎪 주말 한정 특가! 🎪\n토요일 방문 시 파마+염색 패키지 40% 할인\n뷰티헤어 홍대점 | 예약필수: 02-333-4444', 'PROMOTIONAL'),
+-- 뷰티헤어 홍대점 (shop_code: 2)
+(2, '홍대점 대학생 할인', '🎓 대학생 특가 이벤트! 🎓\n학생증 제시 시 모든 시술 25% 할인!\n뷰티헤어 홍대점 | 02-333-4444\n젊은 감각의 트렌디한 스타일로!', 'promotional'),
+(2, '홍대점 커플 패키지', '💕 커플 패키지 특가! 💕\n남녀 커플 동시 방문 시 20% 할인\n뷰티헤어 홍대점에서 함께 예뻐지세요!', 'promotional'),
+(2, '홍대점 주말 특가', '🎪 주말 한정 특가! 🎪\n토요일 방문 시 파마+염색 패키지 40% 할인\n뷰티헤어 홍대점 | 예약필수: 02-333-4444', 'promotional'),
 
--- 뷰티헤어 신촌점 (SHOP_CODE: 3)
-(3, '신촌점 첫방문 이벤트', '🌟 신촌점 첫방문 고객 이벤트! 🌟\n모든 서비스 30% 할인 + 무료 트리트먼트\n뷰티헤어 신촌점 | 02-555-6666', 'PROMOTIONAL'),
-(3, '신촌점 정기고객 혜택', '🏆 정기고객 감사 이벤트! 🏆\n3회 이상 방문 고객님께 특별 할인 제공\n뷰티헤어 신촌점에서 더 특별한 혜택을!', 'PROMOTIONAL'),
-(3, '신촌점 생일 축하', '🎂 생일 고객 특별 혜택! 🎂\n생일월 방문 시 원하는 시술 50% 할인!\n뷰티헤어 신촌점이 축하해드립니다!', 'PROMOTIONAL'),
-(3, '신촌점 졸업시즌 특가', '🎓 졸업시즌 기념 특가! 🎓\n졸업사진 촬영용 스타일링 패키지 할인\n뷰티헤어 신촌점 | 예약: 02-555-6666', 'PROMOTIONAL'),
+-- 뷰티헤어 신촌점 (shop_code: 3)
+(3, '신촌점 첫방문 이벤트', '🌟 신촌점 첫방문 고객 이벤트! 🌟\n모든 서비스 30% 할인 + 무료 트리트먼트\n뷰티헤어 신촌점 | 02-555-6666', 'promotional'),
+(3, '신촌점 정기고객 혜택', '🏆 정기고객 감사 이벤트! 🏆\n3회 이상 방문 고객님께 특별 할인 제공\n뷰티헤어 신촌점에서 더 특별한 혜택을!', 'promotional'),
+(3, '신촌점 생일 축하', '🎂 생일 고객 특별 혜택! 🎂\n생일월 방문 시 원하는 시술 50% 할인!\n뷰티헤어 신촌점이 축하해드립니다!', 'promotional'),
+(3, '신촌점 졸업시즌 특가', '🎓 졸업시즌 기념 특가! 🎓\n졸업사진 촬영용 스타일링 패키지 할인\n뷰티헤어 신촌점 | 예약: 02-555-6666', 'promotional'),
 
--- 엘레강스 헤어 잠실점 (SHOP_CODE: 4)
-(4, '잠실점 프리미엄 멤버십', '👑 엘레강스 프리미엄 멤버십 👑\n고품격 서비스의 특별 혜택을 경험하세요\n잠실점 VIP 라운지에서 최고의 서비스를!', 'PROMOTIONAL'),
-(4, '잠실점 명품 케어', '💎 명품 헤어케어 패키지 💎\n유럽 수입 제품으로 특별 관리\n엘레강스 헤어 잠실점 | 02-777-8888', 'PROMOTIONAL'),
-(4, '잠실점 웨딩 특가', '💒 웨딩 고객 특별 패키지 💒\n본식 + 스냅 촬영 헤어메이크업 패키지\n엘레강스 헤어 잠실점에서 가장 아름다운 순간을!', 'PROMOTIONAL'),
+-- 엘레강스 헤어 잠실점 (shop_code: 4)
+(4, '잠실점 프리미엄 멤버십', '👑 엘레강스 프리미엄 멤버십 👑\n고품격 서비스의 특별 혜택을 경험하세요\n잠실점 vip 라운지에서 최고의 서비스를!', 'promotional'),
+(4, '잠실점 명품 케어', '💎 명품 헤어케어 패키지 💎\n유럽 수입 제품으로 특별 관리\n엘레강스 헤어 잠실점 | 02-777-8888', 'promotional'),
+(4, '잠실점 웨딩 특가', '💒 웨딩 고객 특별 패키지 💒\n본식 + 스냅 촬영 헤어메이크업 패키지\n엘레강스 헤어 잠실점에서 가장 아름다운 순간을!', 'promotional'),
 
--- 엘레강스 헤어 압구정점 (SHOP_CODE: 5)
-(5, '압구정점 럭셔리 서비스', '✨ 압구정점 럭셔리 서비스 ✨\n세계적 브랜드 제품으로 최고급 케어\n엘레강스 헤어 압구정점에서 특별함을 경험하세요', 'PROMOTIONAL'),
-(5, '압구정점 VVIP 혜택', '👑 VVIP 고객님만을 위한 특별 혜택 👑\n개인 맞춤 서비스 + 전용 공간 제공\n엘레강스 헤어 압구정점 | 02-999-0000', 'PROMOTIONAL'),
-(5, '압구정점 연말 감사', '🎊 연말 감사 이벤트! 🎊\n올 한해 감사의 마음을 담아 특별 할인\n엘레강스 헤어 압구정점과 함께한 소중한 시간들!', 'PROMOTIONAL'),
-(5, '압구정점 셀럽 스타일', '⭐ 셀럽 스타일 패키지 ⭐\n연예인들이 선택한 프리미엄 스타일링\n엘레강스 헤어 압구정점에서 스타가 되어보세요!', 'PROMOTIONAL');
+-- 엘레강스 헤어 압구정점 (shop_code: 5)
+(5, '압구정점 럭셔리 서비스', '✨ 압구정점 럭셔리 서비스 ✨\n세계적 브랜드 제품으로 최고급 케어\n엘레강스 헤어 압구정점에서 특별함을 경험하세요', 'promotional'),
+(5, '압구정점 vvip 혜택', '👑 vvip 고객님만을 위한 특별 혜택 👑\n개인 맞춤 서비스 + 전용 공간 제공\n엘레강스 헤어 압구정점 | 02-999-0000', 'promotional'),
+(5, '압구정점 연말 감사', '🎊 연말 감사 이벤트! 🎊\n올 한해 감사의 마음을 담아 특별 할인\n엘레강스 헤어 압구정점과 함께한 소중한 시간들!', 'promotional'),
+(5, '압구정점 셀럽 스타일', '⭐ 셀럽 스타일 패키지 ⭐\n연예인들이 선택한 프리미엄 스타일링\n엘레강스 헤어 압구정점에서 스타가 되어보세요!', 'promotional');
 
--- TBL_RESERVATION 데이터 삽입 (SHOP_CODE 1번 위주로)
-INSERT INTO TBL_RESERVATION (USER_CODE, SHOP_CODE, MENU_CODE, RESV_DATE, RESV_TIME, USER_COMMENT, RESV_STATE)
-VALUES
+-- tbl_reservation 데이터 삽입 (shop_code 1번 위주로)
+insert into tbl_reservation (user_code, shop_code, menu_code, resv_date, resv_time, user_comment, resv_state)
+values
 -- 2024년 6월 (시술완료 8건)
 (3, 1, 1, '2024-06-15', '10:00:00', '레이어드 컷 원해요', '시술완료'),
-(4, 1, 2, '2024-06-16', '11:00:00', NULL, '시술완료'),
+(4, 1, 2, '2024-06-16', '11:00:00', null, '시술완료'),
 (5, 1, 3, '2024-06-18', '14:00:00', '애쉬브라운으로', '시술완료'),
 (6, 1, 4, '2024-06-20', '15:30:00', '포인트만 살짝', '시술완료'),
 (7, 1, 5, '2024-06-22', '09:30:00', '자연스럽게', '시술완료'),
@@ -695,165 +695,165 @@ VALUES
 (28, 1, 4, '2025-07-23', '19:30:00', '스타일링 예약', '예약취소'),
 (34, 1, 2, '2025-08-01', '10:00:00', '8월 첫 방문', '예약취소');
 
--- TBL_SALES 데이터 삽입 (시술완료된 예약에 대해서만 - 기존 103건 + 7월 17건 = 120건)
-INSERT INTO TBL_SALES (RESV_CODE, PAY_AMOUNT, PAY_METHOD, PAY_DATETIME, PAY_STATUS, CANCEL_AMOUNT, CANCEL_DATETIME, CANCEL_REASON, FINAL_AMOUNT)
-VALUES
+-- tbl_sales 데이터 삽입 (시술완료된 예약에 대해서만 - 기존 103건 + 7월 17건 = 120건)
+insert into tbl_sales (resv_code, pay_amount, pay_method, pay_datetime, pay_status, cancel_amount, cancel_datetime, cancel_reason, final_amount)
+values
 -- 2024년 6월 매출 (8건 중 2건 취소)
-(1, 25000, '신용카드', '2024-06-15 10:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(2, 20000, '현금', '2024-06-16 11:30:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(3, 80000, '신용카드', '2024-06-18 14:30:00', 'CANCELLED', 80000, '2024-06-18 16:00:00', '고객 요청에 의한 취소', 0),
-(4, 50000, '카카오페이', '2024-06-20 16:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(5, 120000, '신용카드', '2024-06-22 10:00:00', 'COMPLETED', 0, NULL, NULL, 120000),
-(6, 80000, '현금', '2024-06-25 11:00:00', 'PARTIAL_CANCELLED', 30000, '2024-06-25 15:00:00', '일부 시술 취소', 50000),
-(7, 40000, '신용카드', '2024-06-28 13:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(8, 50000, '카카오페이', '2024-06-30 15:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
+(1, 25000, '신용카드', '2024-06-15 10:30:00', 'completed', 0, null, null, 25000),
+(2, 20000, '현금', '2024-06-16 11:30:00', 'completed', 0, null, null, 20000),
+(3, 80000, '신용카드', '2024-06-18 14:30:00', 'cancelled', 80000, '2024-06-18 16:00:00', '고객 요청에 의한 취소', 0),
+(4, 50000, '카카오페이', '2024-06-20 16:00:00', 'completed', 0, null, null, 50000),
+(5, 120000, '신용카드', '2024-06-22 10:00:00', 'completed', 0, null, null, 120000),
+(6, 80000, '현금', '2024-06-25 11:00:00', 'partial_cancelled', 30000, '2024-06-25 15:00:00', '일부 시술 취소', 50000),
+(7, 40000, '신용카드', '2024-06-28 13:30:00', 'completed', 0, null, null, 40000),
+(8, 50000, '카카오페이', '2024-06-30 15:30:00', 'completed', 0, null, null, 50000),
 
 -- 2024년 7월 매출 (10건 중 2건 취소)
-(9, 25000, '신용카드', '2024-07-03 10:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(10, 20000, '현금', '2024-07-05 12:00:00', 'PARTIAL_CANCELLED', 10000, '2024-07-05 14:00:00', '추가 시술 취소', 10000),
-(11, 80000, '신용카드', '2024-07-08 14:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(12, 50000, '카카오페이', '2024-07-10 16:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(13, 120000, '신용카드', '2024-07-12 10:30:00', 'COMPLETED', 0, NULL, NULL, 120000),
-(14, 80000, '현금', '2024-07-15 14:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(15, 40000, '신용카드', '2024-07-18 12:30:00', 'CANCELLED', 40000, '2024-07-18 13:00:00', '클레임', 0),
-(16, 50000, '카카오페이', '2024-07-20 17:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(17, 25000, '신용카드', '2024-07-22 11:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(18, 80000, '현금', '2024-07-25 16:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
+(9, 25000, '신용카드', '2024-07-03 10:30:00', 'completed', 0, null, null, 25000),
+(10, 20000, '현금', '2024-07-05 12:00:00', 'partial_cancelled', 10000, '2024-07-05 14:00:00', '추가 시술 취소', 10000),
+(11, 80000, '신용카드', '2024-07-08 14:30:00', 'completed', 0, null, null, 80000),
+(12, 50000, '카카오페이', '2024-07-10 16:30:00', 'completed', 0, null, null, 50000),
+(13, 120000, '신용카드', '2024-07-12 10:30:00', 'completed', 0, null, null, 120000),
+(14, 80000, '현금', '2024-07-15 14:30:00', 'completed', 0, null, null, 80000),
+(15, 40000, '신용카드', '2024-07-18 12:30:00', 'cancelled', 40000, '2024-07-18 13:00:00', '클레임', 0),
+(16, 50000, '카카오페이', '2024-07-20 17:00:00', 'completed', 0, null, null, 50000),
+(17, 25000, '신용카드', '2024-07-22 11:30:00', 'completed', 0, null, null, 25000),
+(18, 80000, '현금', '2024-07-25 16:00:00', 'completed', 0, null, null, 80000),
 
 -- 2024년 8월 매출 (10건 중 2건 취소)
-(19, 20000, '신용카드', '2024-08-02 11:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(20, 50000, '카카오페이', '2024-08-05 13:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(21, 120000, '신용카드', '2024-08-08 15:00:00', 'CANCELLED', 120000, '2024-08-08 16:00:00', '클레임', 0),
-(22, 80000, '현금', '2024-08-12 11:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(23, 25000, '신용카드', '2024-08-15 16:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(24, 80000, '카카오페이', '2024-08-18 10:30:00', 'PARTIAL_CANCELLED', 25000, '2024-08-18 12:00:00', '시술 변경', 55000),
-(25, 40000, '신용카드', '2024-08-22 15:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(26, 50000, '현금', '2024-08-25 13:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(27, 20000, '신용카드', '2024-08-28 14:30:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(28, 50000, '카카오페이', '2024-08-30 17:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
+(19, 20000, '신용카드', '2024-08-02 11:00:00', 'completed', 0, null, null, 20000),
+(20, 50000, '카카오페이', '2024-08-05 13:30:00', 'completed', 0, null, null, 50000),
+(21, 120000, '신용카드', '2024-08-08 15:00:00', 'cancelled', 120000, '2024-08-08 16:00:00', '클레임', 0),
+(22, 80000, '현금', '2024-08-12 11:30:00', 'completed', 0, null, null, 80000),
+(23, 25000, '신용카드', '2024-08-15 16:30:00', 'completed', 0, null, null, 25000),
+(24, 80000, '카카오페이', '2024-08-18 10:30:00', 'partial_cancelled', 25000, '2024-08-18 12:00:00', '시술 변경', 55000),
+(25, 40000, '신용카드', '2024-08-22 15:30:00', 'completed', 0, null, null, 40000),
+(26, 50000, '현금', '2024-08-25 13:00:00', 'completed', 0, null, null, 50000),
+(27, 20000, '신용카드', '2024-08-28 14:30:00', 'completed', 0, null, null, 20000),
+(28, 50000, '카카오페이', '2024-08-30 17:00:00', 'completed', 0, null, null, 50000),
 
 -- 2024년 9월 매출 (9건 중 2건 취소)
-(29, 25000, '신용카드', '2024-09-03 10:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(30, 80000, '현금', '2024-09-06 12:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(31, 120000, '신용카드', '2024-09-10 14:30:00', 'CANCELLED', 120000, '2024-09-10 15:00:00', '클레임', 0),
-(32, 80000, '카카오페이', '2024-09-13 16:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(33, 40000, '신용카드', '2024-09-16 12:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(34, 50000, '현금', '2024-09-20 16:30:00', 'PARTIAL_CANCELLED', 15000, '2024-09-20 17:00:00', '추가 서비스 취소', 35000),
-(35, 20000, '신용카드', '2024-09-23 11:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(36, 50000, '카카오페이', '2024-09-26 14:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(37, 25000, '신용카드', '2024-09-29 15:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
+(29, 25000, '신용카드', '2024-09-03 10:30:00', 'completed', 0, null, null, 25000),
+(30, 80000, '현금', '2024-09-06 12:00:00', 'completed', 0, null, null, 80000),
+(31, 120000, '신용카드', '2024-09-10 14:30:00', 'cancelled', 120000, '2024-09-10 15:00:00', '클레임', 0),
+(32, 80000, '카카오페이', '2024-09-13 16:00:00', 'completed', 0, null, null, 80000),
+(33, 40000, '신용카드', '2024-09-16 12:30:00', 'completed', 0, null, null, 40000),
+(34, 50000, '현금', '2024-09-20 16:30:00', 'partial_cancelled', 15000, '2024-09-20 17:00:00', '추가 서비스 취소', 35000),
+(35, 20000, '신용카드', '2024-09-23 11:00:00', 'completed', 0, null, null, 20000),
+(36, 50000, '카카오페이', '2024-09-26 14:00:00', 'completed', 0, null, null, 50000),
+(37, 25000, '신용카드', '2024-09-29 15:30:00', 'completed', 0, null, null, 25000),
 
 -- 2024년 10월 매출 (10건 중 2건 취소)
-(38, 80000, '현금', '2024-10-02 11:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(39, 120000, '신용카드', '2024-10-05 15:00:00', 'COMPLETED', 0, NULL, NULL, 120000),
-(40, 80000, '카카오페이', '2024-10-08 16:30:00', 'PARTIAL_CANCELLED', 20000, '2024-10-08 17:30:00', '트리트먼트 취소', 60000),
-(41, 25000, '신용카드', '2024-10-12 10:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(42, 20000, '현금', '2024-10-15 13:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(43, 40000, '신용카드', '2024-10-18 16:00:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(44, 50000, '카카오페이', '2024-10-22 12:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(45, 80000, '신용카드', '2024-10-25 14:30:00', 'CANCELLED', 80000, '2024-10-25 15:00:00', '시술자 변경 요청', 0),
-(46, 50000, '현금', '2024-10-28 17:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(47, 120000, '신용카드', '2024-10-30 13:30:00', 'COMPLETED', 0, NULL, NULL, 120000),
+(38, 80000, '현금', '2024-10-02 11:30:00', 'completed', 0, null, null, 80000),
+(39, 120000, '신용카드', '2024-10-05 15:00:00', 'completed', 0, null, null, 120000),
+(40, 80000, '카카오페이', '2024-10-08 16:30:00', 'partial_cancelled', 20000, '2024-10-08 17:30:00', '트리트먼트 취소', 60000),
+(41, 25000, '신용카드', '2024-10-12 10:30:00', 'completed', 0, null, null, 25000),
+(42, 20000, '현금', '2024-10-15 13:00:00', 'completed', 0, null, null, 20000),
+(43, 40000, '신용카드', '2024-10-18 16:00:00', 'completed', 0, null, null, 40000),
+(44, 50000, '카카오페이', '2024-10-22 12:00:00', 'completed', 0, null, null, 50000),
+(45, 80000, '신용카드', '2024-10-25 14:30:00', 'cancelled', 80000, '2024-10-25 15:00:00', '시술자 변경 요청', 0),
+(46, 50000, '현금', '2024-10-28 17:00:00', 'completed', 0, null, null, 50000),
+(47, 120000, '신용카드', '2024-10-30 13:30:00', 'completed', 0, null, null, 120000),
 
 -- 2024년 11월 매출 (8건 중 1건 취소)
-(48, 25000, '카카오페이', '2024-11-03 11:00:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(49, 20000, '신용카드', '2024-11-07 12:30:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(50, 80000, '현금', '2024-11-10 15:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(51, 50000, '신용카드', '2024-11-14 11:30:00', 'PARTIAL_CANCELLED', 20000, '2024-11-14 13:00:00', '시술 축소', 30000),
-(52, 80000, '카카오페이', '2024-11-17 15:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(53, 40000, '신용카드', '2024-11-21 16:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(54, 50000, '현금', '2024-11-24 14:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(55, 120000, '신용카드', '2024-11-28 10:30:00', 'COMPLETED', 0, NULL, NULL, 120000),
+(48, 25000, '카카오페이', '2024-11-03 11:00:00', 'completed', 0, null, null, 25000),
+(49, 20000, '신용카드', '2024-11-07 12:30:00', 'completed', 0, null, null, 20000),
+(50, 80000, '현금', '2024-11-10 15:30:00', 'completed', 0, null, null, 80000),
+(51, 50000, '신용카드', '2024-11-14 11:30:00', 'partial_cancelled', 20000, '2024-11-14 13:00:00', '시술 축소', 30000),
+(52, 80000, '카카오페이', '2024-11-17 15:00:00', 'completed', 0, null, null, 80000),
+(53, 40000, '신용카드', '2024-11-21 16:30:00', 'completed', 0, null, null, 40000),
+(54, 50000, '현금', '2024-11-24 14:00:00', 'completed', 0, null, null, 50000),
+(55, 120000, '신용카드', '2024-11-28 10:30:00', 'completed', 0, null, null, 120000),
 
 -- 2024년 12월 매출 (9건 중 2건 취소, 연말 할인 일부 적용)
-(56, 25000, '카카오페이', '2024-12-02 12:00:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(57, 20000, '신용카드', '2024-12-05 14:30:00', 'CANCELLED', 20000, '2024-12-05 15:00:00', '클레임', 0),
-(58, 72000, '현금', '2024-12-08 17:00:00', 'COMPLETED', 0, NULL, NULL, 72000), -- 10% 할인
-(59, 80000, '신용카드', '2024-12-12 11:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(60, 36000, '카카오페이', '2024-12-15 13:30:00', 'PARTIAL_CANCELLED', 16000, '2024-12-15 14:00:00', '시술 변경', 20000), -- 할인 후 부분취소
-(61, 50000, '신용카드', '2024-12-18 16:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(62, 45000, '현금', '2024-12-22 12:30:00', 'COMPLETED', 0, NULL, NULL, 45000), -- 10% 할인
-(63, 108000, '신용카드', '2024-12-28 15:00:00', 'COMPLETED', 0, NULL, NULL, 108000), -- 10% 할인
-(64, 25000, '카카오페이', '2024-12-30 11:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
+(56, 25000, '카카오페이', '2024-12-02 12:00:00', 'completed', 0, null, null, 25000),
+(57, 20000, '신용카드', '2024-12-05 14:30:00', 'cancelled', 20000, '2024-12-05 15:00:00', '클레임', 0),
+(58, 72000, '현금', '2024-12-08 17:00:00', 'completed', 0, null, null, 72000), -- 10% 할인
+(59, 80000, '신용카드', '2024-12-12 11:00:00', 'completed', 0, null, null, 80000),
+(60, 36000, '카카오페이', '2024-12-15 13:30:00', 'partial_cancelled', 16000, '2024-12-15 14:00:00', '시술 변경', 20000), -- 할인 후 부분취소
+(61, 50000, '신용카드', '2024-12-18 16:00:00', 'completed', 0, null, null, 50000),
+(62, 45000, '현금', '2024-12-22 12:30:00', 'completed', 0, null, null, 45000), -- 10% 할인
+(63, 108000, '신용카드', '2024-12-28 15:00:00', 'completed', 0, null, null, 108000), -- 10% 할인
+(64, 25000, '카카오페이', '2024-12-30 11:30:00', 'completed', 0, null, null, 25000),
 
 -- 2025년 1월 매출 (8건 중 2건 취소)
-(65, 20000, '신용카드', '2025-01-03 10:30:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(66, 80000, '현금', '2025-01-07 14:00:00', 'CANCELLED', 80000, '2025-01-07 15:00:00', '클레임', 0),
-(67, 80000, '카카오페이', '2025-01-10 15:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(68, 50000, '신용카드', '2025-01-14 12:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(69, 25000, '현금', '2025-01-17 15:00:00', 'PARTIAL_CANCELLED', 10000, '2025-01-17 16:00:00', '시술 단축', 15000),
-(70, 50000, '카카오페이', '2025-01-21 16:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(71, 40000, '신용카드', '2025-01-25 13:00:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(72, 120000, '현금', '2025-01-28 16:00:00', 'COMPLETED', 0, NULL, NULL, 120000),
+(65, 20000, '신용카드', '2025-01-03 10:30:00', 'completed', 0, null, null, 20000),
+(66, 80000, '현금', '2025-01-07 14:00:00', 'cancelled', 80000, '2025-01-07 15:00:00', '클레임', 0),
+(67, 80000, '카카오페이', '2025-01-10 15:30:00', 'completed', 0, null, null, 80000),
+(68, 50000, '신용카드', '2025-01-14 12:00:00', 'completed', 0, null, null, 50000),
+(69, 25000, '현금', '2025-01-17 15:00:00', 'partial_cancelled', 10000, '2025-01-17 16:00:00', '시술 단축', 15000),
+(70, 50000, '카카오페이', '2025-01-21 16:30:00', 'completed', 0, null, null, 50000),
+(71, 40000, '신용카드', '2025-01-25 13:00:00', 'completed', 0, null, null, 40000),
+(72, 120000, '현금', '2025-01-28 16:00:00', 'completed', 0, null, null, 120000),
 
 -- 2025년 2월 매출 (7건 중 1건 취소)
-(73, 20000, '신용카드', '2025-02-02 11:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(74, 80000, '카카오페이', '2025-02-06 13:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(75, 25000, '현금', '2025-02-10 16:00:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(76, 80000, '신용카드', '2025-02-14 11:30:00', 'PARTIAL_CANCELLED', 30000, '2025-02-14 12:30:00', '밸런타인 스타일 변경', 50000),
-(77, 50000, '카카오페이', '2025-02-18 14:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(78, 50000, '현금', '2025-02-22 17:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(79, 40000, '신용카드', '2025-02-26 12:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
+(73, 20000, '신용카드', '2025-02-02 11:00:00', 'completed', 0, null, null, 20000),
+(74, 80000, '카카오페이', '2025-02-06 13:30:00', 'completed', 0, null, null, 80000),
+(75, 25000, '현금', '2025-02-10 16:00:00', 'completed', 0, null, null, 25000),
+(76, 80000, '신용카드', '2025-02-14 11:30:00', 'partial_cancelled', 30000, '2025-02-14 12:30:00', '밸런타인 스타일 변경', 50000),
+(77, 50000, '카카오페이', '2025-02-18 14:30:00', 'completed', 0, null, null, 50000),
+(78, 50000, '현금', '2025-02-22 17:00:00', 'completed', 0, null, null, 50000),
+(79, 40000, '신용카드', '2025-02-26 12:30:00', 'completed', 0, null, null, 40000),
 
 -- 2025년 3월 매출 (7건 중 1건 취소)
-(80, 25000, '카카오페이', '2025-03-03 10:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(81, 80000, '신용카드', '2025-03-07 14:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(82, 120000, '현금', '2025-03-12 15:30:00', 'CANCELLED', 120000, '2025-03-12 16:00:00', '클레임', 0),
-(83, 20000, '카카오페이', '2025-03-16 12:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(84, 50000, '신용카드', '2025-03-20 15:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(85, 80000, '현금', '2025-03-24 16:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(86, 50000, '카카오페이', '2025-03-28 13:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
+(80, 25000, '카카오페이', '2025-03-03 10:30:00', 'completed', 0, null, null, 25000),
+(81, 80000, '신용카드', '2025-03-07 14:00:00', 'completed', 0, null, null, 80000),
+(82, 120000, '현금', '2025-03-12 15:30:00', 'cancelled', 120000, '2025-03-12 16:00:00', '클레임', 0),
+(83, 20000, '카카오페이', '2025-03-16 12:00:00', 'completed', 0, null, null, 20000),
+(84, 50000, '신용카드', '2025-03-20 15:00:00', 'completed', 0, null, null, 50000),
+(85, 80000, '현금', '2025-03-24 16:30:00', 'completed', 0, null, null, 80000),
+(86, 50000, '카카오페이', '2025-03-28 13:00:00', 'completed', 0, null, null, 50000),
 
 -- 2025년 4월 매출 (7건 중 1건 취소)
-(87, 25000, '신용카드', '2025-04-02 11:00:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(88, 40000, '현금', '2025-04-06 13:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(89, 80000, '카카오페이', '2025-04-10 16:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(90, 120000, '신용카드', '2025-04-15 11:30:00', 'PARTIAL_CANCELLED', 40000, '2025-04-15 13:00:00', '졸업식 스타일 변경', 80000),
-(91, 20000, '현금', '2025-04-19 14:30:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(92, 50000, '카카오페이', '2025-04-23 17:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(93, 80000, '신용카드', '2025-04-27 12:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
+(87, 25000, '신용카드', '2025-04-02 11:00:00', 'completed', 0, null, null, 25000),
+(88, 40000, '현금', '2025-04-06 13:30:00', 'completed', 0, null, null, 40000),
+(89, 80000, '카카오페이', '2025-04-10 16:00:00', 'completed', 0, null, null, 80000),
+(90, 120000, '신용카드', '2025-04-15 11:30:00', 'partial_cancelled', 40000, '2025-04-15 13:00:00', '졸업식 스타일 변경', 80000),
+(91, 20000, '현금', '2025-04-19 14:30:00', 'completed', 0, null, null, 20000),
+(92, 50000, '카카오페이', '2025-04-23 17:00:00', 'completed', 0, null, null, 50000),
+(93, 80000, '신용카드', '2025-04-27 12:30:00', 'completed', 0, null, null, 80000),
 
 -- 2025년 5월 매출 (5건 중 1건 취소)
-(94, 50000, '현금', '2025-05-02 10:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(95, 25000, '카카오페이', '2025-05-07 14:00:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(96, 80000, '신용카드', '2025-05-12 15:30:00', 'CANCELLED', 80000, '2025-05-12 16:00:00', '클레임', 0),
-(97, 40000, '현금', '2025-05-17 12:00:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(98, 120000, '카카오페이', '2025-05-22 15:00:00', 'COMPLETED', 0, NULL, NULL, 120000),
+(94, 50000, '현금', '2025-05-02 10:30:00', 'completed', 0, null, null, 50000),
+(95, 25000, '카카오페이', '2025-05-07 14:00:00', 'completed', 0, null, null, 25000),
+(96, 80000, '신용카드', '2025-05-12 15:30:00', 'cancelled', 80000, '2025-05-12 16:00:00', '클레임', 0),
+(97, 40000, '현금', '2025-05-17 12:00:00', 'completed', 0, null, null, 40000),
+(98, 120000, '카카오페이', '2025-05-22 15:00:00', 'completed', 0, null, null, 120000),
 
 -- 2025년 6월 매출 (3건 중 1건 취소)
-(99, 20000, '신용카드', '2025-06-02 11:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(100, 50000, '현금', '2025-06-07 13:30:00', 'PARTIAL_CANCELLED', 20000, '2025-06-07 15:00:00', '시술 시간 단축', 30000),
-(101, 80000, '카카오페이', '2025-06-12 16:00:00', 'COMPLETED', 0, NULL, NULL, 80000),
+(99, 20000, '신용카드', '2025-06-02 11:00:00', 'completed', 0, null, null, 20000),
+(100, 50000, '현금', '2025-06-07 13:30:00', 'partial_cancelled', 20000, '2025-06-07 15:00:00', '시술 시간 단축', 30000),
+(101, 80000, '카카오페이', '2025-06-12 16:00:00', 'completed', 0, null, null, 80000),
 
 -- 2025년 7월 매출 (17건 - 7/23까지 완료된 시술)
-(102, 25000, '신용카드', '2025-07-01 10:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(103, 50000, '현금', '2025-07-01 15:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(104, 80000, '카카오페이', '2025-07-02 13:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(105, 120000, '신용카드', '2025-07-03 12:00:00', 'COMPLETED', 0, NULL, NULL, 120000),
-(106, 40000, '현금', '2025-07-03 16:30:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(107, 20000, '카카오페이', '2025-07-04 11:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(108, 80000, '신용카드', '2025-07-05 12:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(109, 50000, '현금', '2025-07-07 15:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(110, 25000, '카카오페이', '2025-07-08 16:30:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(111, 80000, '신용카드', '2025-07-09 11:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
-(112, 50000, '현금', '2025-07-11 14:00:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(113, 120000, '카카오페이', '2025-07-12 15:30:00', 'COMPLETED', 0, NULL, NULL, 120000),
-(114, 20000, '신용카드', '2025-07-14 11:00:00', 'COMPLETED', 0, NULL, NULL, 20000),
-(115, 40000, '현금', '2025-07-16 13:00:00', 'COMPLETED', 0, NULL, NULL, 40000),
-(116, 50000, '카카오페이', '2025-07-18 14:30:00', 'COMPLETED', 0, NULL, NULL, 50000),
-(117, 25000, '신용카드', '2025-07-19 17:00:00', 'COMPLETED', 0, NULL, NULL, 25000),
-(118, 80000, '현금', '2025-07-22 11:30:00', 'COMPLETED', 0, NULL, NULL, 80000),
+(102, 25000, '신용카드', '2025-07-01 10:30:00', 'completed', 0, null, null, 25000),
+(103, 50000, '현금', '2025-07-01 15:00:00', 'completed', 0, null, null, 50000),
+(104, 80000, '카카오페이', '2025-07-02 13:30:00', 'completed', 0, null, null, 80000),
+(105, 120000, '신용카드', '2025-07-03 12:00:00', 'completed', 0, null, null, 120000),
+(106, 40000, '현금', '2025-07-03 16:30:00', 'completed', 0, null, null, 40000),
+(107, 20000, '카카오페이', '2025-07-04 11:00:00', 'completed', 0, null, null, 20000),
+(108, 80000, '신용카드', '2025-07-05 12:30:00', 'completed', 0, null, null, 80000),
+(109, 50000, '현금', '2025-07-07 15:00:00', 'completed', 0, null, null, 50000),
+(110, 25000, '카카오페이', '2025-07-08 16:30:00', 'completed', 0, null, null, 25000),
+(111, 80000, '신용카드', '2025-07-09 11:30:00', 'completed', 0, null, null, 80000),
+(112, 50000, '현금', '2025-07-11 14:00:00', 'completed', 0, null, null, 50000),
+(113, 120000, '카카오페이', '2025-07-12 15:30:00', 'completed', 0, null, null, 120000),
+(114, 20000, '신용카드', '2025-07-14 11:00:00', 'completed', 0, null, null, 20000),
+(115, 40000, '현금', '2025-07-16 13:00:00', 'completed', 0, null, null, 40000),
+(116, 50000, '카카오페이', '2025-07-18 14:30:00', 'completed', 0, null, null, 50000),
+(117, 25000, '신용카드', '2025-07-19 17:00:00', 'completed', 0, null, null, 25000),
+(118, 80000, '현금', '2025-07-22 11:30:00', 'completed', 0, null, null, 80000),
 -- 7월 23일 매출 1건만
-(119, 80000, '카카오페이', '2025-07-23 15:30:00', 'COMPLETED', 0, NULL, NULL, 80000);
+(119, 80000, '카카오페이', '2025-07-23 15:30:00', 'completed', 0, null, null, 80000);
 
--- TBL_VISITORS (150건)
-INSERT INTO TBL_VISITORS (USER_CODE, SHOP_CODE, MEMO, SENDABLE, IS_ACTIVE)
-VALUES
+-- tbl_visitors (150건)
+insert into tbl_visitors (user_code, shop_code, memo, sendable, is_active)
+values
 -- 뷰티헤어 강남점 고객 (30명)
 (3, 1, '단골고객', 1, 1),
 (4, 1, '신규고객', 1, 1),
 (5, 1, '리뷰작성고객', 0, 1),
-(6, 1, 'VIP고객', 1, 1),
+(6, 1, 'vip고객', 1, 1),
 (7, 1, '추천', 1, 1),
 (8, 1, '이벤트참여', 0, 1),
 (9, 1, '정기방문', 1, 1),
@@ -862,7 +862,7 @@ VALUES
 (12, 1, '재방문고객', 1, 1),
 (13, 1, '신규', 1, 1),
 (14, 1, '단골', 0, 1),
-(15, 1, 'VIP', 1, 1),
+(15, 1, 'vip', 1, 1),
 (16, 1, '추천', 1, 1),
 (17, 1, '이벤트', 0, 1),
 (18, 1, '정기', 1, 1),
@@ -871,20 +871,20 @@ VALUES
 (21, 1, '재방문', 1, 1),
 (22, 1, '특별관리', 1, 1),
 (23, 1, '우수고객', 0, 1),
-(24, 1, '단골VIP', 1, 1),
-(25, 1, '추천VIP', 1, 1),
-(26, 1, '이벤트VIP', 0, 1),
-(27, 1, '정기VIP', 1, 1),
+(24, 1, '단골vip', 1, 1),
+(25, 1, '추천vip', 1, 1),
+(26, 1, '이벤트vip', 0, 1),
+(27, 1, '정기vip', 1, 1),
 (28, 1, '프리미엄', 1, 1),
-(29, 1, '특급VIP', 0, 1),
+(29, 1, '특급vip', 0, 1),
 (30, 1, '최고급', 1, 1),
 (31, 1, '럭셔리', 1, 1),
-(32, 1, 'VVIP', 0, 1),
+(32, 1, 'vvip', 0, 1),
 
 -- 뷰티헤어 홍대점 고객 (30명)
 (33, 2, '홍대 단골', 1, 1),
 (34, 2, '홍대 신규', 1, 1),
-(35, 2, '홍대 VIP', 0, 1),
+(35, 2, '홍대 vip', 0, 1),
 (36, 2, '홍대 추천', 1, 1),
 (37, 2, '홍대 이벤트', 1, 1),
 (38, 2, '홍대 단골', 0, 1),
@@ -916,7 +916,7 @@ VALUES
 -- 뷰티헤어 신촌점 고객 (30명)
 (63, 3, '신촌 단골', 1, 1),
 (64, 3, '신촌 신규', 1, 1),
-(65, 3, '신촌 VIP', 0, 1),
+(65, 3, '신촌 vip', 0, 1),
 (66, 3, '신촌 추천', 1, 1),
 (67, 3, '신촌 이벤트', 1, 1),
 (68, 3, '신촌 정기', 0, 1),
@@ -933,7 +933,7 @@ VALUES
 (79, 3, '대학원생', 1, 1),
 (80, 3, '회사원', 0, 1),
 (81, 3, '직장인', 1, 1),
-(82, 3, 'CEO', 1, 1),
+(82, 3, 'ceo', 1, 1),
 (83, 3, '임원', 0, 1),
 (84, 3, '대학원생', 1, 1),
 (85, 3, '교수', 1, 1),
@@ -946,11 +946,11 @@ VALUES
 (92, 3, '장기 고객', 0, 1),
 
 -- 엘레강스 헤어 잠실점 고객 (30명)
-(93, 4, '잠실 VIP', 1, 1),
+(93, 4, '잠실 vip', 1, 1),
 (94, 4, '잠실 단골', 1, 1),
 (95, 4, '잠실 프리미엄', 0, 1),
 (96, 4, '잠실 럭셔리', 1, 1),
-(97, 4, '잠실 VVIP', 1, 1),
+(97, 4, '잠실 vvip', 1, 1),
 (98, 4, '잠실 특급', 0, 1),
 (99, 4, '잠실 최고급', 1, 1),
 (100, 4, '잠실 멤버십', 1, 1),
@@ -971,7 +971,7 @@ VALUES
 (27, 4, '두피케어 전문', 1, 1),
 (28, 4, '트리트먼트 전문', 0, 1),
 (29, 4, '헤드스파 단골', 1, 1),
-(30, 4, 'VIP 라운지', 1, 1),
+(30, 4, 'vip 라운지', 1, 1),
 (31, 4, '개인 맞춤', 0, 1),
 (32, 4, '고급 서비스', 1, 1),
 (33, 4, '프리미엄 멤버', 1, 1),
@@ -980,20 +980,20 @@ VALUES
 -- 엘레강스 헤어 압구정점 고객 (30명)
 (35, 5, '압구정 파마 단골', 1, 1),
 (36, 5, '압구정 염색 단골', 1, 1),
-(37, 5, '압구정 VIP', 0, 1),
-(38, 5, '압구정 VIP', 1, 1),
-(39, 5, '압구정 VVIP', 1, 1),
+(37, 5, '압구정 vip', 0, 1),
+(38, 5, '압구정 vip', 1, 1),
+(39, 5, '압구정 vvip', 1, 1),
 (40, 5, '압구정 주 1회 방문', 0, 1),
-(41, 5, '압구정 VVIP', 1, 1),
-(42, 5, '압구정 VIP', 1, 1),
+(41, 5, '압구정 vvip', 1, 1),
+(42, 5, '압구정 vip', 1, 1),
 (43, 5, '압구정 장기 단골', 0, 1),
-(44, 5, '압구정 VVIP', 1, 1),
-(45, 5, '압구정 VIP', 1, 1),
-(46, 5, 'VIP 고객', 0, 1),
+(44, 5, '압구정 vvip', 1, 1),
+(45, 5, '압구정 vip', 1, 1),
+(46, 5, 'vip 고객', 0, 1),
 (47, 5, '마무리 스타일링 필수', 1, 1),
 (48, 5, '동네 마당발', 1, 1),
-(49, 5, 'VIP 고객', 0, 1),
-(50, 5, 'VVIP 고객', 1, 1),
+(49, 5, 'vip 고객', 0, 1),
+(50, 5, 'vvip 고객', 1, 1),
 (51, 5, '두피 클리닉 단골', 1, 1),
 (52, 5, '숏컷 선호', 0, 1),
 (53, 5, '숏컷 선호', 1, 1),
@@ -1009,54 +1009,54 @@ VALUES
 (63, 5, '장기 고객', 1, 1),
 (64, 5, '근처 거주', 0, 1);
 
--- TBL_MSG_SEND_BATCH 더미 데이터 (3개 배치)
-INSERT INTO `TBL_MSG_SEND_BATCH` (`BATCH_CODE`,
-                                  `SHOP_CODE`,
-                                  `TEMPLATE_CODE`,
-                                  `SEND_DATE`,
-                                  `SEND_TIME`,
-                                  `SEND_TYPE`,
-                                  `SUBJECT`,
-                                  `TOTAL_COUNT`,
-                                  `SUCCESS_COUNT`,
-                                  `FAIL_COUNT`)
-VALUES
+-- tbl_msg_send_batch 더미 데이터 (3개 배치)
+insert into `tbl_msg_send_batch` (`batch_code`,
+                                  `shop_code`,
+                                  `template_code`,
+                                  `send_date`,
+                                  `send_time`,
+                                  `send_type`,
+                                  `subject`,
+                                  `total_count`,
+                                  `success_count`,
+                                  `fail_count`)
+values
 -- 배치 1: 샵 1에서 예약 확정 메시지 개별 발송
-(1, 1, 1, '2025-07-01', '10:00:00', 'INDIVIDUAL', '7월 5일 예약 확정 안내', 12, 10, 2),
+(1, 1, 1, '2025-07-01', '10:00:00', 'individual', '7월 5일 예약 확정 안내', 12, 10, 2),
 -- 배치 2: 샵 2에서 프로모션 메시지 그룹 발송
-(2, 2, 6, '2025-07-15', '14:00:00', 'GROUP', '7월 특가 이벤트 안내', 15, 13, 2),
+(2, 2, 6, '2025-07-15', '14:00:00', 'group', '7월 특가 이벤트 안내', 15, 13, 2),
 -- 배치 3: 샵 1에서 리뷰 요청 그룹 발송
-(3, 1, 16, '2025-07-25', '16:30:00', 'GROUP', '서비스 만족도 및 리뷰 요청', 3, 3, 0);
+(3, 1, 16, '2025-07-25', '16:30:00', 'group', '서비스 만족도 및 리뷰 요청', 3, 3, 0);
 
--- TBL_SHOP_MSG_HISTORY 더미 데이터 (30건)
-INSERT INTO `TBL_SHOP_MSG_HISTORY` (`BATCH_CODE`,
-                                    `USER_CODE`,
-                                    `MSG_CONTENT`,
-                                    `SEND_STATUS`,
-                                    `ERROR_MESSAGE`,
-                                    `SENT_AT`)
-VALUES
--- 배치 1 (BATCH_CODE = 1, 샵 1) - 12건
-(1, 2, '예약이 확정되었습니다.', 'SUCCESS', NULL, '2025-07-01 10:00:15'),
+-- tbl_shop_msg_history 더미 데이터 (30건)
+insert into `tbl_shop_msg_history` (`batch_code`,
+                                    `user_code`,
+                                    `msg_content`,
+                                    `send_status`,
+                                    `error_message`,
+                                    `sent_at`)
+values
+-- 배치 1 (batch_code = 1, 샵 1) - 12건
+(1, 2, '예약이 확정되었습니다.', 'success', null, '2025-07-01 10:00:15'),
 
--- 배치 2 (BATCH_CODE = 2, 샵 2) - 15건 (동일한 프로모션 메시지)
-(2, 14, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:00:10'),
-(2, 15, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:00:25'),
-(2, 16, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:00:40'),
-(2, 17, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:00:55'),
-(2, 18, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:01:10'),
-(2, 19, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:01:25'),
-(2, 20, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'FAIL', '번호 오류', '2025-07-15 14:01:40'),
-(2, 21, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:01:55'),
-(2, 22, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:02:10'),
-(2, 23, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:02:25'),
-(2, 24, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:02:40'),
-(2, 25, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:02:55'),
-(2, 26, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:03:10'),
-(2, 27, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'FAIL', '네트워크 오류', '2025-07-15 14:03:25'),
-(2, 28, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'SUCCESS', NULL, '2025-07-15 14:03:40'),
+-- 배치 2 (batch_code = 2, 샵 2) - 15건 (동일한 프로모션 메시지)
+(2, 14, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:00:10'),
+(2, 15, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:00:25'),
+(2, 16, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:00:40'),
+(2, 17, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:00:55'),
+(2, 18, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:01:10'),
+(2, 19, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:01:25'),
+(2, 20, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'fail', '번호 오류', '2025-07-15 14:01:40'),
+(2, 21, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:01:55'),
+(2, 22, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:02:10'),
+(2, 23, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:02:25'),
+(2, 24, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:02:40'),
+(2, 25, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:02:55'),
+(2, 26, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:03:10'),
+(2, 27, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'fail', '네트워크 오류', '2025-07-15 14:03:25'),
+(2, 28, '[네일샵 이름] 7월 특가 이벤트! 젤네일 30% 할인 (~7/31까지) 예약: 02-9876-5432', 'success', null, '2025-07-15 14:03:40'),
 
--- 배치 3 (BATCH_CODE = 3, 샵 1) - 3건 (동일한 리뷰 요청 메시지)
-(3, 29, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'SUCCESS', NULL, '2025-07-25 16:30:05'),
-(3, 30, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'SUCCESS', NULL, '2025-07-25 16:30:20'),
-(3, 2, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'SUCCESS', NULL, '2025-07-25 16:30:35');
+-- 배치 3 (batch_code = 3, 샵 1) - 3건 (동일한 리뷰 요청 메시지)
+(3, 29, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:05'),
+(3, 30, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:20'),
+(3, 2, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:35

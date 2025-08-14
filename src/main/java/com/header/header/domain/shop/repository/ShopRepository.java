@@ -1,6 +1,7 @@
 package com.header.header.domain.shop.repository;
 
 import com.header.header.domain.shop.entity.Shop;
+import com.header.header.domain.shop.projection.ShopAdminInfo;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
@@ -135,4 +137,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     """)
     boolean isShopLeft (@Param("adminCode") Integer adminCode);
 
+    /* shop DB의 adminCode를 찾아온다 */
+    @Query("SELECT s.shopCode AS shopCode, s.shopName AS shopName, s.adminInfo.userCode AS adminUserCode FROM Shop s WHERE s.adminInfo.userCode = :adminCode")
+    Optional<ShopAdminInfo> findShopCodeByUserCodeMatchWithAdminCode(@Param("adminCode") Integer adminCode);
 }
