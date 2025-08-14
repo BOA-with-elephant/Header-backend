@@ -149,7 +149,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
            """)
     List<Time> findReservedTimes(@Param("shopCode") Integer shopCode, @Param("resvDate") Date resvDate);
 
-    @Lock(LockModeType.READ) // 다른 트랜잭션에서 읽기만 허용, 쓰기 불가
+    @Lock(LockModeType.PESSIMISTIC_WRITE) // 다른 트랜잭션에서 읽기/쓰기 모두 불가
     @Query("""
            SELECT r
            FROM BossReservation r
