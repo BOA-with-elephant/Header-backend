@@ -511,7 +511,7 @@ public class UserReservationTests {
     @DisplayName("캐싱 테스트")
     void caffeineCacheTests() {
 
-        int shopCode = 124;
+        int shopCode = 1;
         int userCode = 113;
         int revCode = 164;
 
@@ -521,7 +521,7 @@ public class UserReservationTests {
 
         printAllCache();
         System.out.print("holidays 캐시 삭제 테스트 : ");
-        shopHolidayService.evictByShopCode(124);
+        shopHolidayService.evictByShopCode(shopCode);
         CaffeineCache caffeineCache = (CaffeineCache) cacheManager.getCache("holidays");
 
         // 캐시 남아있음
@@ -529,14 +529,59 @@ public class UserReservationTests {
         // holidays 엔트리는 삭제됨
         assertTrue(caffeineCache.getNativeCache().asMap().isEmpty());
 
+        /*캐시 삭제 테스트*/
         System.out.println("캐시 삭제 테스트 : ");
         userReservationService.cancelReservation(userCode, revCode);
 
-        Cache cache = cacheManager.getCache("reserved-schedule");
+        Cache cache = cacheManager.getCache("available-schedule");
 
-        Cache.ValueWrapper valueWrapper = cache.get("2025-09-12_11:00:00");
+        BossReservation reservation = userReservationRepository.findById(revCode)
+                        .orElseThrow();
+
+        String cacheKey = reservation.getShopInfo().getShopCode() + "_"
+                + reservation.getResvDate() + "_"
+                + reservation.getResvTime();
+
+        Cache.ValueWrapper valueWrapper = cache.get(cacheKey);
 
         assertNull(valueWrapper);
+    }
+
+    @Test
+    void cacheCreateTest() {
+
+        /*캐시 생성 테스트*/
+        int shopCode = 1;
+        int userCode = 113;
+
+        userReservationService.getAvailableSchedule(shopCode, 30);
+
+        Date revDate = Date.valueOf("2025-09-10");
+        Time revTime = Time.valueOf("14:30:00");
+
+        Menu menu = menuRepository.findById(1).orElseThrow();
+
+        UserReservationDTO dto = new  UserReservationDTO();
+        dto.setUserCode(userCode);
+        dto.setMenuCode(menu.getMenuCode());
+        dto.setResvDate(revDate);
+        dto.setResvTime(revTime);
+
+        userReservationService.createReservation(shopCode, dto);
+
+        String cacheKey1 = shopCode + "_"
+                + revDate.toString() + "_"
+                + revTime.toString();
+
+        Cache cache = cacheManager.getCache("available-schedule");
+
+        Cache.ValueWrapper valueWrapper1 = cache.get(cacheKey1);
+
+        System.out.println(valueWrapper1);
+
+        assertFalse((Boolean) valueWrapper1.get());
+
+        printAllCache();
     }
 
     // 모든 캐시 프린트
