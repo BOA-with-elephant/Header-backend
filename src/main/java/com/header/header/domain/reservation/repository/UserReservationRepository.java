@@ -157,7 +157,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
            AND r.resvDate = :resvDate
            AND r.resvTime = :resvTime
            """)
-    BossReservation findForReservation(
+    Optional<BossReservation> findForReservation(
             @Param("shopCode") Integer shopCode,
             @Param("resvDate") Date resvDate,
             @Param("resvTime") Time resvTime
