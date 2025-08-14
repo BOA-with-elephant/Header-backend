@@ -202,6 +202,9 @@ alter table `tbl_reservation`
     add constraint `fk_tbl_shop_to_reservation_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 alter table `tbl_reservation`
     add constraint `fk_tbl_menu_to_reservation_1` foreign key (`menu_code`) references `tbl_menu` (`menu_code`);
+alter table tbl_reservation
+    add constraint uniq_reservation_slot
+        unique (shop_code, resv_date, resv_time);
 
 alter table `tbl_sales`
     add constraint `fk_tbl_reservation_to_sales_1` foreign key (`resv_code`) references `tbl_reservation` (`resv_code`);
@@ -1059,4 +1062,4 @@ values
 -- 배치 3 (batch_code = 3, 샵 1) - 3건 (동일한 리뷰 요청 메시지)
 (3, 29, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:05'),
 (3, 30, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:20'),
-(3, 2, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:35
+(3, 2, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:35');
