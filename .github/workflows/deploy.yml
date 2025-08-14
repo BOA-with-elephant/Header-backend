@@ -114,4 +114,4 @@ jobs:
 
             docker pull ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
             docker compose -f docker-compose.yml down -v || true
-            docker compose -f docker-compose.yml up -d --build
+            docker compose -f docker-compose.yml up -d
