@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class UserReservationService {
@@ -114,6 +115,13 @@ public class UserReservationService {
         Integer menuCode = dto.getMenuCode();
         Date resvDate = dto.getResvDate();
         Time resvTime = dto.getResvTime();
+
+/*        Optional<BossReservation> existRev
+                = userReservationRepository.findForReservation(shopCode, resvDate, resvTime);
+
+        if (existRev.isPresent()) {
+            throw new UserReservationExceptionHandler(UserReservationErrorCode.SCHEDULE_ALREADY_TAKEN);
+        }*/
 
         /*유효하지 않은 사용자 정보일 경우 예외*/
         User user = userRepository.findById(userCode)
@@ -232,8 +240,6 @@ public class UserReservationService {
 
     /* 프론트에 예약 가능한 날짜와 시간을 모아서 보내주는 용도 */
     // @Param: shopCode, dateRangeToGet (for 문에서 스캔할 날짜의 개수... 일단 한 달 줄 예정)
-    @Transactional(readOnly = true)
-    // 영속성 컨텍스트에게 읽기 전용이라는 것을 명시해 성능 향상. 날짜별로 for문을 돌려서 쿼리가 많이 실행되기 때문에 방어용도로 사용
     public List<UserResvAvailableScheduleDTO> getAvailableSchedule(Integer shopCode, int dateRangeToGet) {
 
         //존재하지 않는 샵일 경우 예외
