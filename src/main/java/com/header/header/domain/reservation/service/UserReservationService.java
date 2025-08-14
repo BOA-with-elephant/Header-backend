@@ -14,7 +14,6 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.shop.entity.Shop;
-import com.header.header.domain.shop.entity.ShopHoliday;
 import com.header.header.domain.shop.repository.ShopHolidayRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
@@ -24,13 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date; // util.Date -> 날짜 및 시간 (1970 기준 밀리초 포함), 오래된 범용 타입, 사용 지양
 import java.sql.Time;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -109,7 +106,6 @@ public class UserReservationService {
 
     /* 새로운 예약 생성, 반환값은 상세조회 프로젝션 인터페이스 사용 */
     @Transactional
-    @CacheEvict(value = "reserved-schedule", allEntries = true)
     public Optional<UserReservationDetail> createReservation(
             Integer shopCode, UserReservationDTO dto
     ) {
@@ -228,9 +224,7 @@ public class UserReservationService {
                     cache.evict(cacheKey);
                 }
             }
-
         }
-
         userReservationRepository.save(reservation);
     }
 
