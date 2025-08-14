@@ -3,7 +3,7 @@
 # 여기선 하나의 서비스인 header-backend-server만 정의한다.
 services:
   # 서비스 이름, 나중에 docker compose up 명령으로 이 이름을 기준으로 컨테이너가 실행됨
-  header_backend:
+  header-backend:
     # 이 섹션은 Docker 이미지를 직접 빌드할 것임을 나타낸다.
     build:
       # context : . -> 현재 디렉토리를 빌드 컨텍스트로 사용하겠다는 의미.
@@ -13,7 +13,7 @@ services:
       dockerfile: Dockerfile
       # 컨테이너 이름 수동으로 설정
       # 지정하지 않으면 프로젝트이름_서비스이름_번호 형식으로 자동 생성
-    container_name: header_backend
+    container_name: header-backend
     # environment란
     # Spring Boot의 application.properties/application.yml 설정을 외부에서 주입할 수 있게 해준다.
     # 즉 Spring Boot에서 이 값들을 자동으로 읽는다.
@@ -52,7 +52,7 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      - header_backend
+      - header-backend
     networks:
       - webnet
 
