@@ -32,6 +32,8 @@ services:
     # 브라우저에서 http://localhost:8080로 접근하면 Spring Boot 앱에 접속 가능
     ports:
       - "8080:8080"
+    volumes:
+      - /home/ubuntu/app/header-backend/application.yml:/app/config/application.yml:ro
     networks:
       - webnet
     # header-backend-server 실행하기 전에 database-server 부터 실행하라는 의미
