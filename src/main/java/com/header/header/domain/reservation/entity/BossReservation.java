@@ -53,11 +53,7 @@ public class BossReservation {
     }
 
     public void cancelReservation() {
-
-        log.info("예약 취소 시작");
         this.resvState = ReservationState.CANCEL;
-
-        log.info("예약 취소 끝");
     }
 
     public void modifyReservation(BossReservationDTO reservationDTO, Menu menu){
