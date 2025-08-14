@@ -116,12 +116,12 @@ public class UserReservationService {
         Date resvDate = dto.getResvDate();
         Time resvTime = dto.getResvTime();
 
-/*        Optional<BossReservation> existRev
+        Optional<BossReservation> existRev
                 = userReservationRepository.findForReservation(shopCode, resvDate, resvTime);
 
         if (existRev.isPresent()) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.SCHEDULE_ALREADY_TAKEN);
-        }*/
+        }
 
         /*유효하지 않은 사용자 정보일 경우 예외*/
         User user = userRepository.findById(userCode)
