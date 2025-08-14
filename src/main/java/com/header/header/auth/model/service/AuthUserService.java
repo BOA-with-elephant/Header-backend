@@ -86,7 +86,7 @@ public class AuthUserService implements UserDetailsService {
      이미 존재하는 아이디나 전화번호일 때 */
     public UserDTO signup(UserDTO userDTO) {
         log.info("[AuthService] Let's start signup().");
-        log.info("[AuthService] userDTO {}", userDTO);
+        log.info("[AuthService] userDTO 생성");
 
         /* 1. 중복 유효성 검사 */
         // 중복확인 1 : userId
