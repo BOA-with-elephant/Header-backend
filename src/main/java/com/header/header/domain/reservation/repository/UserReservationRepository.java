@@ -3,9 +3,11 @@ package com.header.header.domain.reservation.repository;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
+import jakarta.persistence.LockModeType;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
@@ -146,4 +148,18 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
                AND r.resvDate = :resvDate
            """)
     List<Time> findReservedTimes(@Param("shopCode") Integer shopCode, @Param("resvDate") Date resvDate);
+
+    @Lock(LockModeType.READ) // 다른 트랜잭션에서 읽기만 허용, 쓰기 불가
+    @Query("""
+           SELECT r
+           FROM BossReservation r
+           WHERE r.shopInfo.shopCode = :shopCode
+           AND r.resvDate = :resvDate
+           AND r.resvTime = :resvTime
+           """)
+    BossReservation findForReservation(
+            @Param("shopCode") Integer shopCode,
+            @Param("resvDate") Date resvDate,
+            @Param("resvTime") Time resvTime
+    );
 }
