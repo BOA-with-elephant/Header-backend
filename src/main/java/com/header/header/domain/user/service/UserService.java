@@ -1,7 +1,6 @@
 package com.header.header.domain.user.service;
 
 import com.header.header.auth.model.dto.LoginUserDTO;
-import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;

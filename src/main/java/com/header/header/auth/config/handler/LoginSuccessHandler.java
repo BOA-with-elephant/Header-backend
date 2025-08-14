@@ -5,7 +5,9 @@ import com.header.header.auth.config.JwtTokenProvider;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
-import jakarta.servlet.ServletException;
+import com.header.header.domain.shop.dto.ShopDTO;
+import com.header.header.domain.shop.exception.ShopExceptionHandler;
+import com.header.header.domain.shop.service.ShopService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -25,15 +27,18 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 생성 및 관리를 위한 프로바이더
     private final ObjectMapper objectMapper; // JSON 직렬화를 위한 ObjectMapper
+    private final ShopService shopService;
 
     /**
      * LoginSuccessHandler의 생성자입니다.
      * @param jwtTokenProvider JWT 토큰 프로바이더
      * @param objectMapper JSON 객체 매퍼
+     * @param shopService 샵 관련 서비스 클래스
      */
-    public LoginSuccessHandler(JwtTokenProvider jwtTokenProvider, ObjectMapper objectMapper) {
+    public LoginSuccessHandler(JwtTokenProvider jwtTokenProvider, ObjectMapper objectMapper, ShopService shopService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.objectMapper = objectMapper;
+        this.shopService = shopService;
     }
 
     /**
@@ -43,7 +48,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
      * @param response HTTP 응답 객체
      * @param authentication 인증 객체
      * @throws IOException 입출력 예외
-     * @throws ServletException 서블릿 예외
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -53,32 +57,37 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         responseBody.put("message", "로그인 성공입니다."); // 기본 성공 메시지 설정
 
         // 1. 인증된 사용자 정보 가져오기 (핵심!)
-        // LoginUserDTO 변수를 여기서 바로 초기화하지 않고, 아래 if 블록 안에서 할당합니다.
         LoginUserDTO loginUserDTO = null;
 
-        // Spring Security가 로그인에 성공하면, Authentication 객체 안에 UserDetails 타입의 Principal을 넣어줍니다.
-        // 우리 프로젝트에서는 이 Principal이 바로 AuthDetails 객체입니다.
         if (authentication.getPrincipal() instanceof AuthDetails) {
             AuthDetails authDetails = (AuthDetails) authentication.getPrincipal();
-            loginUserDTO = authDetails.getLoginUserDTO(); // AuthDetails에서 LoginUserDTO를 가져와 loginUserDTO에 할당
+            loginUserDTO = authDetails.getLoginUserDTO();
         }
 
         // 2. JWT 토큰 생성 및 사용자 정보 포함 로직
-        // loginUserDTO가 성공적으로 가져와졌을 때만 (null이 아닐 때만) 토큰을 생성하고 사용자 정보를 추가합니다.
         if (loginUserDTO != null) {
-            // 2.1. jwtTokenProvider.generateTokenDTO(loginUserDTO) 호출의 결과는 TokenDTO 객체입니다.
-            TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO);
+            ShopDTO shopDTO;
 
-            // 2.2. TokenDTO 객체에서 실제 JWT 문자열(accessToken)을 추출합니다.
+            shopDTO = shopService.findFirstShopByAdminCode(loginUserDTO.getUserCode());
+
+            if (shopDTO != null) {
+                loginUserDTO.setAdmin(true);
+            } else {
+                loginUserDTO.setAdmin(false);
+            }
+
+            // shopDTO가 null이 아닌 경우에만 응답 본문에 추가 & 이 방식으로 NullPointerException을 방지할 수 있다.
+            if (shopDTO != null) {
+                responseBody.put("shopCode", shopDTO.getShopCode());
+            }
+
+            TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, shopDTO);
+
             String accessToken = tokenDto.getAccessToken();
 
-            // 2.3. 추출한 accessToken을 응답 본문에 담습니다.
             responseBody.put("token", accessToken);
-
-            // 2.4. 사용자 정보 (LoginUserDTO) 응답 본문에 포함
             responseBody.put("userInfo", loginUserDTO);
 
-            // 2.5. HTTP 응답 상태 코드 설정 (200 OK)
             response.setStatus(HttpServletResponse.SC_OK);
 
         } else {

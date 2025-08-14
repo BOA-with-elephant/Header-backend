@@ -75,12 +75,11 @@ public class UserController {
                 .body(new ResponseDTO(HttpStatus.OK, "회원정보 수정 성공", userFacadeService.updateUser(userDTO)));
     }
 
-    @PatchMapping("/{user_id}/leave")
+    @PatchMapping("/auth/{user_id}/leave")
     public ResponseEntity<ResponseDTO> deleteUsers(@RequestBody UserDTO userDTO) {
         // This method returns void, so you just call it
         userFacadeService.withdrawUser(userDTO);
 
-        // Create a ResponseDTO, explicitly passing null for the data field
         return ResponseEntity
                 .ok()
                 .body(new ResponseDTO(HttpStatus.OK, "회원 탈퇴 성공", null));

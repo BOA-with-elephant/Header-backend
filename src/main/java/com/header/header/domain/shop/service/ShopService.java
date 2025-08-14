@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import com.header.header.domain.shop.projection.ShopAdminInfo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -306,5 +308,27 @@ public class ShopService {
         }
 
         return mapServiceDTO.getDocuments().get(0);
+    }
+
+    /* Shop 정보에서 AdminCode(=UserCode)를 받아오기 위한 메소드 */
+    public ShopDTO findFirstShopByAdminCode(Integer adminCode) {
+        Optional<ShopAdminInfo> projectionOptional = shopRepository.findShopCodeByUserCodeMatchWithAdminCode(adminCode);
+        // Swap <Shop> entity into a ShopAdminInfo(projection, interface class)
+
+        // 2. 샵 못 찾을 경우를 위한 if 구문
+        if (projectionOptional.isPresent()) {
+            ShopAdminInfo projection = projectionOptional.get();
+
+            // 3. if 조건 충족 시 프로젝션으로부터 필요 값들을 받아와 새로운 shopDTO 생성
+            ShopDTO shopDTO = new ShopDTO();
+            shopDTO.setShopCode(projection.getShopCode());
+            shopDTO.setShopName(projection.getShopName());
+            shopDTO.setAdminCode(projection.getAdminUserCode());
+
+            return shopDTO;
+        }
+
+        // 4. 샵을 찾을 수 없는 경우 null 반환
+        return null;
     }
 }
