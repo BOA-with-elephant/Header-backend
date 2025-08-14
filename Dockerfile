@@ -54,11 +54,8 @@ WORKDIR /app
 # 애플리케이션 JAR 복사
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# application.yml을 명시적으로 복사
-COPY src/main/resources/application.yml /app/config/application.yml
-
 # 포트 노출
 EXPOSE 8080
 
 # Spring Boot가 해당 경로를 읽도록 지정
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.config.location=file:/app/config/application.yml"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
