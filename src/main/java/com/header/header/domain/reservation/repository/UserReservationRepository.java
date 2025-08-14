@@ -4,6 +4,7 @@ import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -106,6 +107,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
     );
 
     /*예약 시도 날짜, 시간이 이미 예약상에 존재하는지 검증 - 예약 생성시 사용*/
+    @Cacheable(value = "available-schedule", key = "#shopCode + '_' + #resvDate.toString() + '_' + #resvTime.toString()" )
     @Query("""
            SELECT COUNT (r) = 0
            FROM BossReservation r

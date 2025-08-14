@@ -14,7 +14,6 @@ import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.shop.entity.Shop;
-import com.header.header.domain.shop.entity.ShopHoliday;
 import com.header.header.domain.shop.repository.ShopHolidayRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
 import com.header.header.domain.user.entity.User;
@@ -22,12 +21,13 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date; // util.Date -> 날짜 및 시간 (1970 기준 밀리초 포함), 오래된 범용 타입, 사용 지양
 import java.sql.Time;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -46,6 +46,8 @@ public class UserReservationService {
     private final ShopRepository shopRepository;
     private final MenuRepository menuRepository;
     private final ShopHolidayRepository shopHolidayRepository;
+    private final HolidayExaminationForCache examinationForCache;
+    private final CacheManager cacheManager;
 
     /*사용자가 자신의 예약 내역을 상세 조회할 경우*/
     public Optional<UserReservationDetail> readDetailByUserCodeAndResvCode(Integer userCode, Integer resvCode) {
@@ -122,7 +124,7 @@ public class UserReservationService {
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.SHOP_NOT_FOUND));
 
         // 예약 시도 날짜가 샵 휴무일인 경우 예외
-        if (isHoliday(shopCode, resvDate)) {
+        if (examinationForCache.isHoliday(shopCode, resvDate)) {
             throw new UserReservationExceptionHandler(UserReservationErrorCode.DATE_HAS_HOL);
         }
 
@@ -159,6 +161,19 @@ public class UserReservationService {
         /* 예약 생성 */
         userReservationRepository.save(newReservation);
 
+        // 캐시 키 생성
+        String cacheKey = shopCode + "_" +
+                resvDate.toString() + "_" +
+                resvTime.toString();
+
+        // 캐시 찾아오기
+        Cache cache = cacheManager.getCache("available-schedule");
+
+        // 새로운 캐시 생성
+        if (cache != null) {
+            cache.put(cacheKey, false);
+        }
+
         return userReservationRepository.readDetailByUserCodeAndResvCode(userCode, newReservation.getResvCode());
     }
 
@@ -166,73 +181,53 @@ public class UserReservationService {
     @Transactional
     public void cancelReservation(Integer userCode, Integer resvCode) {
 
-        log.info("예약 취소 시작");
-
         /* 사용자 정보 유효성 검사 */
         User user = userRepository.findById(userCode)
                 /*존재하지 않는 유저 정보 예외*/
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
 
-                log.info("사용자 유효성 검사 완료");
 
         if (user.isLeave()) {
             /*탈퇴한 유저 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_HAS_LEFT);
         }
 
-        log.info("사용자 유효성 검사 - 탈퇴 검사 완료");
-
         /*예약 정보 유효성 검사*/
         BossReservation reservation = userReservationRepository.findById(resvCode)
 
                 /*존재하지 않는 예약 정보 예외*/
                 .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.RESV_NOT_FOUND));
-                log.info("예약 정보 유효성 검사1");
+
         if (reservation.getResvState() == ReservationState.CANCEL) {
 
-            log.info("예약 정보 유효성 검사2");
             /*이미 취소된 예약 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_DEACTIVATED);
         } else if (reservation.getResvState() == ReservationState.FINISH) {
-            log.info("예약 정보 유효성 검사3");
 
             /*시술 완료된 예약 정보 예외*/
             throw new UserReservationExceptionHandler(UserReservationErrorCode.RESV_ALREADY_FINISHED);
         } else {
-            log.info("예약 정보 유효성 검사4, cacel 진입");
 
             /*위 유효성 검사를 모두 통과했을 경우, 엔티티 내부 취소 메소드 사용*/
             reservation.cancelReservation();
-        }
 
-        userReservationRepository.save(reservation);
+            // 캐시 키 생성
+            String cacheKey = reservation.getShopInfo().getShopCode() + "_" +
+                    reservation.getResvDate().toString() + "_" +
+                    reservation.getResvTime().toString();
 
-        log.info("예약 취소 완료");
-    }
+            // 캐시 찾아오기
+            Cache cache = cacheManager.getCache("available-schedule");
 
-    /*사용자가 접근하려는 날짜가 휴일인지 검증하는 메소드
-     * */
-    public boolean isHoliday(Integer shopCode, Date dateToScan) {
-
-        /*임시 휴일 확인 - 단 하루만 검사하는 쿼리 */
-        if (shopHolidayRepository.isTempHoliday(shopCode, dateToScan)) return true;
-
-        /*정기 휴일 확인 - 스캔하려는 날짜보다 이전에 설정된 휴일이 있는지 확인 */
-        List<ShopHoliday> repeatHols = shopHolidayRepository.findRegHoliday(shopCode, dateToScan);
-
-        /* 반환된 값이 비어있지 않을 때만 검증 */
-        if (!repeatHols.isEmpty()) {
-            /*java.time의 요일 계산 클래스*/
-            DayOfWeek day = dateToScan.toLocalDate().getDayOfWeek();
-            for (ShopHoliday hol : repeatHols) {
-                if (hol.getHolStartDate().toLocalDate().getDayOfWeek() == day) {
-                    return true;
+            if (cache != null) {
+                // 삭제한 예약에 해당하는 캐시 삭제
+                Cache.ValueWrapper cacheValue = cache.get(cacheKey);
+                if (cacheValue != null) {
+                    cache.evict(cacheKey);
                 }
             }
         }
-
-        /* 휴일 아님 false 반환*/
-        return false;
+        userReservationRepository.save(reservation);
     }
 
     /* 프론트에 예약 가능한 날짜와 시간을 모아서 보내주는 용도 */
@@ -266,7 +261,7 @@ public class UserReservationService {
             LocalDate targetDate = LocalDate.now().plusDays(i);
 
             // targetDate가 휴일인 경우 continue로 건너뛰고 다음 날짜 검증
-            if (isHoliday(shopCode, Date.valueOf(targetDate))) continue;
+            if (examinationForCache.isHoliday(shopCode, Date.valueOf(targetDate))) continue;
 
             // 예약 가능한 시간들을 담을 list
             List<LocalTime> availableTimes = new ArrayList<>();
@@ -316,7 +311,7 @@ public class UserReservationService {
         for(int i = 0; i < dateRangeToGet; i++){
             LocalDate targetDate = LocalDate.now().plusDays(i);
 
-            boolean isHoliday = isHoliday(shopCode, Date.valueOf(targetDate));
+            boolean isHoliday = examinationForCache.isHoliday(shopCode, Date.valueOf(targetDate));
 
             /* comment. 예약된 시간 가져오기 - 예약 취소가 아닌 경우 */
             List<Time> reservedTimesSql = userReservationRepository.findReservedTimes(shopCode, Date.valueOf(targetDate));
@@ -327,7 +322,7 @@ public class UserReservationService {
             if(isHoliday && reservedTimes.isEmpty()) continue;
 
             if (shop.getShopOpen() == null || shop.getShopClose() == null) {
-                // Logger.warn("샵 운영 시간이 등록되지 않았습니다.");
+
                 throw new IllegalStateException("샵 운영 시간이 등록되지 않았습니다.");
             }
 
