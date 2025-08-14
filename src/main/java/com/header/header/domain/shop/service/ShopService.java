@@ -6,6 +6,7 @@ import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
+import com.header.header.domain.shop.projection.ShopAdminInfo;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -265,12 +267,23 @@ public class ShopService {
 
     /* Shop 정보에서 AdminCode(=UserCode)를 받아오기 위한 메소드 */
     public ShopDTO findFirstShopByAdminCode(Integer adminCode) {
-        List<ShopSummary> shops = shopRepository.readShopSummaryByAdminCode(adminCode);
-        if(shops.isEmpty()) {
-            return null;
-        }
-        ShopSummary firstShop = shops.get(0);
+        Optional<ShopAdminInfo> projectionOptional = shopRepository.findShopCodeByUserCodeMatchWithAdminCode(adminCode);
+        // Swap <Shop> entity into a ShopAdminInfo(projection, interface class)
 
-        return modelMapper.map(firstShop, ShopDTO.class);
+        // 2. 샵 못 찾을 경우를 위한 if 구문
+        if (projectionOptional.isPresent()) {
+            ShopAdminInfo projection = projectionOptional.get();
+
+            // 3. if 조건 충족 시 프로젝션으로부터 필요 값들을 받아와 새로운 shopDTO 생성
+            ShopDTO shopDTO = new ShopDTO();
+            shopDTO.setShopCode(projection.getShopCode());
+            shopDTO.setShopName(projection.getShopName());
+            shopDTO.setAdminCode(projection.getAdminUserCode());
+
+            return shopDTO;
+        }
+
+        // 4. 샵을 찾을 수 없는 경우 null 반환
+        return null;
     }
 }

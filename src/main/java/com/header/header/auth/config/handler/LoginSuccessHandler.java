@@ -8,7 +8,6 @@ import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.service.ShopService;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -67,15 +66,17 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 2. JWT 토큰 생성 및 사용자 정보 포함 로직
         if (loginUserDTO != null) {
-            ShopDTO shopDTO = null; // shopDTO를 null로 초기화합니다.
+            ShopDTO shopDTO;
 
-            if (loginUserDTO.isAdmin()) {
-                Integer adminCode = loginUserDTO.getUserCode();
-                shopDTO = shopService.findFirstShopByAdminCode(adminCode);
+            shopDTO = shopService.findFirstShopByAdminCode(loginUserDTO.getUserCode());
+
+            if (shopDTO != null) {
+                loginUserDTO.setAdmin(true);
+            } else {
+                loginUserDTO.setAdmin(false);
             }
 
-            // shopDTO가 null이 아닌 경우에만 응답 본문에 추가합니다.
-            // 이렇게 하면 NullPointerException을 방지할 수 있습니다.
+            // shopDTO가 null이 아닌 경우에만 응답 본문에 추가 & 이 방식으로 NullPointerException을 방지할 수 있다.
             if (shopDTO != null) {
                 responseBody.put("shopCode", shopDTO.getShopCode());
             }

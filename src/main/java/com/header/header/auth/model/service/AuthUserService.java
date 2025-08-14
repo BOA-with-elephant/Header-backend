@@ -9,6 +9,7 @@ import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
+import com.header.header.domain.shop.service.ShopService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
@@ -35,6 +36,8 @@ public class AuthUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final MainUserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private ShopService shopService;
 
     public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, MainUserRepository userRepository, JwtTokenProvider jwtTokenProvider, UserService userService) {
         this.memberRepository = memberRepository;
@@ -46,7 +49,6 @@ public class AuthUserService implements UserDetailsService {
 
     public TokenDTO login(LoginUserDTO loginUserDTO) throws FailedLoginException {
         log.info("[AuthService] login() START");
-        log.info("[AuthService] {}", loginUserDTO); // ⭐여기도 삭제
 
         /* 목차. 1. 아이디 조회 */
         User user = memberRepository.findByUserId(loginUserDTO.getUserId());
@@ -62,7 +64,14 @@ public class AuthUserService implements UserDetailsService {
             throw new FailedLoginException("잘못된 비밀번호입니다.");
         }
 
-        TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, new ShopDTO());
+        // User 엔티티에서 필요한 정보를 LoginUserDTO에 담아준다.
+        loginUserDTO.setUserCode(user.getUserCode());
+        loginUserDTO.setAdmin(user.isAdmin());
+
+        // Shop 정보를 가져오는 로직 추가
+        ShopDTO shopDTO = shopService.findFirstShopByAdminCode(user.getUserCode());
+
+        TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, shopDTO);
 
         log.info("[AuthService] login() Token Generated: {}", tokenDto); //⭐accessToken 여기서 노출! 확인하고 삭제할 것⭐
         log.info("[AuthService] login() END");
