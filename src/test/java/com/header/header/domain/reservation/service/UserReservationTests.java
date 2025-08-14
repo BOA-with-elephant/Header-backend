@@ -19,6 +19,7 @@ import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.repository.ShopCategoryRepository;
 import com.header.header.domain.shop.repository.ShopRepository;
+import com.header.header.domain.shop.service.ShopHolidayService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
@@ -27,6 +28,9 @@ import org.junit.jupiter.api.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -62,6 +66,9 @@ public class UserReservationTests {
     @Autowired
     private ShopCategoryRepository shopCategoryRepository;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     /*테스트용 데이터 세팅용 상수 - @BeforeEach 에서 초기화*/
     private Integer testUserCode;
     private Integer testShopCode;
@@ -71,6 +78,8 @@ public class UserReservationTests {
     private Integer testCategoryCode;
     private final Integer SHOP_CODE = 1;
     private final Integer USER_CODE = 1;
+    @Autowired
+    private ShopHolidayService shopHolidayService;
 
     @BeforeEach
     @Transactional
@@ -496,5 +505,96 @@ public class UserReservationTests {
             System.out.println(r.getTargetDate() + " / " +
                     r.getAvailableTimes().toString());
         });
+    }
+
+    @Test
+    @DisplayName("캐싱 테스트")
+    void caffeineCacheTests() {
+
+        int shopCode = 1;
+        int userCode = 113;
+        int revCode = 164;
+
+        List<UserResvAvailableScheduleDTO> result = userReservationService.getAvailableSchedule(shopCode, 30);
+
+        assertNotNull(result);
+
+        printAllCache();
+        System.out.print("holidays 캐시 삭제 테스트 : ");
+        shopHolidayService.evictByShopCode(shopCode);
+        CaffeineCache caffeineCache = (CaffeineCache) cacheManager.getCache("holidays");
+
+        // 캐시 남아있음
+        assertNotNull(caffeineCache);
+        // holidays 엔트리는 삭제됨
+        assertTrue(caffeineCache.getNativeCache().asMap().isEmpty());
+
+        /*캐시 삭제 테스트*/
+        System.out.println("캐시 삭제 테스트 : ");
+        userReservationService.cancelReservation(userCode, revCode);
+
+        Cache cache = cacheManager.getCache("available-schedule");
+
+        BossReservation reservation = userReservationRepository.findById(revCode)
+                        .orElseThrow();
+
+        String cacheKey = reservation.getShopInfo().getShopCode() + "_"
+                + reservation.getResvDate() + "_"
+                + reservation.getResvTime();
+
+        Cache.ValueWrapper valueWrapper = cache.get(cacheKey);
+
+        assertNull(valueWrapper);
+    }
+
+    @Test
+    void cacheCreateTest() {
+
+        /*캐시 생성 테스트*/
+        int shopCode = 1;
+        int userCode = 113;
+
+        userReservationService.getAvailableSchedule(shopCode, 30);
+
+        Date revDate = Date.valueOf("2025-09-10");
+        Time revTime = Time.valueOf("14:30:00");
+
+        Menu menu = menuRepository.findById(1).orElseThrow();
+
+        UserReservationDTO dto = new  UserReservationDTO();
+        dto.setUserCode(userCode);
+        dto.setMenuCode(menu.getMenuCode());
+        dto.setResvDate(revDate);
+        dto.setResvTime(revTime);
+
+        userReservationService.createReservation(shopCode, dto);
+
+        String cacheKey1 = shopCode + "_"
+                + revDate.toString() + "_"
+                + revTime.toString();
+
+        Cache cache = cacheManager.getCache("available-schedule");
+
+        Cache.ValueWrapper valueWrapper1 = cache.get(cacheKey1);
+
+        System.out.println(valueWrapper1);
+
+        assertFalse((Boolean) valueWrapper1.get());
+
+        printAllCache();
+    }
+
+    // 모든 캐시 프린트
+    void printAllCache() {
+        for (String cacheName : cacheManager.getCacheNames()) {
+            // CaffeineCache로 타입 캐스팅
+            CaffeineCache caffeineCache = (CaffeineCache) cacheManager.getCache(cacheName);
+            if (caffeineCache != null) {
+                // asMap()으로 keySet, value 조회
+                caffeineCache.getNativeCache().asMap().forEach((k, v) -> {
+                    System.out.println("cache=" + cacheName + " | key=" + k + " | value=" + v);
+                });
+            }
+        }
     }
 }

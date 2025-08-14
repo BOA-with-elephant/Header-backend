@@ -1,12 +1,13 @@
 package com.header.header.domain.shop.service;
 
+import com.header.header.domain.menu.repository.MenuRepository;
 import com.header.header.domain.shop.dto.*;
 import com.header.header.domain.shop.entity.Shop;
 import com.header.header.domain.shop.entity.ShopCategory;
 import com.header.header.domain.shop.enums.ShopErrorCode;
 import com.header.header.domain.shop.exception.*;
 import com.header.header.domain.shop.external.MapService;
-import com.header.header.domain.shop.projection.ShopAdminInfo;
+import com.header.header.domain.shop.projection.MenuSummaryWithRevCount;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.projection.ShopSearchSummaryResponse;
 import com.header.header.domain.shop.projection.ShopSummary;
@@ -18,10 +19,16 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import com.header.header.domain.shop.projection.ShopAdminInfo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 @Service
@@ -32,10 +39,11 @@ public class ShopService {
     private final ModelMapper modelMapper;
     private final MapService mapService;
 
-
     private final MainUserRepository userRepository;
 
     private final ShopCategoryRepository shopCategoryRepository;
+
+    private final MenuRepository menuRepository;
 
     //CREATE 샵 생성
     public ShopDTO createShop(ShopCreationDTO dto) {
@@ -81,7 +89,7 @@ public class ShopService {
     /*사용자가 검색하는 경우, 페이징 처리된 요약 조회 메소드
       필터: 카테고리 or 키워드
       정렬: 기끼운 거리순*/
-    public Page<ShopSearchSummaryResponse> findShopsByCondition(
+    public Page<ShopWithMenusSummaryDTO> findShopsByCondition(
             Double lat, Double lon, Integer categoryCode, String keyword, Pageable pageable
     ) {
 
@@ -90,13 +98,50 @@ public class ShopService {
             lon = 127.1067; //사용자가 위치를 허용하지 않았을 때의 기본값, 송파구 중심 좌표
         }
 
+        /*사용자가 카테고리 검색을 했을 때 유효성 검사 실시*/
         if (categoryCode != null) {
 
         ShopCategory category = shopCategoryRepository.findById(categoryCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
 
-        return shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
+        /*샵 정보 가져오기*/
+        Page<ShopSearchSummaryResponse> shopSummaryPage = shopRepository.findShopsByCondition(lat, lon, categoryCode, keyword, pageable);
+
+        /*위에서 가져온 샵 정보에서 샵 코드를 추출하여 리스트 형태로 가공*/
+        List<Integer> shopCodes = shopSummaryPage.getContent().stream()
+                .map(ShopSearchSummaryResponse::getShopCode)
+                .collect(Collectors.toList());
+
+        /*메뉴 정보와 메뉴 예약 누적 수를 합한 결과를 리스트 형태로 가져오기*/
+        List<MenuSummaryWithRevCount> allMenus = menuRepository.getMenuSummaryByShopCode(shopCodes);
+
+        /*위에서 가져온 메뉴 및 메뉴 예약 수를 맵에 담기*/
+        Map<Integer, List<MenuSummaryWithRevCount>> shopMenus = allMenus.stream()
+                .collect(Collectors.groupingBy(MenuSummaryWithRevCount::getShopCode));
+
+        /*샵 정보와 메뉴 정보를 리스트로 가공하기*/
+        List<ShopWithMenusSummaryDTO> responseList = shopSummaryPage.getContent().stream()
+                .map(shop -> {
+                    ShopWithMenusSummaryDTO response
+                            = new ShopWithMenusSummaryDTO(
+                            shop.getShopCode(),
+                            shop.getShopName(),
+                            shop.getShopPhone(),
+                            shop.getShopLocation(),
+                            shop.getShopLong(),
+                            shop.getShopLa(),
+                            shop.getCategoryName(),
+                            shop.getDistance());
+
+                    List<MenuSummaryWithRevCount> menus = shopMenus.getOrDefault(shop.getShopCode(), Collections.emptyList());
+                    menus.sort(Comparator.comparing(MenuSummaryWithRevCount::getMenuRevCount).reversed()); // 메뉴 예약순 정렬
+                    response.setMenus(menus);
+                    return response;
+                }).collect(Collectors.toList());
+
+        /*가공한 정보를 페이징 가능한 객체로 반환*/
+        return new PageImpl<>(responseList, shopSummaryPage.getPageable(), shopSummaryPage.getTotalElements());
     }
 
     /*관리자 혹은 사용자의 상세조회*/

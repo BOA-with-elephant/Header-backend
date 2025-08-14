@@ -57,5 +57,5 @@ COPY --from=build /app/build/libs/*.jar app.jar
 # 포트 노출
 EXPOSE 8080
 
-# 애플리케이션 실행
+# Spring Boot가 해당 경로를 읽도록 지정
 ENTRYPOINT ["java", "-jar", "app.jar"]

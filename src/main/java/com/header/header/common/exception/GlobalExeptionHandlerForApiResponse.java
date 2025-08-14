@@ -5,6 +5,12 @@ import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
+import com.header.header.domain.reservation.enums.UserReservationErrorCode;
+import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
+import com.header.header.domain.shop.enums.ShopErrorCode;
+import com.header.header.domain.shop.enums.ShopHolidayErrorCode;
+import com.header.header.domain.shop.exception.ShopExceptionHandler;
+import com.header.header.domain.shop.exception.ShopHolidayExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +30,83 @@ import javax.security.auth.login.FailedLoginException;
 @RestControllerAdvice(basePackages = {
         "com.header.header.domain.visitors",
         "com.header.header.domain.message",
-        "com.header.header.domain.user"
+        "com.header.header.domain.user",
+        "com.header.header.domain.shop",
+        "com.header.header.domain.reservation"
 })
 @Slf4j
 public class GlobalExeptionHandlerForApiResponse {
+
+    /*
+    * ShopException 처리
+    *
+    * - Shop 도메인의 예외 처리 시 발생
+    * - ShopErrorCode enum에 처리해둔 HttpStatus에 따라 응답
+    * */
+    @ExceptionHandler(ShopExceptionHandler.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleShopExceptionHandler(
+            ShopExceptionHandler ex, WebRequest request
+    ){
+        ShopErrorCode errorCode = ex.getShopErrorCode();
+
+        log.error("ShopException 발생: {} - {} ", errorCode, errorCode.getMessage(), ex);
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                errorCode.getHttpStatus().value(),
+                errorCode.getCode(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
+    }
+
+    /*
+     * ShopHolidayException 처리
+     *
+     * - Shop 도메인 - Shop Holiday의 예외 처리 시 발생
+     * - ShopHolidayErrorCode enum에 처리해둔 HttpStatus에 따라 응답
+     * */
+    @ExceptionHandler(ShopHolidayExceptionHandler.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleShopHolidayExceptionHandler(
+            ShopHolidayExceptionHandler ex, WebRequest request
+    ){
+        ShopHolidayErrorCode errorCode = ex.getShopHolidayErrorCode();
+
+        log.error("ShopHolidayException 발생: {} - {} ", errorCode, errorCode.getMessage(), ex);
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                errorCode.getHttpStatus().value(),
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
+    }
+
+    /*
+     * UserReservationException 처리
+     *
+     * - UserReservation 도메인의 예외 처리 시 발생
+     * - UserReservationErrorCode enum에 처리해둔 HttpStatus에 따라 응답
+     * */
+    @ExceptionHandler(UserReservationExceptionHandler.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUserReservationExceptionHandler(
+            UserReservationExceptionHandler ex, WebRequest request
+    ){
+        UserReservationErrorCode errorCode = ex.getURErrorCode();
+
+        log.error("UserReservationException 발생: {} - {} ", errorCode, errorCode.getMessage(), ex);
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                errorCode.getHttpStatus().value(),
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
+    }
 
     /**
      * NotFoundException 처리

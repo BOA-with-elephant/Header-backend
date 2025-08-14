@@ -30,23 +30,6 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ShopExceptionHandler.class)
-    public ResponseEntity<ResponseMessage> handleShopException(ShopExceptionHandler e) {
-        ShopErrorCode errorInfo = e.getShopErrorCode();
-
-        ErrorResponseMessage error = new ErrorResponseMessage(errorInfo.getCode(), errorInfo.getMessage());
-
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("error", error);
-
-        ResponseMessage responseMessage = new ResponseMessage(400, "잘못된 요청 발생", responseMap);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.BAD_REQUEST);
-    }
-
     /**
      * NotFoundException 처리
      *
