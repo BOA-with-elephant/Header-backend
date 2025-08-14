@@ -107,7 +107,7 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
     );
 
     /*예약 시도 날짜, 시간이 이미 예약상에 존재하는지 검증 - 예약 생성시 사용*/
-    @Cacheable(value = "reserved-schedule", key = "#shopCode + '_' + #resvDate.toString() + '_' + #resvTime.toString()" )
+    @Cacheable(value = "available-schedule", key = "#shopCode + '_' + #resvDate.toString() + '_' + #resvTime.toString()" )
     @Query("""
            SELECT COUNT (r) = 0
            FROM BossReservation r

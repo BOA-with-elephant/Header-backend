@@ -24,8 +24,8 @@ public class CacheConfig {
                         .maximumSize(3000) // 100개 가게의 30일치 휴일 정보 저장
                         .build());
 
-        // reserved-schedule 캐시 설정
-        cacheManager.registerCustomCache("reserved-schedule",
+        // available-schedule 캐시 설정
+        cacheManager.registerCustomCache("available-schedule",
                 Caffeine.newBuilder()
                         .expireAfterWrite(24, TimeUnit.HOURS) // 예약 정보는 매일 바뀜
                         .maximumSize(10000) // 영업 시간이 9~18 인 가게 40개의 예약 정보 저장

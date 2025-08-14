@@ -167,10 +167,12 @@ public class UserReservationService {
                 resvTime.toString();
 
         // 캐시 찾아오기
-        Cache cache = cacheManager.getCache("reserved-schedule");
+        Cache cache = cacheManager.getCache("available-schedule");
 
         // 새로운 캐시 생성
-        cache.put(cacheKey, "reserved-schedule");
+        if (cache != null) {
+            cache.put(cacheKey, false);
+        }
 
         return userReservationRepository.readDetailByUserCodeAndResvCode(userCode, newReservation.getResvCode());
     }
@@ -215,7 +217,7 @@ public class UserReservationService {
                     reservation.getResvTime().toString();
 
             // 캐시 찾아오기
-            Cache cache = cacheManager.getCache("reserved-schedule");
+            Cache cache = cacheManager.getCache("available-schedule");
 
             if (cache != null) {
                 // 삭제한 예약에 해당하는 캐시 삭제
