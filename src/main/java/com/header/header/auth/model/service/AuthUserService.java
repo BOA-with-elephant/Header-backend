@@ -8,11 +8,12 @@ import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
+import com.header.header.domain.shop.dto.ShopDTO;
+import com.header.header.domain.shop.service.ShopService;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
 import com.header.header.domain.user.service.UserService;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,8 @@ public class AuthUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final MainUserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private ShopService shopService;
 
     public AuthUserService(MainUserRepository memberRepository, PasswordEncoder passwordEncoder, MainUserRepository userRepository, JwtTokenProvider jwtTokenProvider, UserService userService) {
         this.memberRepository = memberRepository;
@@ -45,9 +48,7 @@ public class AuthUserService implements UserDetailsService {
     }
 
     public TokenDTO login(LoginUserDTO loginUserDTO) throws FailedLoginException {
-
         log.info("[AuthService] login() START");
-        log.info("[AuthService] {}", loginUserDTO);
 
         /* 목차. 1. 아이디 조회 */
         User user = memberRepository.findByUserId(loginUserDTO.getUserId());
@@ -63,9 +64,16 @@ public class AuthUserService implements UserDetailsService {
             throw new FailedLoginException("잘못된 비밀번호입니다.");
         }
 
-        TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO);
+        // User 엔티티에서 필요한 정보를 LoginUserDTO에 담아준다.
+        loginUserDTO.setUserCode(user.getUserCode());
+        loginUserDTO.setAdmin(user.isAdmin());
 
-        log.info("[AuthService] login() Token Generated: {}", tokenDto);
+        // Shop 정보를 가져오는 로직 추가
+        ShopDTO shopDTO = shopService.findFirstShopByAdminCode(user.getUserCode());
+
+        TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, shopDTO);
+
+        log.info("[AuthService] login() Token Generated: {}", tokenDto); //⭐accessToken 여기서 노출! 확인하고 삭제할 것⭐
         log.info("[AuthService] login() END");
 
         return tokenDto; // TokenDTO 객체를 직접 반환
@@ -78,7 +86,7 @@ public class AuthUserService implements UserDetailsService {
      이미 존재하는 아이디나 전화번호일 때 */
     public UserDTO signup(UserDTO userDTO) {
         log.info("[AuthService] Let's start signup().");
-        log.info("[AuthService] userDTO {}", userDTO);
+        log.info("[AuthService] userDTO 생성");
 
         /* 1. 중복 유효성 검사 */
         // 중복확인 1 : userId

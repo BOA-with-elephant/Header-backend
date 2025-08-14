@@ -3,6 +3,7 @@ package com.header.header.auth.config;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
+import com.header.header.domain.shop.dto.ShopDTO;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -38,42 +39,45 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
                             @Value("${jwt.expiration}") long tokenValidityTime,
-                            @Lazy AuthUserService authUserService) {
+                            @Lazy AuthUserService authUserService
+                            ) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = tokenValidityTime;
         this.authUserService = authUserService;
     }
 
-    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO) {
+    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO, ShopDTO shopDTO) {
         log.info("[TokenProvider] generateTokenDTO() Start");
 
         long now = System.currentTimeMillis();
         Date accessTokenExpiresIn = new Date(now + expiration);
 
-        // LoginUserDTO의 isAdmin 필드를 기반으로 권한 정보를 가져옵니다.
-        // isAdmin 필드를 통해 "ROLE_USER" 또는 "ROLE_ADMIN" 권한을 부여합니다.
         String authorities = loginUserDTO.isAdmin() ? "ROLE_ADMIN" : "ROLE_USER";
 
-        // JWT 토큰 생성
-        String accessToken = Jwts.builder()
-                // 토큰의 주체 (사용자 ID) 설정
+        Integer shopCode = null;
+
+        // JWT 빌더를 준비합니다.
+        JwtBuilder jwtBuilder = Jwts.builder()
                 .setSubject(loginUserDTO.getUserId())
-                // 권한 정보를 클레임으로 추가
                 .claim(AUTHORITIES_KEY, authorities)
-                // 토큰 만료 시간 설정
                 .setExpiration(accessTokenExpiresIn)
-                // 서명에 사용할 키와 알고리즘
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
+                .signWith(key, SignatureAlgorithm.HS512);
+
+        // shopDTO가 null이 아닌 경우에만 shopCode 클레임 추가.
+        if (shopDTO != null && loginUserDTO.getUserCode().equals(shopDTO.getAdminCode())) {
+            shopCode = shopDTO.getShopCode();
+            jwtBuilder.claim("shopCode", shopCode);
+        }
+
+        // JWT 토큰 생성
+        String accessToken = jwtBuilder.compact();
 
         System.out.println("조립된 accessToken 확인 = " + accessToken);
 
         log.info("[TokenProvider] generateTokenDTO() End");
 
-        // TokenDTO 생성 시 사용자 이름(userId)과 토큰 만료 시간을 사용합니다.
-        // loginUserDTO.getUserId()를 사용하여 사용자 ID를 직접 전달합니다.
-        return new TokenDTO(BEARER_TYPE, loginUserDTO.getUserId(), accessToken, accessTokenExpiresIn.getTime());
+        return new TokenDTO(BEARER_TYPE, loginUserDTO.getUserId(), shopCode, accessToken, accessTokenExpiresIn.getTime());
     }
 
     /**
