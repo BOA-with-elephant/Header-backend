@@ -98,6 +98,8 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             mkdir -p ~/app/header-backend
             cd ~/app/header-backend
+            
+            echo "${{ secrets.APPLICATION_PROPERTIES }}" | base64 --decode > ./application.yml
 
             echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" > .env
             echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
