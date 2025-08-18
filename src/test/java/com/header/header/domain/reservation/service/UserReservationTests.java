@@ -12,6 +12,7 @@ import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
+import com.header.header.domain.reservation.projection.UserReservationForLLM;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.BossReservationRepository;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
@@ -596,5 +597,19 @@ public class UserReservationTests {
                 });
             }
         }
+    }
+
+    @Test
+    @DisplayName("LLM 학습용 데이터 - 사용자 예약 내역")
+    void readUserReservationForLLMTest() {
+        Optional<UserReservationForLLM> response =
+        userReservationRepository.readUserReservationForLLM(3);
+
+        System.out.println(response.get().getShopCode() + " / "
+                        + response.get().getShopName() + " / "
+                        + response.get().getMenuCode() + " / "
+                        + response.get().getMenuName() + " / "
+                        + response.get().getRevCount()
+                            );
     }
 }

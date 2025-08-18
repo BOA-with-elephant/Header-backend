@@ -5,6 +5,7 @@ import com.header.header.domain.reservation.dto.ReservationDateAndTimeDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
+import com.header.header.domain.reservation.projection.UserReservationForLLM;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
@@ -115,6 +116,20 @@ public class UserReservationController {
 
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("schedule", dateAndTimeList);
+
+        return ResponseEntity.ok().body(
+                new ResponseMessage(200, "조회 성공", responseMap)
+        );
+    }
+
+    @GetMapping("/recommendation")
+    public ResponseEntity<ResponseMessage> getRecommendation(@AuthenticationPrincipal AuthDetails authDetails){
+        Integer userCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
+
+        Optional<UserReservationForLLM> resvInfoForLLM = userReservationService.readUserReservationForLLM(userCode);
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("rev-info", resvInfoForLLM);
 
         return ResponseEntity.ok().body(
                 new ResponseMessage(200, "조회 성공", responseMap)
