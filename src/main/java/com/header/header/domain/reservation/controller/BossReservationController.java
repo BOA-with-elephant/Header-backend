@@ -155,11 +155,15 @@ public class BossReservationController {
             ResponseEntity<?> response = ResponseEntity.ok(Map.of("message", "등록 완료"));
             System.out.println("Response headers : " + response.getHeaders());
             return response;
+        } catch (IllegalStateException e){
+            return ResponseEntity.status(400)
+                    .header("Content-Type", "application/json")
+                    .body(Map.of("message", e.getMessage()));
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(400)
                     .header("Content-Type", "application/json")
-                    .body(Map.of("message", "등록 실패"));
+                    .body(Map.of("message", "예약 등록 중 예기치 못한 오류로 인해 등록에 실패했습니다."));
         }
     }
 
