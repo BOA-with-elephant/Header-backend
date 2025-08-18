@@ -123,7 +123,7 @@ public class UserReservationController {
     }
 
     @GetMapping("/recommendation")
-    public ResponseEntity<ResponseMessage> getRecommendation(@AuthenticationPrincipal AuthDetails authDetails){
+    public ResponseEntity<ResponseMessage> readUserReservationForLLM(@AuthenticationPrincipal AuthDetails authDetails){
         Integer userCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
 
         Optional<UserReservationForLLM> resvInfoForLLM = userReservationService.readUserReservationForLLM(userCode);
