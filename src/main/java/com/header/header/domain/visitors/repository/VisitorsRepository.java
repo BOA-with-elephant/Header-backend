@@ -36,7 +36,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "FROM Reservation r " +
             "INNER JOIN Sales s ON r.resvCode = s.resvCode " +
             "WHERE r.userCode IN :userCodes " +  // IN 절 사용
-            "  AND r.resvState = '결제완료' " +
+            "  AND r.resvState = '시술완료' " +
             "  AND s.finalAmount > 0 " +
             "GROUP BY r.userCode")
     List<VisitStatisticsView> getVisitStatisticsBatch(@Param("userCodes") List<Integer> userCodes);
@@ -49,7 +49,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "FROM Reservation r " +
             "INNER JOIN Menu m ON r.menuCode = m.menuCode " +
             "WHERE r.userCode IN :userCodes " +
-            "  AND r.resvState = '결제완료' " +
+            "  AND r.resvState = '시술완료' " +
             "GROUP BY r.userCode, r.menuCode, m.menuName " +
             "ORDER BY r.userCode, COUNT(*) DESC")  // userCode별로 정렬, 주문수 내림차순
     List<UserFavoriteMenuView> getUserFavoriteMenusRaw(@Param("userCodes") List<Integer> userCodes);
@@ -62,7 +62,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "INNER JOIN Reservation r ON u.userCode = r.userCode " +
             "INNER JOIN Menu m ON r.menuCode = m.menuCode " +
             "WHERE v.clientCode = :clientCode " +
-            "  AND r.resvState = '결제완료' " +
+            "  AND r.resvState = '시술완료' " +
             "ORDER BY r.resvDate DESC")
     List<VisitorHistoryView> getVisitHistoryByClientCode(@Param("clientCode") Integer clientCode);
 
