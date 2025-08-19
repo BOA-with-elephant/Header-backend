@@ -11,6 +11,7 @@ import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
 import com.header.header.domain.reservation.exception.UserReservationExceptionHandler;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
+import com.header.header.domain.reservation.projection.UserReservationForLLM;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.repository.UserReservationRepository;
 import com.header.header.domain.shop.entity.Shop;
@@ -353,6 +354,21 @@ public class UserReservationService {
         }
 
         return result;
+    }
+
+    /* LLM 학습 정보 - 사용자 예약 내역 반환 */
+    public Optional<UserReservationForLLM> readUserReservationForLLM(Integer userCode) {
+
+        /* 존재하지 않는 사용자 정보 예외 */
+        User user = userRepository.findById(userCode)
+                .orElseThrow(() -> new UserReservationExceptionHandler(UserReservationErrorCode.USER_NOT_FOUND));
+
+        /* 사용자가 탈퇴한 경우 예외 */
+        if (user.isLeave()) {
+            throw new UserReservationExceptionHandler(UserReservationErrorCode.USER_HAS_LEFT);
+        }
+
+        return userReservationRepository.readUserReservationForLLM(userCode);
     }
 
 

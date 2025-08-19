@@ -2,6 +2,7 @@ package com.header.header.domain.reservation.repository;
 
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
+import com.header.header.domain.reservation.projection.UserReservationForLLM;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import jakarta.persistence.LockModeType;
 import org.apache.ibatis.annotations.Param;
@@ -13,7 +14,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -162,4 +162,26 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
             @Param("resvDate") Date resvDate,
             @Param("resvTime") Time resvTime
     );
+
+    /*
+    * LLM 학습용 정보를 위한 쿼리메소드
+    * 
+    * @Param userCode
+    * @return shopInfo, menuInfo, revCount
+    * */
+    @Query("""
+           SELECT 
+              r.shopInfo.shopCode as shopCode,
+              r.shopInfo.shopName as shopName,
+              r.menuInfo.menuCode as menuCode,
+              r.menuInfo.menuName as menuName,
+              COUNT(*) as revCount
+           FROM BossReservation r
+           WHERE r.userInfo.userCode = :userCode
+           GROUP BY r.shopInfo.shopCode, r.shopInfo.shopName, r.menuInfo.menuCode, r.menuInfo.menuName
+           ORDER BY revCount DESC
+           LIMIT 1
+           """)
+    Optional<UserReservationForLLM> readUserReservationForLLM(@Param("userCode") Integer userCode);
+
 }
