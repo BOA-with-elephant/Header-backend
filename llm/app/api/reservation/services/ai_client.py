@@ -62,8 +62,8 @@ async def generate_re_reservation_message(data: Optional[RevInfo]):
         print(f"AI와의 통신에 실패하였습니다: {e}")
     return bot_message
 
-async def generate_keyword_from_menu(menu_item: str) -> str:
-    prompt = """
+async def generate_keyword_from_menu(menu_name: str) -> str:
+    prompt = f"""
     다음 뷰티샵 시술 메뉴 이름에서 가장 핵심적인 검색 키워드 단어 하나만 추출해줘.
     예를 들어, '프리미엄 여성 컷'에서는 '컷'을 추출하고, '고급 두피 마사지'에서는 '두피 마사지' 혹은 '마사지'를 추출해.
     오직 키워드 하나만 응답해야 해.
@@ -82,6 +82,12 @@ async def generate_keyword_from_menu(menu_item: str) -> str:
             temperature=0,
             max_completion_tokens=100
         )
+
+        keyword = completion.choices[0].message.content.strip()
+
+        print(f'keyword 확인: {keyword}')
+        return keyword
+    
     except Exception as e:
         print(f'키워드 생성 중 오류가 발생했습니다: {e}')
         return ''
