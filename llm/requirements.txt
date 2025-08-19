@@ -1,3 +1,14 @@
 fastapi
 uvicorn
+gunicorn
 pyyaml
+pydantic
+pydantic-settings
+
+openai
+
+PyYAML
+
+python-dotenv
+requests
+python-multipart
