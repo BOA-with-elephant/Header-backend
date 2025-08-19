@@ -1,0 +1,131 @@
+# 고객관리(Visitors) 챗봇 설정
+name: "고객관리 도우미"
+description: "헤어샵 고객 정보 관리 및 브리핑을 도와주는 AI 어시스턴트"
+
+# OpenAI 설정
+model: "gpt-3.5-turbo"
+temperature: 0.3
+max_tokens: 800
+
+# 시스템 프롬프트
+system_prompt: |
+  당신은 헤어샵 고객관리 AI입니다.
+
+  다음 규칙을 정확히 따라 JSON으로만 응답하세요:
+
+  1. 메모 업데이트: 고객명(님/씨) + 시술내용 + 과거형 동사
+     예: "홍길동님 핑크색 염색하셨어요" → memo_update
+
+  2. 브리핑: 오늘, 예약, 브리핑 관련
+     예: "오늘 예약 알려줘" → briefing
+
+  3. 고객정보: 고객명 + 정보/알려줘
+     예: "김민수님 정보 알려줘" → customer_info
+
+  4. VIP: vip, 단골, 우수고객 관련
+     예: "VIP 고객 리스트" → vip_list
+
+  5. 기타: 위에 해당하지 않으면 → general
+
+  출력 형식 (반드시 이 형식만):
+  {
+      "action": "memo_update|briefing|customer_info|vip_list|general",
+      "parameters": {
+          "customer_name": "고객명 (있으면)",
+          "memo_content": "메모내용 (있으면)"
+      },
+      "response": "응답메시지"
+  }
+
+  추가 설명 없이 JSON만 출력하세요.
+  
+  
+
+# 키워드 매핑 (백업용 규칙 기반 분류)
+keywords:
+  briefing:
+    - "브리핑"
+    - "오늘"
+    - "예약"
+    - "스케줄"
+    - "손님"
+    - "고객"
+    - "알려줘"
+
+  memo_update:
+    - "염색"
+    - "펌"
+    - "시술"
+    - "커트"
+    - "했어"
+    - "받았어"
+    - "하셨어"
+    - "받으셨"
+    - "님"
+    - "씨"
+
+  vip:
+    - "vip"
+    - "브이아이피"
+    - "단골"
+    - "우수고객"
+    - "특별고객"
+
+  customer_info:
+    - "정보"
+    - "알려줘"
+    - "보여줘"
+    - "확인"
+    - "어떤"
+    - "누구"
+
+# 응답 템플릿
+response_templates:
+  briefing_empty: "오늘 예약된 고객이 없어서 여유로운 하루가 될 것 같아요! 😴✨"
+  memo_success: "{customer_name}님의 시술 내용이 메모에 잘 저장되었어요! 다음 방문때 참고하겠습니다 ✨"
+  customer_not_found: "'{customer_name}' 고객을 찾을 수 없어요. 정확한 이름을 확인해주세요 😅"
+  error_general: "죄송합니다. 일시적인 오류가 발생했어요. 다시 시도해주세요 🙏"
+  welcome: |
+    안녕하세요! 🙋‍♀️ 헤어샵 고객관리 도우미입니다.
+
+    다음과 같은 기능을 이용하실 수 있어요:
+
+    📋 **고객 브리핑**
+    • "오늘 손님들 브리핑해줘"
+    • "오늘 예약 고객 알려줘"
+
+    📝 **고객 메모 관리**  
+    • "김민수님 핑크색 염색하셨어요"
+    • "박지영님 매우 만족하셨습니다"
+
+    🔍 **고객 정보 조회**
+    • "김민수님 정보 알려줘"
+    • "VIP 고객들 리스트"
+
+    무엇을 도와드릴까요?
+
+# 기능별 설정
+features:
+  memo_update:
+    auto_timestamp: true
+    max_memo_length: 200
+
+  briefing:
+    include_memo: true
+    include_visit_count: true
+    include_favorite_service: true
+
+  vip:
+    min_payment_amount: 500000  # VIP 기준 최소 결제금액 (50만원)
+    min_visit_count: 5          # VIP 기준 최소 방문횟수
+
+# Spring Boot API 연동 설정
+spring_api:
+  base_url: "http://localhost:8080"
+  endpoints:
+    customers: "/api/v1/my-shops/{shop_id}/customers"
+    customer_detail: "/api/v1/my-shops/{shop_id}/customers/{client_code}"
+    update_memo: "/api/v1/my-shops/{shop_id}/customers/{client_code}"
+    today_reservations: "/api/v1/my-shops/{shop_id}/reservations/today"
+
+
