@@ -3,11 +3,14 @@ package com.header.header.domain.reservation.repository;
 import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.projection.BossResvDetailView;
+import jakarta.persistence.LockModeType;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
 import java.util.Optional;
 
@@ -139,5 +142,12 @@ public interface BossReservationRepository extends JpaRepository<BossReservation
          AND r.resvState = "예약취소"
         ORDER BY r.resvDate, r.resvTime
     """)
-    List<BossResvDetailView> findByResvState(Integer shopCode);
+    List<BossResvDetailView> findByResvState(@Param("shopCode") Integer shopCode);
+
+    /*
+        특정 날짜와 시간에 예약 시간으로 예약 조회하면서 비관럭 락(PESSIMISTIC_WRITE) 설정
+        이 메소드를 호출한 트랜잭션이 완료될 때까지 다른 트랜잭션은 이 조건에 해당하는 데이터에 접근할 수 없다.
+    */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<BossReservation> findByShopInfo_ShopCodeAndResvDateAndResvTime(Integer shopCode, Date resvDate, Time resvTime);
 }

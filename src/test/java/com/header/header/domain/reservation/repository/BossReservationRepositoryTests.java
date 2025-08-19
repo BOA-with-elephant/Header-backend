@@ -9,7 +9,6 @@ import com.header.header.domain.reservation.service.BossReservationService;
 import com.header.header.domain.sales.dto.SalesDTO;
 import com.header.header.domain.sales.dto.SalesDetailDTO;
 import com.header.header.domain.sales.enums.PaymentStatus;
-import com.header.header.domain.sales.repository.SalesRepository;
 import com.header.header.domain.sales.service.SalesService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
@@ -26,8 +25,13 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -139,7 +143,6 @@ public class BossReservationRepositoryTests {
 
     private static Stream<Arguments> newReservations(){
         return Stream.of(Arguments.of("유은비", "010-2025-0713", "여성 컷", Date.valueOf("2025-07-14"), Time.valueOf("14:00:00"), "둥근 얼굴에 어울리는 단발을 원해요.")
-//        return Stream.of(Arguments.of("권은지", "010-1002-1002", "브라질리언 왁싱", Date.valueOf("2025-07-15"), Time.valueOf("16:00:00"), "")
                 );
     }
 
@@ -156,6 +159,63 @@ public class BossReservationRepositoryTests {
         // then
         List<BossResvProjectionDTO> saved = bossReservationService.findReservationByUserNameAndUserPhone(SHOP_CODE, userName, userPhone);
         assertNotNull(saved);
+    }
+
+    private static Stream<Arguments> newReservations2(){
+        return Stream.of(Arguments.of("김남기", "010-8978-0955", "전체 염색", Date.valueOf("2025-08-29"), Time.valueOf("15:00:00"), "단정한 색으로 염색 원해요.")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("newReservations2")
+    @DisplayName("예약 동시성 문제 테스트 -> 동시에 100개의 예약 요청이 들어올 경우 단 1개만 성공해야 한다.")
+    void concurrentReservations(String userName, String userPhone, String menuName, Date resvDate, Time resvTime, String userComment) throws InterruptedException{
+        // given
+        int threadCount = 5;
+        // ExecutorService : 스레드 풀을 생성하여 비동기 작업을 간단하게 처리하도록 돕는다.
+        //                   즉 100개의 스레드를 가질 수 있는 스레드 풀을 생성한다.
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        // CountDownLatch : 특정 수의 스레드가 작업을 완료할 때까지 주 스레드가 대기하도록 돕는 동기화 도구
+        //                  카운트가 100으로 초기화한다. 각 스레드는 작업이 끝나면 latch.countDown()을 호출하여 카운트를 1씩 줄인다.
+        //                  메인 스레드는 작업이 끝나면 latch.await()에서 카운트가 0이 될 때까지 기다린다.
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        // AtomicInteger : 멀티스레드 환경에서 동시성을 보장하면서 정수 값을 안전하게 증가/감소시킬 수 있다.
+        //                 successCount와 failCount를 일반 int가 아닌 AtomicInteger로 선언
+        //                 여러 스레드가 동시에 이 변수에 접근하여 값을 변경해도 race condition 없이 안전하게(thread-safe) 값이 관리된다.
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        // when
+        for(int i = 0; i < threadCount; i++){
+            final int threadNum = i;
+            // executorService.submit : 스레드 풀에 작업을 제출.
+            //                          각 작업은 bossReservationService.registNewReservation()을 호출하여 동일한 가게, 날짜, 시간에 예약을 시도
+            executorService.submit(() -> {
+                try{
+                    BossResvInputDTO newReservation = new BossResvInputDTO(userName, userPhone, menuName, resvDate, resvTime, userComment);
+                    bossReservationService.registNewReservation(newReservation, SHOP_CODE);
+                    successCount.incrementAndGet(); // 성공 시 카운트
+                } catch (Exception e){
+                    // 예약 실패 시
+                    failCount.incrementAndGet(); // 실패 시 카운트
+                } finally {
+                    latch.countDown(); // 작업 완료를 알림
+                }
+            });
+        }
+
+        latch.await(); // 모든 스레드가 작업을 마칠 때까지 대기
+        executorService.shutdown();
+
+        // then
+        System.out.println("성공 카운트 : " + successCount.get());
+        System.out.println("실패 카운트 : " + failCount.get());
+
+        // 성공한 예약은 단 1개여야 함.
+        assertThat(successCount.get()).isEqualTo(1);
+        // 실패한 예약은 99개여야 한다.
+        assertThat(failCount.get()).isEqualTo(threadCount - 1);
     }
 
     private static Stream<Arguments> modifiedReservation(){

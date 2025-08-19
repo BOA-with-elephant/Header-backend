@@ -18,5 +18,4 @@ public interface BossResvDetailView {
     Time getResvTime();
     String getUserComment();
 
-
 }
