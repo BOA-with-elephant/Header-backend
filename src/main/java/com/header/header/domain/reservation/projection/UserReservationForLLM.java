@@ -10,6 +10,7 @@ public interface UserReservationForLLM {
     Integer getShopCode();
     String getShopName();
     Integer getMenuCode();
+    Integer getMenuCategoryCode();
     String getMenuName();
     Integer getRevCount();
 }
