@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Form, HTTPException
 import urllib.parse
-
+import os
 from app.models.chat_request import ChatRequest
 from app.models.chat_response import ChatResponse
 from app.services.visitors_service import VisitorsChatBotService
@@ -14,6 +14,12 @@ try:
     print("✅ VisitorsChatBotService 인스턴스 생성 성공")
 except Exception as e:
     print(f"❌ VisitorsChatBotService 인스턴스 생성 실패: {e}")
+    import sys
+    import logging
+    logging.error(f"Critical: VisitorsChatBotService 초기화 실패 - {e}")
+    # 개발 환경에서는 계속 실행하되, 프로덕션에서는 종료
+    if os.getenv("ENV", "development") == "production":
+            sys.exit(1)
     service = None
 
 def fix_korean_encoding(text: str) -> str:
@@ -28,7 +34,9 @@ def fix_korean_encoding(text: str) -> str:
             fixed = text.encode('latin-1').decode('utf-8')
             print(f"🔧 인코딩 수정: '{text}' -> '{fixed}'")
             return fixed
-        except:
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            pass
+        except (UnicodeDecodeError, ValueError):
             pass
 
         # 3. URL 디코딩 시도
@@ -74,14 +82,8 @@ async def ask_chatbot_with_shop(
     try:
         # 한글 인코딩 수정
         fixed_question = fix_korean_encoding(question)
-
-        print(f"📝 원본 질문: '{question}'")
-        print(f"🔧 수정된 질문: '{fixed_question}'")
-        print(f"🏪 Shop ID: {shop_id}")
-
         answer = service.generate_response(fixed_question, shop_id)
 
-        print(f"💬 생성된 답변: {answer}")
 
         return ChatResponse(answer=answer)
 
