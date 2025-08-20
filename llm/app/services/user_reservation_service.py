@@ -1,27 +1,7 @@
-from pydantic import BaseModel
 import requests
-from typing import Optional, List
 import httpx
-
-# 고객 예약 내역 응답을 받을 BaseModel
-class RevInfo(BaseModel):
-    shopCode: int
-    shopName: str
-    menuCode: int
-    menuCategoryCode: int
-    menuName: str
-    revCount: int
-
-class Menu(BaseModel):
-    shopCode: int
-    menuRevCount: int
-    menuName: str
-    menuCode: int
-
-class Shop(BaseModel):
-    shopCode: int
-    shopName: str
-    menus: List[Menu]
+from typing import Optional, List
+from app.models.user_reservation_model import RevInfo, Shop, Menu
 
 BASE_API_URL = 'http://localhost:8080'
 
