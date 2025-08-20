@@ -32,7 +32,6 @@ def fix_korean_encoding(text: str) -> str:
         # 2. Latin-1로 잘못 인코딩된 UTF-8을 수정
         try:
             fixed = text.encode('latin-1').decode('utf-8')
-            print(f"🔧 인코딩 수정: '{text}' -> '{fixed}'")
             return fixed
         except (UnicodeDecodeError, UnicodeEncodeError):
             pass
@@ -65,10 +64,10 @@ async def ask_chatbot(request: ChatRequest):
     try:
         shop_id = getattr(request, 'shop_id', None)
         answer = service.generate_response(request.question, shop_id)
-        return ChatResponse(answer=answer)
+        return ChatResponse(session_id="visitors-session", answer=answer)
     except Exception as e:
         error_message = "죄송합니다. 일시적인 오류가 발생했어요. 다시 시도해주세요 🙏"
-        return ChatResponse(answer=error_message)
+        return ChatResponse(session_id="visitors-session", answer=error_message)
 
 @router.post("/ask_with_shop", response_model=ChatResponse)
 async def ask_chatbot_with_shop(
@@ -84,13 +83,12 @@ async def ask_chatbot_with_shop(
         fixed_question = fix_korean_encoding(question)
         answer = service.generate_response(fixed_question, shop_id)
 
-
-        return ChatResponse(answer=answer)
+        return ChatResponse(session_id="visitors-session", answer=answer)
 
     except Exception as e:
         print(f"❌ 챗봇 처리 오류: {e}")
         error_message = "죄송합니다. 일시적인 오류가 발생했어요. 다시 시도해주세요 🙏"
-        return ChatResponse(answer=error_message)
+        return ChatResponse(session_id="visitors-session", answer=error_message)
 
 @router.get("/help")
 async def get_help():
