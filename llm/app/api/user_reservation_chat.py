@@ -1,15 +1,10 @@
-from fastapi import FastAPI, HTTPException, APIRouter, Depends
+from fastapi import HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import openai
 from dotenv import load_dotenv
 from app.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name
 from app.core.user_reservation_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword
 
 load_dotenv()
-
-app = FastAPI()
-
-client = openai.AsyncOpenAI()
 
 router = APIRouter(prefix='/reservation', tags=['user-reservation'])
 

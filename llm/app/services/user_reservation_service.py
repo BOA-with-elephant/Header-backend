@@ -1,7 +1,7 @@
 import requests
 import httpx
 from typing import Optional, List
-from app.models.user_reservation_model import RevInfo, Shop, Menu
+from app.models.user_reservation_model import RevInfo, Shop
 
 BASE_API_URL = 'http://localhost:8080'
 
