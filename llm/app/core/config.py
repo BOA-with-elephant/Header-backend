@@ -1,3 +1,4 @@
+import os
 import yaml
 from pathlib import Path
 
@@ -8,4 +9,5 @@ class ChatBotConfig:
             self.config = yaml.safe_load(f)
 
     def get(self, key: str, default=None):
-        return self.config.get(key, default)
+        # 환경 변수 우선, 없으면 config에서 가져오기
+        return os.getenv(key) or self.config.get(key, default)

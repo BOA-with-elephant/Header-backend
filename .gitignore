@@ -45,6 +45,9 @@ out/
 *.html
 *.yml
 !docker-compose.yml
+conda
+netstat
+
 
 ### macOS ###
 .DS_Store
