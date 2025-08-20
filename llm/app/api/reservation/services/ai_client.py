@@ -23,11 +23,11 @@ async def generate_re_reservation_message(data: Optional[RevInfo]):
     규칙:
     - 메시지는 자연스럽고 친근한 한국어여야 합니다.
     - 반드시 샵 이름을 언급하세요
-    - 마지막에는 반드시 다시 예약을 권장하는 메시지를 출력해야 해. 예를 들어 "다시 예약하시겠어요?" 같은 메시지 말이야.
-    - 다른 인사말이나 설명 등을 추가하지 말고, 짧은 문장으로 말해.
-    - 고객은 이 샵을 **다시** 예약할 것인지 추천받는 것이라는 점을 명심해줘.
+    - 마지막에는 반드시 다시 예약을 권장하는 메시지를 출력해야 해. 예를 들어 "다시 예약하시겠어요?" 같은 메시지입니다.
+    - 다른 인사말이나 설명 등을 추가하지 말고, 짧은 문장으로 말하세요.
+    - 고객은 이 샵을 **다시** 예약할 것인지 추천받는 것이라는 점을 명심하세요.
 
-    여기 고객의 예약 정보야.
+    여기 고객의 예약 정보를 주겠습니다.
     ---
     샵 이름: {shop_name}
     메뉴 이름: {menu_name}
@@ -64,9 +64,9 @@ async def generate_re_reservation_message(data: Optional[RevInfo]):
 
 async def generate_keyword_from_menu(menu_name: str) -> str:
     prompt = f"""
-    다음 뷰티샵 시술 메뉴 이름에서 가장 핵심적인 검색 키워드 단어 하나만 추출해줘.
-    예를 들어, '프리미엄 여성 컷'에서는 '컷'을 추출하고, '고급 두피 마사지'에서는 '두피 마사지' 혹은 '마사지'를 추출해.
-    오직 키워드 하나만 응답해야 해.
+    다음 뷰티샵 시술 메뉴 이름에서 가장 핵심적인 검색 키워드 단어 하나만 추출하세요
+    예를 들어, '프리미엄 여성 컷'에서는 '컷'을 추출하고, '고급 두피 마사지'에서는 '두피 마사지' 혹은 '마사지'를 추출하세요
+    오직 키워드 하나만 응답해야 합니다.
 
     메뉴 이름: '{menu_name}'
     """
@@ -105,10 +105,10 @@ async def generate_recommend_message_by_menu_keyword(menu: str, recommend_shop: 
     규칙:
     - 메시지는 자연스럽고 친근한 한국어여야 합니다.
     - 반드시 샵 이름을 언급하세요
-    - 다른 인사말이나 설명 등을 추가하지 말고, 짧은 문장으로 말해.
-    - 마지막에 고객의 의견을 묻는 뉘앙스의 질문을 덧붙여줘. 예를 들어 '어떠세요?' 같은 질문 말이야.
+    - 다른 인사말이나 설명 등을 추가하지 말고, 짧은 문장으로 말하세요.
+    - 마지막에 고객의 의견을 묻는 뉘앙스의 질문을 덧붙여줘. 예를 들어 '어떠세요?' 같은 질문입니다.
 
-    여기 관련된 정보야.
+    여기 관련된 정보입니다.
     ---
     사용자의 기존 예약 메뉴: '{menu}'
     추천할 샵 이름: '{shop_name}'
@@ -121,10 +121,12 @@ async def generate_recommend_message_by_menu_keyword(menu: str, recommend_shop: 
     try:
         completion = await client.chat.completions.create(
             model='gpt-4o-mini',
-            messages={
+            messages=[
+                {
                 'role': 'user',
                 'content': prompt
-            },
+                }
+            ],
             temperature=0.7,
             max_completion_tokens=100
         )

@@ -2,8 +2,9 @@ from fastapi import FastAPI, HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import openai
 from dotenv import load_dotenv
-from app.api.reservation.services.user_reservation_service import get_user_reservation_history
-from app.api.reservation.services.ai_client import generate_keyword_from_menu, generate_re_reservation_message
+from typing import Optional, List
+from app.api.reservation.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name
+from app.api.reservation.services.ai_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword
 
 load_dotenv()
 
@@ -38,3 +39,49 @@ async def create_recommendation_by_llm(credentials: HTTPAuthorizationCredentials
     }
 
     return res_data
+
+@router.get('/recommendation-from-reservation')
+async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+    token = credentials.credentials
+
+    user_history = await get_user_reservation_history(token)
+    if not user_history:
+        raise HTTPException(status_code=404, detail='예약 정보 찾을 수 없음') # TODO. 예약 정보가 없을 경우 새로운 샵 예약 권장 메시지로 넘어가게 할 것
+    
+    print(f'user_history 확인 : {user_history}')
+
+    keyword = await generate_keyword_from_menu(user_history.menuName)
+    if not keyword:
+        raise HTTPException(status_code=403, detail='추천 메뉴 키워드 생성에 오류가 발생했습니다')
+    
+    all_shops = await search_shop_by_menu_name(keyword)
+    if not all_shops:
+        raise HTTPException(status_code=404, detail=f"'{keyword}' 관련 가게를 찾지 못했습니다.")
+    
+    recommend_menu: Menu = None
+    recommend_shop: Shop = None
+    max_rev_count = -1
+
+    for shop in all_shops:
+        for menu in shop.menus:
+            max_rev_count = menu.menuRevCount
+            recommend_menu = menu
+            recommend_shop = shop
+    
+    if not recommend_shop:
+        raise HTTPException(status_code=404, detail='추천할 메뉴가 없습니다.')
+    
+    recommendation_message = await generate_recommend_message_by_menu_keyword(
+        recommend_menu.menuName,
+        recommend_shop,
+        recommend_menu
+    )
+
+    return {
+        'message': recommendation_message,
+        'url': 'f/shops/{recommend_shop.shopCode}'
+    }
+
+"""
+eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsInJvbGUiOiJST0xFX1VTRVIiLCJleHAiOjE3NTU2OTM1NDV9.IY5KxQWx4kvT4XkTllVyjGzhp3R4ZQuAA1iOjMCAL2uhwF2NAG2g8TK2Eh1J9My91fy0DiQjaJUffvbDfe1_JQ
+"""
