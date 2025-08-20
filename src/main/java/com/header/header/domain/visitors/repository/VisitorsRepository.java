@@ -93,7 +93,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "WHERE v.shopCode = :shopCode " +
             "  AND v.isActive = true " +
             "  AND DATE(r.resvDate) = CURRENT_DATE " +
-            "  AND r.resvState IN ('예약완료', '시술중') " +
+            "  AND r.resvState = '예약확정' " +
             "ORDER BY r.resvTime ASC")
     List<VisitorWithUserInfoView> findTodayReservationCustomers(@Param("shopCode") Integer shopCode);
 
@@ -110,4 +110,20 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "WHERE v.clientCode = :clientCode " +
             "  AND v.isActive = true")
     Optional<VisitorWithUserInfoView> findCustomerBasicInfo(@Param("clientCode") Integer clientCode);
+
+    // 고객명으로 고객 검색 (챗봇용) - 동일한 이름의 고객이 여러명일 수 있으므로 List 반환
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "WHERE v.shopCode = :shopCode " +
+            "  AND v.isActive = true " +
+            "  AND u.userName LIKE %:name% " +
+            "ORDER BY u.userName, u.birthday")
+    List<VisitorWithUserInfoView> findCustomersByName(@Param("shopCode") Integer shopCode, @Param("name") String name);
 }

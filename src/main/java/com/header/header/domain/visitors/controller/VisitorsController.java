@@ -49,6 +49,25 @@ public class VisitorsController extends MyShopBaseController {
     }
 
     /**
+     * 고객명으로 고객 검색 - chatbot API
+     * 동일한 이름의 고객이 여러명일 수 있으므로 List 반환
+     * 
+     * @param shopId 샵 아이디
+     * @param name 검색할 고객명
+     * @return 검색된 고객 리스트
+     * 
+     * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/search?name={name}
+     */
+    @GetMapping("/customers/search")
+    public ResponseEntity<ApiResponse<List<VisitorDetailResponse>>> searchCustomersByName(
+            @PathVariable Integer shopId,
+            @RequestParam String name) {
+
+        List<VisitorDetailResponse> visitors = visitorsService.searchCustomersByName(shopId, name);
+        return success(visitors);
+    }
+
+    /**
      * 유저를 샵의 회원으로 등록합니다.
      *
      * @param shopId 등록할 샵의 아이디

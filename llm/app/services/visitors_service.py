@@ -26,7 +26,7 @@ class VisitorsChatBotService:
 
         # 사용 가능한 API 엔드포인트 매핑
         self.available_apis = {
-            "customer_search": "/api/v1/my-shops/{shop_id}/customers",
+            "customer_search": "/api/v1/my-shops/{shop_id}/customers/search",
             "customer_detail": "/api/v1/my-shops/{shop_id}/customers/{client_code}",
             "today_reservations": "/api/v1/my-shops/{shop_id}/customers/today-reservations",
             "memo_update": "/api/v1/my-shops/{shop_id}/customers/{client_code}",
@@ -87,10 +87,9 @@ class VisitorsChatBotService:
         if intent == "customer_inquiry":
             if analysis.get("parameters", {}).get("customer_name"):
                 plan["required_apis"].extend([
-                    "customer_search",
-                    "customer_detail",
-                    "visit_history"
+                    "customer_search"
                 ])
+                # customer_search 성공하면 나머지 API 호출은 동적으로 결정
 
         elif intent == "reservation_briefing":
             plan["required_apis"].extend([
@@ -114,6 +113,11 @@ class VisitorsChatBotService:
             "errors": []
         }
 
+        # 고객 관련 요청의 경우 2단계 프로세스 처리
+        if plan["primary_intent"] in ["customer_inquiry", "memo_update"]:
+            return self._collect_customer_data_with_lookup(plan, shop_id)
+        
+        # 일반적인 API 호출 (예약 브리핑 등)
         for api_name in plan["required_apis"]:
             try:
                 if api_name not in self.available_apis:
@@ -144,6 +148,181 @@ class VisitorsChatBotService:
 
         return collected_data
 
+    def _collect_customer_data_with_lookup(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
+        """고객 관련 데이터 수집 - 2단계 프로세스 (검색 → 상세정보)"""
+        
+        collected_data = {
+            "success": [],
+            "failed": [],
+            "errors": []
+        }
+        
+        customer_name = plan["parameters"].get("customer_name", "")
+        if not customer_name:
+            collected_data["errors"].append({
+                "api": "customer_search",
+                "error": "고객명이 제공되지 않았습니다"
+            })
+            return collected_data
+        
+        try:
+            # 1단계: 고객 검색으로 client_code 찾기
+            logger.info(f"🔍 1단계: 고객 검색 - '{customer_name}'")
+            search_data = self._call_spring_api("customer_search", plan["parameters"], shop_id)
+            
+            # 검색 결과 검증
+            if not search_data or self._is_customer_not_found(search_data):
+                collected_data["failed"].append({
+                    "api": "customer_search", 
+                    "error": f"'{customer_name}' 고객을 찾을 수 없습니다"
+                })
+                return collected_data
+            
+            # 검색 결과 저장
+            collected_data["success"].append({
+                "api": "customer_search",
+                "data": search_data
+            })
+            
+            # 다중 고객 처리 또는 단일 고객 선택
+            selected_customer, multiple_customers = self._handle_multiple_customers(search_data, customer_name)
+            
+            if multiple_customers:
+                # 여러 고객이 있는 경우 - AI가 선택하도록 메시지 생성
+                logger.info(f"🔍 동일한 이름의 고객 {len(search_data)}명 발견")
+                collected_data["success"].append({
+                    "api": "customer_search_multiple",
+                    "data": {
+                        "message": f"'{customer_name}' 고객이 {len(search_data)}명 발견되었습니다",
+                        "customers": search_data,
+                        "count": len(search_data)
+                    }
+                })
+                return collected_data
+            
+            if not selected_customer:
+                collected_data["errors"].append({
+                    "api": "customer_search",
+                    "error": "고객 검색 결과에서 적합한 고객을 찾을 수 없습니다"
+                })
+                return collected_data
+            
+            client_code = selected_customer.get("clientCode")
+            logger.info(f"✅ 고객 선택: client_code={client_code}, 이름={selected_customer.get('userName')}")
+            
+            # 2단계: 의도에 따른 추가 정보 수집
+            intent = plan["primary_intent"]
+            
+            if intent == "customer_inquiry":
+                # 고객 상세 정보 및 방문 이력 조회
+                try:
+                    logger.info(f"🔍 2단계: 고객 상세정보 조회")
+                    detail_params = {"client_code": client_code}
+                    detail_data = self._call_spring_api("customer_detail", detail_params, shop_id)
+                    
+                    collected_data["success"].append({
+                        "api": "customer_detail",
+                        "data": detail_data
+                    })
+                    
+                    # 방문 이력도 조회 (선택적)
+                    try:
+                        logger.info(f"🔍 3단계: 방문 이력 조회")
+                        history_data = self._call_spring_api("visit_history", detail_params, shop_id)
+                        collected_data["success"].append({
+                            "api": "visit_history", 
+                            "data": history_data
+                        })
+                    except APIException as e:
+                        logger.warning(f"방문 이력 조회 실패: {e}")
+                        # 방문 이력 실패는 치명적이지 않음
+                        
+                except APIException as e:
+                    collected_data["failed"].append({
+                        "api": "customer_detail",
+                        "error": str(e)
+                    })
+                    
+            elif intent == "memo_update":
+                # 메모 업데이트 실행
+                try:
+                    logger.info(f"🔍 2단계: 메모 업데이트")
+                    memo_params = {
+                        "client_code": client_code,
+                        "memo_content": plan["parameters"].get("memo_content", "")
+                    }
+                    memo_data = self._call_spring_api("memo_update", memo_params, shop_id)
+                    
+                    collected_data["success"].append({
+                        "api": "memo_update",
+                        "data": memo_data
+                    })
+                    
+                except APIException as e:
+                    collected_data["failed"].append({
+                        "api": "memo_update",
+                        "error": str(e)
+                    })
+                    
+        except APIException as e:
+            collected_data["failed"].append({
+                "api": "customer_search",
+                "error": str(e)
+            })
+        except Exception as e:
+            collected_data["errors"].append({
+                "api": "customer_search", 
+                "error": str(e)
+            })
+            
+        return collected_data
+    
+    def _extract_client_code_from_search(self, search_data: Dict[str, Any]) -> Optional[str]:
+        """고객 검색 결과에서 client_code 추출"""
+        try:
+            # 리스트 형태인 경우 (복수 고객)
+            if isinstance(search_data, list) and len(search_data) > 0:
+                first_customer = search_data[0]
+                return first_customer.get("clientCode") or first_customer.get("client_code") or first_customer.get("id")
+            
+            # 딕셔너리 형태인 경우 (단일 고객)
+            elif isinstance(search_data, dict):
+                return search_data.get("clientCode") or search_data.get("client_code") or search_data.get("id")
+                
+            return None
+            
+        except Exception as e:
+            logger.error(f"client_code 추출 중 오류: {e}")
+            return None
+
+    def _handle_multiple_customers(self, search_data: List[Dict], customer_name: str) -> tuple[Optional[Dict], bool]:
+        """다중 고객 처리 로직
+        
+        Returns:
+            tuple: (selected_customer, is_multiple)
+            - selected_customer: 선택된 고객 정보 (단일 고객인 경우)
+            - is_multiple: 여러 고객이 있는지 여부
+        """
+        try:
+            if not isinstance(search_data, list):
+                return search_data, False
+                
+            if len(search_data) == 0:
+                return None, False
+                
+            elif len(search_data) == 1:
+                # 단일 고객인 경우
+                return search_data[0], False
+                
+            else:
+                # 다중 고객인 경우 - 일단 여러 명이 있다고 표시
+                # 향후 생년월일 등 추가 정보로 필터링 로직을 추가할 수 있음
+                return None, True
+                
+        except Exception as e:
+            logger.error(f"다중 고객 처리 중 오류: {e}")
+            return None, False
+
     def _generate_natural_response(self, user_question: str, analysis: Dict[str, Any],
                                    collected_data: Dict[str, Any]) -> str:
         """수집된 데이터를 기반으로 자연스러운 응답 생성"""
@@ -160,15 +339,34 @@ class VisitorsChatBotService:
                                       success_data: List[Dict]) -> str:
         """수집된 데이터를 활용한 자연스러운 응답 구성"""
 
-        # AI를 활용한 동적 응답 생성
-        context_prompt = f"""
-          사용자 질문: {user_question}
-          분석 결과: {analysis}
-          수집된 데이터: {success_data}
+        # 데이터 유효성 검사
+        if not success_data:
+            return self._handle_no_data_found(user_question, analysis)
+        
+        # 고객 검색 실패 케이스 특별 처리
+        intent = analysis.get("intent")
+        if intent in ["customer_inquiry", "memo_update"]:
+            customer_data = self._extract_customer_data(success_data)
+            if not customer_data or self._is_customer_not_found(customer_data):
+                customer_name = analysis.get("parameters", {}).get("customer_name", "해당 고객")
+                return f"'{customer_name}' 고객을 찾을 수 없어요. 이름을 다시 확인해주시거나 신규 고객일 수 있어요! 🔍"
 
-          위 정보를 바탕으로 헤어샵 직원에게 도움이 되는 자연스럽고 친근한 응답을 작성해주세요.
-          이모지를 적절히 사용하고, 구체적인 데이터를 포함해주세요.
-          """
+        # 실제 데이터가 있는 경우에만 AI 응답 생성
+        context_prompt = f"""
+CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이터에 없는 정보는 절대 만들어내지 마세요.
+
+사용자 질문: {user_question}
+분석 결과: {analysis}
+실제 수집된 데이터: {success_data}
+
+**중요 규칙:**
+1. 위 데이터에 실제로 존재하는 정보만 사용하세요
+2. 고객명, 서비스 내역, 날짜 등을 임의로 생성하지 마세요
+3. 데이터가 비어있거나 null이면 "정보가 없습니다"라고 명시하세요
+4. 이모지를 적절히 사용하되 정확한 정보 전달이 우선입니다
+
+위 실제 데이터를 바탕으로 헤어샵 직원에게 도움이 되는 응답을 작성해주세요.
+"""
 
         response = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -176,11 +374,52 @@ class VisitorsChatBotService:
                 {"role": "system", "content": self.config.get("response_generation_prompt")},
                 {"role": "user", "content": context_prompt}
             ],
-            temperature=0.7,
+            temperature=0.2,  # 창의성 낮춤 - 정확성 우선
             max_tokens=800
         )
 
         return response.choices[0].message.content.strip()
+
+    def _handle_no_data_found(self, user_question: str, analysis: Dict[str, Any]) -> str:
+        """데이터가 없을 때 적절한 응답"""
+        intent = analysis.get("intent")
+        
+        if intent == "customer_inquiry":
+            customer_name = analysis.get("parameters", {}).get("customer_name", "해당 고객")
+            return f"'{customer_name}' 고객을 찾을 수 없어요. 이름을 다시 확인해주시거나 신규 고객일 수 있어요! 🔍"
+        
+        elif intent == "reservation_briefing":
+            return "오늘 예약된 고객이 없어서 여유로운 하루네요! ☕️"
+        
+        else:
+            return "요청하신 정보를 찾을 수 없어요. 다시 확인해주세요! 🤔"
+
+    def _extract_customer_data(self, success_data: List[Dict]) -> Dict[str, Any]:
+        """성공 데이터에서 고객 정보 추출"""
+        for data_item in success_data:
+            if data_item.get("api") in ["customer_search", "customer_detail"]:
+                return data_item.get("data", {})
+        return {}
+
+    def _is_customer_not_found(self, customer_data: Dict[str, Any]) -> bool:
+        """고객 데이터가 비어있거나 찾을 수 없는 상태인지 확인"""
+        if not customer_data:
+            return True
+        
+        # 빈 리스트이거나 None인 경우
+        if customer_data == [] or customer_data is None:
+            return True
+            
+        # 리스트인데 비어있는 경우 (customer_search 결과)
+        if isinstance(customer_data, list) and len(customer_data) == 0:
+            return True
+            
+        # 딕셔너리인데 핵심 정보가 없는 경우
+        if isinstance(customer_data, dict):
+            if not customer_data.get("name") and not customer_data.get("customerName") and not customer_data.get("clientCode"):
+                return True
+                
+        return False
 
     def _parse_analysis_result(self, content: str) -> Dict[str, Any]:
         """AI 분석 결과 JSON 파싱"""
@@ -264,13 +503,18 @@ class VisitorsChatBotService:
             
             logger.info(f"📡 API 호출: {api_name} -> {url}")
             
-            # HTTP 메서드 결정
+            # HTTP 메서드 및 파라미터 처리
             if api_name == "memo_update":
                 # 메모 업데이트는 PATCH 요청
                 memo_content = parameters.get("memo_content", "")
                 response = requests.patch(url, 
                                         params={"memo": memo_content}, 
                                         timeout=10)
+            elif api_name == "customer_search":
+                # 고객 검색은 GET 요청에 이름 파라미터 포함
+                customer_name = parameters.get("customer_name", "")
+                params = {"name": customer_name} if customer_name else {}
+                response = requests.get(url, params=params, timeout=10)
             else:
                 # 나머지는 GET 요청
                 response = requests.get(url, timeout=10)
