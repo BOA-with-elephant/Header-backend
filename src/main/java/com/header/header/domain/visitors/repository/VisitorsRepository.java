@@ -78,4 +78,36 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
          WHERE v.userCode = :userCode
     """)
     Visitors findByUserCode(@Param("userCode") Integer userCode);
+
+    // 오늘 예약된 고객 정보 조회 (챗봇용)
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "INNER JOIN Reservation r ON v.userCode = r.userCode " +
+            "WHERE v.shopCode = :shopCode " +
+            "  AND v.isActive = true " +
+            "  AND DATE(r.resvDate) = CURRENT_DATE " +
+            "  AND r.resvState IN ('예약완료', '시술중') " +
+            "ORDER BY r.resvTime ASC")
+    List<VisitorWithUserInfoView> findTodayReservationCustomers(@Param("shopCode") Integer shopCode);
+
+    // 특정 고객의 기본 정보 조회 (챗봇용)
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "WHERE v.clientCode = :clientCode " +
+            "  AND v.isActive = true")
+    Optional<VisitorWithUserInfoView> findCustomerBasicInfo(@Param("clientCode") Integer clientCode);
 }

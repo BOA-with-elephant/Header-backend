@@ -36,6 +36,19 @@ public class VisitorsController extends MyShopBaseController {
     }
 
     /**
+     * 오늘 예약인 고객 정보 리스트 반환 - chatbot api
+     * @param shopId
+     * @return 오늘 예약 고객 리스트
+     */
+    @GetMapping("/customers/today-reservations")
+    public ResponseEntity<ApiResponse<List<VisitorDetailResponse>>> getShopCustomerTodayReservationList(
+            @PathVariable Integer shopId) {
+
+        List<VisitorDetailResponse> visitors = visitorsService.getTodayReservationCustomers(shopId);
+        return success(visitors);
+    }
+
+    /**
      * 유저를 샵의 회원으로 등록합니다.
      *
      * @param shopId 등록할 샵의 아이디
@@ -54,6 +67,22 @@ public class VisitorsController extends MyShopBaseController {
     }
 
     /**
+     * 고객 상세 정보 조회 - chatbot API (기본 정보 + 통계)
+     * @param shopId 샵 아이디
+     * @param customerId 고객 아이디
+     * @return 고객 상세 정보
+     */
+    @GetMapping("/customers/{customerId}")
+    public ResponseEntity<ApiResponse<VisitorDetailResponse>> getCustomerDetail(
+            @PathVariable Integer shopId,
+            @PathVariable Integer customerId) {
+
+        VisitorDetailResponse customerDetail = visitorsService.getCustomerDetailInfo(shopId, customerId);
+        return success(customerDetail);
+    }
+
+
+    /**
      * 샵 회원에 대한 방문 히스토리를 조회합니다.
      *
      * @param shopId 샵 아이디
@@ -62,7 +91,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/{customerId}
      */
-    @GetMapping("/customers/{customerId}")
+    @GetMapping("/customers/{customerId}/history")
     public ResponseEntity<ApiResponse<List<VisitorHistoryResponse>>> getCustomerHistory(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId) {

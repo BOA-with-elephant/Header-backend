@@ -32,7 +32,6 @@ def fix_korean_encoding(text: str) -> str:
         # 2. Latin-1로 잘못 인코딩된 UTF-8을 수정
         try:
             fixed = text.encode('latin-1').decode('utf-8')
-            print(f"🔧 인코딩 수정: '{text}' -> '{fixed}'")
             return fixed
         except (UnicodeDecodeError, UnicodeEncodeError):
             pass
