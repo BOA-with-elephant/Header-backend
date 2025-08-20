@@ -1,9 +1,11 @@
 package com.header.header.auth.config;
 
+import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.domain.shop.dto.ShopDTO;
+import com.header.header.domain.user.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -36,15 +39,17 @@ public class JwtTokenProvider {
     private static final String AUTHORITIES_KEY = "role";
     private static final String BEARER_TYPE = "Bearer";
     private final AuthUserService authUserService;
+    private final UserService userService;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
                             @Value("${jwt.expiration}") long tokenValidityTime,
-                            @Lazy AuthUserService authUserService
-                            ) {
+                            @Lazy AuthUserService authUserService,
+                            UserService userService) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = tokenValidityTime;
         this.authUserService = authUserService;
+        this.userService = userService;
     }
 
     public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO, ShopDTO shopDTO) {
@@ -111,22 +116,33 @@ public class JwtTokenProvider {
      * @return 인증 객체 (Authentication)
      */
     public Authentication getAuthentication(String token) {
-        // 토큰에서 클레임(Claims) 정보를 파싱합니다.
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        // 1. 클레임 파싱
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
+        // 2. JWT에서 사용자 ID를 추출해 UserService로 사용자 정보 로드 (이전처럼 userService.findByUserId 사용 가능)
+        String userId = claims.getSubject();
+        LoginUserDTO loginUserDTO = userService.findByUserId(userId);
+
+        // 3. 사용자 존재 여부 확인 후 NullPointerException 방지
+        if (loginUserDTO == null) {
+            throw new UsernameNotFoundException("User not found from JWT subject: " + userId);
+        }
+
+        // 4. JWT에서 shopCode 클레임 추출 및 DTO에 직접 설정
+        Integer shopCode = (Integer) claims.get("shopCode");
+        if (shopCode != null) {
+            loginUserDTO.setShopCode(shopCode);
+        }
+
+        // 5. 업데이트된 DTO로 AuthDetails 객체 생성
+        AuthDetails principal = new AuthDetails(loginUserDTO); // DTO 하나만 받는 생성자 사용
+
+        // 6. 권한 목록 생성
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        UserDetails principal = authUserService.loadUserByUsername(claims.getSubject());
-
-        // UsernamePasswordAuthenticationToken을 반환하여 SecurityContext에 저장
-        // principal (UserDetails), credentials (비밀번호, 여기서는 빈 문자열), authorities
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 }
