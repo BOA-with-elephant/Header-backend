@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+gunicorn
 pyyaml
 openai
 python-dotenv
@@ -10,3 +11,7 @@ langchain
 langchain-openai
 pinecone
 langchain-pinecone
+pydantic
+pydantic-settings
+requests
+python-multipart
