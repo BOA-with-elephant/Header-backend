@@ -2,7 +2,7 @@ from fastapi import HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from app.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name, get_shop_and_menu_category
-from app.core.user_reservation_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword
+from app.core.user_reservation_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword, extract_intent_and_keyword
 
 load_dotenv()
 
@@ -77,11 +77,12 @@ async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = 
     }
 
 @router.get('/search-recommendation')
-async def create_new_recommendation_by_needs(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+async def create_new_recommendation_by_needs(query: str):
     categories = await get_shop_and_menu_category()
 
-    print(f'categories 확인: {categories}')
-    return None
+    extracted_json = await extract_intent_and_keyword(query=query, shop_and_menu_category=categories)
+
+    return extracted_json
 
 """
 eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsInJvbGUiOiJST0xFX1VTRVIiLCJleHAiOjE3NTU2OTU4NTZ9.It0LB7NMlOzsQqrhM3SX2g4MQgd4E6ndJ0Wlz2OOAbxai-6_7y21xaCsUoua7rJ8CwDFz5g0ieGcvY90_Ozmdg
