@@ -1,17 +1,17 @@
 from fastapi import HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
-from app.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name
+from app.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name, get_shop_and_menu_category
 from app.core.user_reservation_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword
 
 load_dotenv()
 
-router = APIRouter(prefix='/reservation', tags=['user-reservation'])
+router = APIRouter(prefix='/reservation/chat', tags=['user-reservation'])
 
 security_scheme = HTTPBearer()
 
 # 재예약 권장 메시지 생성 챗봇 라우터
-@router.get('/reservation-recommendation-by-llm')
+@router.get('/re-recommendation')
 async def create_recommendation_by_llm(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
     token = credentials.credentials
     # token의 유효성 검사는 HTTPAuthorizationCredentials 측에서 대신 실행
@@ -34,7 +34,7 @@ async def create_recommendation_by_llm(credentials: HTTPAuthorizationCredentials
 
     return res_data
 
-@router.get('/recommendation-from-reservation')
+@router.get('/new-recommendation')
 async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
     token = credentials.credentials
 
@@ -75,6 +75,13 @@ async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = 
         'message': recommendation_message,
         'url': f'/shops/{recommend_shop.shopCode}'
     }
+
+@router.get('/search-recommendation')
+async def create_new_recommendation_by_needs(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+    categories = await get_shop_and_menu_category()
+
+    print(f'categories 확인: {categories}')
+    return None
 
 """
 eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsInJvbGUiOiJST0xFX1VTRVIiLCJleHAiOjE3NTU2OTU4NTZ9.It0LB7NMlOzsQqrhM3SX2g4MQgd4E6ndJ0Wlz2OOAbxai-6_7y21xaCsUoua7rJ8CwDFz5g0ieGcvY90_Ozmdg
