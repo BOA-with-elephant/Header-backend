@@ -131,6 +131,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:3000");  // 로컬 개발용
+        config.addAllowedOrigin("http://localhost:8000");  // 로컬 개발용 FastAPI
         config.addAllowedOrigin("https://www.headercrm.site");  // www 도메인도 허용
         config.addAllowedOrigin("https://headercrm.site");  // 커스텀 도메인
         config.addAllowedHeader("*");

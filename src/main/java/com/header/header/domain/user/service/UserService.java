@@ -22,7 +22,6 @@ public class UserService {
     private final MainUserRepository userRepository;
     private final ModelMapper modelMapper;
 
-
     /***
      * dummy user을 추가한다.
      * dummy user = 이름과 전화번호만 있는 유령 유저 정보
@@ -32,11 +31,6 @@ public class UserService {
      * */
     @Transactional
     public User createUserByNameAndPhone(String userName, String userPhone){
-        // 중복 체크 추가
-        User existingUser = userRepository.findByUserNameAndUserPhone(userName, userPhone);
-        if (existingUser != null) {
-            return existingUser; // 기존 사용자 반환
-        }
         UserDTO userDTO = new UserDTO();
         userDTO.setUserName(userName);
         userDTO.setUserPhone(userPhone);
