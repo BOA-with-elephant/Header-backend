@@ -59,13 +59,13 @@ async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = 
     
     recommend_menu: Menu = None
     recommend_shop: Shop = None
-    max_rev_count = -1
 
     for shop in all_shops:
         for menu in shop.menus:
-            max_rev_count = menu.menuRevCount
+            print(f'for menu in shop.menus: {menu}')
             recommend_menu = menu
             recommend_shop = shop
+            
     
     if not recommend_shop:
         raise HTTPException(status_code=404, detail='추천할 메뉴가 없습니다.')
@@ -78,7 +78,7 @@ async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = 
 
     return {
         'message': recommendation_message,
-        'url': 'f/shops/{recommend_shop.shopCode}'
+        'url': f'/shops/{recommend_shop.shopCode}'
     }
 
 """
