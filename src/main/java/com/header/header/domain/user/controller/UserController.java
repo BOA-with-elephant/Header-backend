@@ -119,8 +119,9 @@ public class UserController {
 
     @PostMapping("/password-reset")
     public ResponseEntity<ResponseDTO> resetPassword(@RequestBody UserDTO userDTO) {
+        userFacadeService.modifyPwd(userDTO); // 본인확인 및 다음 단계 준비
         return ResponseEntity
                 .ok()
-                .body(new ResponseDTO(HttpStatus.OK, "비밀번호 수정 성공", userFacadeService.modifyPwd(userDTO)));
+                .body(new ResponseDTO(HttpStatus.OK, "본인 확인 완료", null));
     }
 }

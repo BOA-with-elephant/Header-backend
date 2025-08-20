@@ -79,8 +79,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     // 다음 경로들은 인증 없이 모든 사용자에게 허용
                     auth.requestMatchers("/auth/**", "/", "/main").permitAll();
-                    // "/auth/session" (POST) 요청도 허용하여 로그인 시도를 가능하게 합니다.
+                    // "/auth/session" (POST) 요청을 허용하여 로그인 시도를 가능하게 합니다.
                     auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
+                    // "auth/password-reset"(POST) 요청도 허용하여 비 로그인 상태에서의 비밀번호 변경활동을 가능하게 합니다.
+                    auth.requestMatchers(HttpMethod.POST, "/auth/password-reset").permitAll();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
                     auth.requestMatchers("/api/v1/my-shops/**").permitAll();
 //                    auth.requestMatchers("/api/v1/myshops/**").hasRole("ADMIN");

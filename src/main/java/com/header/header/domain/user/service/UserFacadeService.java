@@ -98,7 +98,7 @@ public class UserFacadeService {
 
     /* 8. 비밀번호 초기화를 위한 resetPwd 사용*/
     @Transactional
-    public UserDTO modifyPwd(UserDTO userDTO) {
-        return userService.resetPwd(userDTO);
+    public void modifyPwd(UserDTO userDTO) {
+        userService.resetPwd(userDTO);
     }
 }
