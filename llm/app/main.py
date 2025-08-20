@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from app.api import bot1_chat
-from app.api.user_reservation_chat import router as reservation_recommend_router
+from app.api import user_reservation_chat
 from app.api import visitorsbot_chat
 
 # 환경 변수 로그
@@ -34,9 +34,8 @@ async def root():
 
 # 챗봇 라우터 등록
 app.include_router(bot1_chat.router)
-# 유저 예약 챗봇 - 기존 예약 내역 기반 추천 메시지 출력
-app.include_router(reservation_recommend_router)
 app.include_router(visitorsbot_chat.router, prefix="/api/v1")
+app.include_router(user_reservation_chat.router, prefix='/api/v1')
 
 if __name__ == "__main__":
     import uvicorn
