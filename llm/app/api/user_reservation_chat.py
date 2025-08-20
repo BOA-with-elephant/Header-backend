@@ -2,9 +2,8 @@ from fastapi import FastAPI, HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import openai
 from dotenv import load_dotenv
-from typing import Optional, List
-from app.api.reservation.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name
-from app.api.reservation.services.ai_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword
+from app.services.user_reservation_service import get_user_reservation_history, search_shop_by_menu_name
+from app.core.user_reservation_client import generate_keyword_from_menu, generate_re_reservation_message, Menu, Shop, generate_recommend_message_by_menu_keyword
 
 load_dotenv()
 
@@ -83,5 +82,5 @@ async def create_new_recommendation(credentials: HTTPAuthorizationCredentials = 
     }
 
 """
-eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsInJvbGUiOiJST0xFX1VTRVIiLCJleHAiOjE3NTU2OTM1NDV9.IY5KxQWx4kvT4XkTllVyjGzhp3R4ZQuAA1iOjMCAL2uhwF2NAG2g8TK2Eh1J9My91fy0DiQjaJUffvbDfe1_JQ
+eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsInJvbGUiOiJST0xFX1VTRVIiLCJleHAiOjE3NTU2OTU4NTZ9.It0LB7NMlOzsQqrhM3SX2g4MQgd4E6ndJ0Wlz2OOAbxai-6_7y21xaCsUoua7rJ8CwDFz5g0ieGcvY90_Ozmdg
 """

@@ -1,8 +1,7 @@
-import multiprocessing
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from app.api import bot1_chat
-from app.api.reservation.reservation_recommend import router as reservation_recommend_router
+from app.api.user_reservation_chat import router as reservation_recommend_router
 from app.api import visitorsbot_chat
 
 # 환경 변수 로그

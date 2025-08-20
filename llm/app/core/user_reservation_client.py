@@ -1,8 +1,7 @@
 import openai
 from dotenv import load_dotenv
-from fastapi import HTTPException
-from app.api.reservation.services.user_reservation_service import get_user_reservation_history, Shop, Menu, RevInfo
-from typing import Optional, List
+from app.services.user_reservation_service import Shop, Menu, RevInfo
+from typing import Optional
 
 load_dotenv()
 
