@@ -40,19 +40,31 @@ class ChatBotService:
     @staticmethod
     def replace_relative_date_with_actual(user_question: str) -> str:
         today = date.today()
+
+        # 오늘, 내일, 어제
         if "오늘" in user_question:
-            return user_question.replace("오늘", today.strftime("%Y-%m-%d"))
-        elif "이번 주" in user_question or "이번주" in user_question:
+            user_question = user_question.replace("오늘", today.strftime("%Y-%m-%d"))
+        if "내일" in user_question:
+            tomorrow = today + timedelta(days=1)
+            user_question = user_question.replace("내일", tomorrow.strftime("%Y-%m-%d"))
+        if "어제" in user_question:
+            yesterday = today - timedelta(days=1)
+            user_question = user_question.replace("어제", yesterday.strftime("%Y-%m-%d"))
+
+        # 이번 주
+        if "이번 주" in user_question or "이번주" in user_question:
             start_of_week = today - timedelta(days=today.weekday())
             end_of_week = start_of_week + timedelta(days=6)
-            return user_question.replace("이번 주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}") \
-                .replace("이번주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}")
-        elif "이번 달" in user_question or "이번달" in user_question:
+            user_question = user_question.replace("이번 주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("이번주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}")
+
+        # 이번 달
+        if "이번 달" in user_question or "이번달" in user_question:
             start_of_month = today.replace(day=1)
             next_month = start_of_month.replace(month=start_of_month.month % 12 + 1, day=1)
             end_of_month = next_month - timedelta(days=1)
-            return user_question.replace("이번 달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}") \
-                .replace("이번달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("이번 달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("이번달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}")
         return user_question
 
     # ------------------ 세션 기록 조회 ------------------ #

@@ -4,7 +4,7 @@ from app.models.chat_request import ChatRequest
 from app.models.chat_response import ChatResponse
 from app.services.reservation_chatbot_service import ChatBotService
 from app.core.db import database
-import traceback
+import logging
 import uuid
 from fastapi import HTTPException
 
@@ -14,7 +14,7 @@ service = ChatBotService("BossReservationBot")
 @router.post("/init_conversation")
 async def init_conversation(shop_id: int = Path(..., description="샵 코드")):
     session_id = str(uuid.uuid4())
-    service.init_session(session_id, shop_id)
+    await service.init_session(session_id, shop_id)
     return {"session_id" : session_id}
 
 @router.post("", response_model=ChatResponse)
@@ -28,6 +28,6 @@ async def ask_chatbot(request: ChatRequest, shop_id: int = Path(..., description
         answer = await service.generate_response(session_id, request.question, shop_id)
         return ChatResponse(session_id=session_id, answer=answer)
     except Exception as e:
-        print(f"!!!!!! ask_chatbot 함수 내부에서 예외 발생: {e} !!!!!!")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"ask_chatbot 함수 내부 오류: {str(e)}")
+        logger.exception("ask_chatbot 함수 내부 오류")
+        # 내부 예외 메시지는 로깅으로 남기고, 응답은 일반화된 메시지로 반환
+        raise HTTPException(status_code=500, detail="서버 내부 오류가 발생했습니다.") from e

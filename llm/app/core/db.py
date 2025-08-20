@@ -7,6 +7,12 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("CHATBOT_DATABASE_URL")
 
+if not DATABASE_URL:
+    raise RuntimeError(
+        "Database URL is not set. Please configure CHATBOT_DATABASE_URL "
+        "or DATABASE_URL in your environment/.env."
+    )
+
 database = Database(DATABASE_URL)
 metadata = MetaData()
 

@@ -5,8 +5,8 @@ WORKDIR /app
 COPY . /app
 
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r llm/requirements.txt
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-c", "gunicorn.config.py"]
+CMD ["gunicorn", "-c", "llm/gunicorn.config.py"]
