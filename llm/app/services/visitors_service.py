@@ -1,6 +1,7 @@
 import json
 import re
 import requests
+import time
 from typing import Dict, Any, List, Optional
 from openai import OpenAI
 from app.core.config import ChatBotConfig
@@ -24,14 +25,10 @@ class VisitorsChatBotService:
         self.settings = get_settings()
         self.client = OpenAI(api_key=self.settings.openai_api_key)
 
-        # 사용 가능한 API 엔드포인트 매핑
-        self.available_apis = {
-            "customer_search": "/api/v1/my-shops/{shop_id}/customers/search",
-            "customer_detail": "/api/v1/my-shops/{shop_id}/customers/{client_code}",
-            "today_reservations": "/api/v1/my-shops/{shop_id}/customers/today-reservations",
-            "memo_update": "/api/v1/my-shops/{shop_id}/customers/{client_code}",
-            "visit_history": "/api/v1/my-shops/{shop_id}/customers/{client_code}/history",
-        }
+        # 사용 가능한 API 엔드포인트 매핑 (YAML 단일 소스)
+        self.available_apis = self.config.get("spring_api.endpoints", {}) or {}
+        if not self.available_apis:
+            logger.warning("spring_api.endpoints가 비어있습니다. 설정 파일을 확인하세요.")
 
     def generate_response(self, user_question: str, shop_id: int = None) -> str:
         """자연어 기반 응답 생성"""
@@ -52,7 +49,7 @@ class VisitorsChatBotService:
 
         except Exception as e:
             logger.error(f"❌ 응답 생성 오류: {e}")
-            return "죄송합니다. 일시적인 오류가 발생했어요. 다시 시도해주세요 🙏"
+            return self.config.get("error_responses", {}).get("general_error", "죄송합니다. 일시적인 오류가 발생했어요. 다시 시도해주세요 🙏")
 
     def _analyze_intent_and_data_needs(self, user_question: str) -> Dict[str, Any]:
         """AI로 사용자 의도 및 필요 데이터 분석"""
@@ -60,13 +57,13 @@ class VisitorsChatBotService:
         system_prompt = self.config.get("intent_analysis_prompt")
 
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=self.config.get("model", "gpt-3.5-turbo"),
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_question}
             ],
-            temperature=0.2,
-            max_tokens=500
+            temperature=self.config.get("temperature", 0.2),
+            max_tokens=self.config.get("max_tokens", 500)
         )
 
         content = response.choices[0].message.content.strip()
@@ -349,7 +346,8 @@ class VisitorsChatBotService:
             customer_data = self._extract_customer_data(success_data)
             if not customer_data or self._is_customer_not_found(customer_data):
                 customer_name = analysis.get("parameters", {}).get("customer_name", "해당 고객")
-                return f"'{customer_name}' 고객을 찾을 수 없어요. 이름을 다시 확인해주시거나 신규 고객일 수 있어요! 🔍"
+                customer_error = self.config.get("error_responses", {}).get("not_found", {}).get("customer", "'{customer_name}' 고객을 찾을 수 없어요. 이름을 다시 확인해주시거나 신규 고객일 수 있어요! 🔍")
+                return customer_error.format(customer_name=customer_name)
 
         # 실제 데이터가 있는 경우에만 AI 응답 생성
         context_prompt = f"""
@@ -369,13 +367,13 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
 """
 
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=self.config.get("model", "gpt-3.5-turbo"),
             messages=[
                 {"role": "system", "content": self.config.get("response_generation_prompt")},
                 {"role": "user", "content": context_prompt}
             ],
-            temperature=0.2,  # 창의성 낮춤 - 정확성 우선
-            max_tokens=800
+            temperature=self.config.get("temperature", 0.2),
+            max_tokens=self.config.get("max_tokens", 800)
         )
 
         return response.choices[0].message.content.strip()
@@ -383,16 +381,18 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
     def _handle_no_data_found(self, user_question: str, analysis: Dict[str, Any]) -> str:
         """데이터가 없을 때 적절한 응답"""
         intent = analysis.get("intent")
+        error_responses = self.config.get("error_responses", {})
         
         if intent == "customer_inquiry":
             customer_name = analysis.get("parameters", {}).get("customer_name", "해당 고객")
-            return f"'{customer_name}' 고객을 찾을 수 없어요. 이름을 다시 확인해주시거나 신규 고객일 수 있어요! 🔍"
+            customer_error = error_responses.get("not_found", {}).get("customer", "'{customer_name}' 고객을 찾을 수 없어요. 이름을 다시 확인해주시거나 신규 고객일 수 있어요! 🔍")
+            return customer_error.format(customer_name=customer_name)
         
         elif intent == "reservation_briefing":
-            return "오늘 예약된 고객이 없어서 여유로운 하루네요! ☕️"
+            return error_responses.get("not_found", {}).get("reservation", "오늘 예약된 고객이 없어서 여유로운 하루네요! ☕️")
         
         else:
-            return "요청하신 정보를 찾을 수 없어요. 다시 확인해주세요! 🤔"
+            return error_responses.get("general_error", "요청하신 정보를 찾을 수 없어요. 다시 확인해주세요! 🤔")
 
     def _extract_customer_data(self, success_data: List[Dict]) -> Dict[str, Any]:
         """성공 데이터에서 고객 정보 추출"""

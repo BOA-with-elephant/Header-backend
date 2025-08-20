@@ -106,7 +106,7 @@ spring_api:
   timeout: 10
   retry_count: 2
   endpoints:
-    customer_search: "/api/v1/my-shops/{shop_id}/customers"
+    customer_search: "/api/v1/my-shops/{shop_id}/customers/search"
     customer_detail: "/api/v1/my-shops/{shop_id}/customers/{client_code}"
     today_reservations: "/api/v1/my-shops/{shop_id}/customers/today-reservations"
     visit_history: "/api/v1/my-shops/{shop_id}/customers/{client_code}/history"

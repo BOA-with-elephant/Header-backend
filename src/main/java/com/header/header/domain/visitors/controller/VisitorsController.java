@@ -108,7 +108,7 @@ public class VisitorsController extends MyShopBaseController {
      * @param customerId 고객 아이디
      * @return 고객의 방문 히스토리 목록
      *
-     * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/{customerId}
+     * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/{customerId}/history
      */
     @GetMapping("/customers/{customerId}/history")
     public ResponseEntity<ApiResponse<List<VisitorHistoryResponse>>> getCustomerHistory(

@@ -94,6 +94,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "  AND v.isActive = true " +
             "  AND DATE(r.resvDate) = CURRENT_DATE " +
             "  AND r.resvState = '예약확정' " +
+            "  AND r.shopCode = :shopCode " +
             "ORDER BY r.resvTime ASC")
     List<VisitorWithUserInfoView> findTodayReservationCustomers(@Param("shopCode") Integer shopCode);
 
@@ -123,7 +124,7 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
             "INNER JOIN User u ON v.userCode = u.userCode " +
             "WHERE v.shopCode = :shopCode " +
             "  AND v.isActive = true " +
-            "  AND u.userName LIKE %:name% " +
+            "  AND u.userName LIKE CONCAT('%', :name, '%') " +
             "ORDER BY u.userName, u.birthday")
     List<VisitorWithUserInfoView> findCustomersByName(@Param("shopCode") Integer shopCode, @Param("name") String name);
 }
