@@ -1,8 +1,13 @@
+import os
 from dotenv import load_dotenv
+import multiprocessing
 from fastapi import FastAPI
 from app.api import bot1_chat
+from app.api import bossReservation_chat
 from app.api import user_reservation_chat
 from app.api import visitorsbot_chat
+from app.core.db import database
+from fastapi.middleware.cors import CORSMiddleware
 
 # 환경 변수 로그
 load_dotenv()
@@ -32,8 +37,27 @@ async def root():
         }
     }
 
+# CORS 미들웨어 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8080", "https://www.headercrm.site", "https://headercrm.site"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# DB 연결
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
+
 # 챗봇 라우터 등록
 app.include_router(bot1_chat.router)
+app.include_router(bossReservation_chat.router)
 app.include_router(visitorsbot_chat.router, prefix="/api/v1")
 app.include_router(user_reservation_chat.router, prefix='/api/v1')
 
