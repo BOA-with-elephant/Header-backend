@@ -1,6 +1,6 @@
 import openai
 from dotenv import load_dotenv
-from app.services.user_reservation_service import Shop, Menu, RevInfo
+from app.models.user_reservation_model import Shop, Menu, RevInfo
 from typing import Optional
 
 load_dotenv()
