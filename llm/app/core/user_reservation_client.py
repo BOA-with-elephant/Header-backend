@@ -4,6 +4,7 @@ from app.models.user_reservation_model import Shop, Menu, RevInfo, ShopAndMenuCa
 from typing import Optional, Dict
 import yaml
 import os
+import json
 
 load_dotenv()
 
@@ -148,9 +149,9 @@ async def extract_intent_and_keyword(query: str, shop_and_menu_category: ShopAnd
             temperature=model_config['temperature'],
             max_tokens=model_config['max_tokens']
         )
-        message = completion.choices[0].message.content.strip()
-        return message
+        message_content = completion.choices[0].message.content.strip()
+        return json.loads(message_content)
 
     except Exception as e:
         print(f'사용자 요청 분석 중 에러 발생 : {e}')
-        return config['default_message']
+        return {"error": config['default_message']}
