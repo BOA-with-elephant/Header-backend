@@ -4,9 +4,9 @@ import multiprocessing
 from fastapi import FastAPI
 from app.api import bot1_chat
 from app.api import bossReservation_chat
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.db import database
 from app.api import visitorsbot_chat
+from app.core.db import database
+from fastapi.middleware.cors import CORSMiddleware
 
 # 환경 변수 로그
 load_dotenv()

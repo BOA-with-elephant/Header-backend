@@ -32,15 +32,34 @@ class ChatBotService:
 
         # VectorStore 초기화
         self.vector_store = PineconeVectorStore(
-            index_name = os.getenv("PINECONE_INDEX_NAME"),
-            embedding = self.embedding_model,
+            index_name=os.getenv("PINECONE_INDEX_NAME"),
+            embedding=self.embedding_model,
         )
 
+    # ------------------ 날짜 치환 함수 ------------------ #
+    @staticmethod
+    def replace_relative_date_with_actual(user_question: str) -> str:
+        today = date.today()
+        if "오늘" in user_question:
+            return user_question.replace("오늘", today.strftime("%Y-%m-%d"))
+        elif "이번 주" in user_question or "이번주" in user_question:
+            start_of_week = today - timedelta(days=today.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            return user_question.replace("이번 주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}") \
+                .replace("이번주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}")
+        elif "이번 달" in user_question or "이번달" in user_question:
+            start_of_month = today.replace(day=1)
+            next_month = start_of_month.replace(month=start_of_month.month % 12 + 1, day=1)
+            end_of_month = next_month - timedelta(days=1)
+            return user_question.replace("이번 달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}") \
+                .replace("이번달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}")
+        return user_question
+
+    # ------------------ 세션 기록 조회 ------------------ #
     def get_session_history(self, session_id: str, shop_id: int) -> BaseChatMessageHistory:
         namespace = self._get_namespace(session_id, shop_id)
 
         try:
-            # generator → list로 변환
             response_gen = self.vector_store.index.list(namespace=namespace, limit=100)
             response_list = list(response_gen)
         except Exception as e:
@@ -50,13 +69,12 @@ class ChatBotService:
         if not response_list or 'matches' not in response_list[0]:
             return InMemoryChatMessageHistory()
 
-        matches = response_list[0]['matches']  # 실제 벡터 목록
+        matches = response_list[0]['matches']
         vector_ids = [v['id'] for v in matches]
 
         fetch_response = self.vector_store.index.fetch(ids=vector_ids, namespace=namespace)
         vectors_dict = fetch_response.get('vectors', {})
 
-        # 시간순 정렬
         sorted_vectors = sorted(vectors_dict.values(), key=lambda v: v.get('metadata', {}).get('created_at', 0))
 
         history = InMemoryChatMessageHistory()
@@ -68,12 +86,8 @@ class ChatBotService:
                 history.add_ai_message(msg_text.replace("AI: ", "", 1))
         return history
 
-
-
+    # ------------------ 세션 초기화 ------------------ #
     async def init_session(self, session_id: str, shop_id: int):
-        """
-            대화 시작 시 시스템 메시지를 Pinecone에 저장합니다.
-        """
         namespace = self._get_namespace(session_id, shop_id)
         system_prompt = await self._get_system_prompt(user_question="", shop_id=shop_id)
         self.vector_store.add_documents(
@@ -81,13 +95,17 @@ class ChatBotService:
             namespace=namespace
         )
 
-    async def generate_response(self, session_id: str, user_question: str, shop_id: int):
+    # ------------------ LLM 응답 생성 ------------------ #
+    async def generate_response(self, session_id: str, user_question: str, shop_id: int) -> str:
         namespace = self._get_namespace(session_id, shop_id)
 
-        # 1. RDB에서 실시간 정보를 포함한 시스템 프롬프트 생성
+        # 🔹 질문의 상대 날짜를 실제 날짜로 변환
+        user_question_for_llm = self.replace_relative_date_with_actual(user_question)
+
+        # 시스템 프롬프트 생성
         system_prompt = await self._get_system_prompt(user_question, shop_id)
 
-        # 2. LangChain 프롬프트 및 체인 설정
+        # LangChain 프롬프트 체인 설정
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
             MessagesPlaceholder(variable_name="history"),
@@ -95,7 +113,7 @@ class ChatBotService:
         ])
         chain = prompt | self.model
 
-        # 3. 대화 기록 관리 설정
+        # 체인에 대화 기록 연결
         chain_with_history = RunnableWithMessageHistory(
             chain,
             lambda s_id: self.get_session_history(s_id, shop_id=shop_id),
@@ -103,20 +121,20 @@ class ChatBotService:
             history_messages_key="history",
         )
 
-        # 4. 사용자 질문을 Pinecone에 저장
+        # 사용자 질문 Pinecone에 저장 (원본 질문)
         self.vector_store.add_documents(
             documents=[Document(page_content=f"Human: {user_question}", metadata={"created_at": time.time()})],
             namespace=namespace
         )
 
-        # 5. LLM을 호출하여 답변 생성
+        # LLM 호출 (날짜 치환된 질문 사용)
         ai_message = await chain_with_history.ainvoke(
-            {"query": user_question},
+            {"query": user_question_for_llm},
             config={"configurable": {"session_id": session_id}}
         )
         bot_answer = ai_message.content
 
-        # 6. AI 답변을 Pinecone에 저장
+        # AI 답변 Pinecone에 저장
         self.vector_store.add_documents(
             documents=[Document(page_content=f"AI: {bot_answer}", metadata={"created_at": time.time()})],
             namespace=namespace
@@ -124,8 +142,8 @@ class ChatBotService:
 
         return bot_answer
 
+    # ------------------ 시스템 프롬프트 생성 ------------------ #
     async def _get_system_prompt(self, user_question: str, shop_id: int) -> str:
-        """RDB에서 예약 정보를 조회하여 시스템 프롬프트를 동적으로 생성합니다."""
         today = date.today()
         start_date, end_date = None, None
 
@@ -144,37 +162,25 @@ class ChatBotService:
         # DB 조회
         reservations = await ReservationRepo.get_by_shop(shop_id, start_date, end_date)
 
-        # 조회된 예약 로그 (prompt와 동일하게)
-        processed_reservations = [
-            {
-                "user_name": r["user_name"],
-                "menu_name": r["menu_name"],
-                "resv_date": r["resv_date"],
-                "resv_time": r["resv_time"],
-                "resv_state": r["resv_state"]
-            } for r in reservations
-        ]
-
-        print("📌 processed reservations:", processed_reservations)
-
-        # system prompt 생성
-        system_prompt = self.config.get("system_prompt", "")
-        if reservations:
-            resv_texts = [
+        resv_texts = []
+        for r in reservations:
+            resv_texts.append(
                 f"{r['user_name']} / {r['menu_name']} / "
                 f"{r['resv_date'].strftime('%Y-%m-%d')} {r['resv_time'].strftime('%H:%M')} / "
                 f"상태: {r['resv_state']}"
-                for r in processed_reservations
-            ]
+            )
+
+        # 디버깅용
+        print("📌 processed reservations:", resv_texts)
+
+        system_prompt = self.config.get("system_prompt", "")
+        if resv_texts:
             system_prompt += "\n예약 현황:\n" + "\n".join(resv_texts)
         else:
             system_prompt += "\n해당 기간의 예약 내역이 없습니다."
 
-        # 최종 prompt 로그
-        print("📝 최종 system prompt:\n", system_prompt)
-
         return system_prompt
 
+    # ------------------ Pinecone 네임스페이스 ------------------ #
     def _get_namespace(self, session_id: str, shop_id: int) -> str:
-        """Pinecone 네임스페이스를 생성합니다."""
         return f"{self.config.get('name')}-{shop_id}-{session_id}"
