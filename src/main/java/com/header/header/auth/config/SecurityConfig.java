@@ -78,8 +78,7 @@ public class SecurityConfig {
                 // 요청에 대한 권한 설정
                 .authorizeHttpRequests(auth -> {
                     // 다음 경로들은 인증 없이 모든 사용자에게 허용
-                    //auth.requestMatchers("/auth/**", "/", "/main").permitAll();
-                    auth.requestMatchers("/", "/main").permitAll();
+                    auth.requestMatchers("/auth/**", "/", "/main").permitAll();
                     // "/auth/session" (POST) 요청을 허용하여 로그인 시도를 가능하게 합니다.
                     auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
                     // "auth/password-reset"(POST) 요청도 허용하여 비 로그인 상태에서의 비밀번호 변경활동을 가능하게 합니다.
