@@ -138,7 +138,7 @@ async def extract_intent_and_keyword(query: str, shop_and_menu_category: ShopAnd
     model_config = bot_settings
 
     # 1. 데이터를 LLM이 이해하기 쉬운 형태로 가공
-    shop_categories_json = json.dumps([cat for cat in shop_and_menu_category.shopCategories], ensure_ascii=False, indent=2)
+    shop_categories_json = json.dumps([cat.dict() for cat in shop_and_menu_category.shopCategories], ensure_ascii=False, indent=2)
     menu_keywords_list = json.dumps([cat.menuCategoryName for cat in shop_and_menu_category.menuCategories], ensure_ascii=False)
 
     prompt = config['user_prompt'].format(
