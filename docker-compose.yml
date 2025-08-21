@@ -28,6 +28,9 @@ services:
       COOLSMS_API_KEY: ${COOLSMS_API_KEY}
       COOLSMS_API_SECRET: ${COOLSMS_API_SECRET}
       COOLSMS_BASE_URL: ${COOLSMS_BASE_URL}
+      # Redis Stream configuration for FastAPI-Spring communication
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
     # host port : 8080 -> container port 8080으로 포워딩
     # 브라우저에서 http://localhost:8080로 접근하면 Spring Boot 앱에 접속 가능
     ports:
@@ -36,9 +39,11 @@ services:
       - /home/ubuntu/app/header-backend/application.yml:/app/config/application.yml:ro
     networks:
       - webnet
-    # header-backend-server 실행하기 전에 database-server 부터 실행하라는 의미
+    # header-backend-server 실행하기 전에 database-server와 redis부터 실행하라는 의미
     depends_on:
       headerdb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       llm:
         condition: service_healthy
@@ -100,6 +105,29 @@ services:
     networks:
       - webnet
 
+  # Redis service for Redis Streams communication between FastAPI and Spring Boot
+  redis:
+    image: redis:7-alpine
+    container_name: header-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      # Persist Redis data across container restarts
+      - redis-data:/data
+    # Enable Redis persistence (AOF - Append Only File)
+    command: redis-server --appendonly yes --appendfsync everysec
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - webnet
+    environment:
+      TZ: Asia/Seoul
+
   llm:
     build:
       context: ./llm
@@ -118,9 +146,13 @@ services:
     depends_on:
       headerdb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   mysql-data:
+  # Redis data persistence volume for Redis Streams and consumer groups
+  redis-data:
 
 networks:
   webnet:
