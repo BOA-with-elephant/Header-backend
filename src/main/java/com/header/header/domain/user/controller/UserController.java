@@ -112,7 +112,7 @@ public class UserController {
                             java.util.Map.of(
                                     "userId",    loginUserDTO.getUserId(),
                                     "role",      loginUserDTO.isAdmin(),
-                                    "shopCode",  loginUserDTO.getShopCode()
+                                    "shopCode",  java.util.Objects.toString(loginUserDTO.getShopCode(), "")
                             )
                     ));
         } else {
