@@ -20,6 +20,11 @@ public class ResponseDTO {
         this.data = data;
     }
 
+    public ResponseDTO(HttpStatus status, String message) {
+        this.status = status.value();
+        this.message = message;
+    }
+
     public int getStatus() {
         return status;
     }

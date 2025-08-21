@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.Optional;
-
 
 @Getter
 @Setter
@@ -17,4 +15,5 @@ public class LoginUserDTO {
     private String userName;
     private String userPhone;
     private boolean isAdmin;
+    private Integer shopCode;
 }
