@@ -88,7 +88,7 @@ async def generate_keyword_from_menu(menu_name: str) -> str:
     
     except Exception as e:
         print(f'키워드 생성 중 오류가 발생했습니다: {e}')
-        return ''
+        return config['default_message']
 
 async def generate_recommend_message_by_menu_keyword(menu: str, recommend_shop: Shop, recommend_menu: Menu) -> str:
     config = bot_settings['prompts']['new_recommendation']
@@ -155,3 +155,29 @@ async def extract_intent_and_keyword(query: str, shop_and_menu_category: ShopAnd
     except Exception as e:
         print(f'사용자 요청 분석 중 에러 발생 : {e}')
         return {"error": config['default_message']}
+
+async def determine_reservation_intent(query: str) -> Dict:
+    config = bot_settings['prompts']['reservation_assistant']
+    model_config = bot_settings
+
+    prompt = config['user_prompt'].format(query=query)
+
+    try:
+        completion = await client.chat.completions.create(
+            model=model_config['model'],
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    'role': 'user',
+                    'content': prompt
+                }
+            ],
+            temperature=0,
+            max_tokens=50
+        )
+        message_content = completion.choices[0].message.content.strip()
+        return json.loads(message_content)
+
+    except Exception as e:
+        print(f'사용자 의도 파악 중 에러 발생 : {e}')
+        return {"intent": "unknown", "error": config['default_message']}

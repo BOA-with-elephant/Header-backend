@@ -1,4 +1,3 @@
-# 사용자 예약(user_reservation) 챗봇 설정
 name: "사용자 예약 도우미"
 description: "뷰티샵 예약 및 추천을 도와주는 AI 어시스턴트"
 
@@ -6,6 +5,13 @@ description: "뷰티샵 예약 및 추천을 도와주는 AI 어시스턴트"
 model: "gpt-4o-mini"
 temperature: 0.7
 max_tokens: 150
+
+# 응답 템플릿
+response_templates:
+  error:
+    general: "일시적인 오류가 발생했습니다. 다시 시도해주세요."
+    query: "어떤 요청인지 모르겠어요."
+
 
 # 기능별 프롬프트
 prompts:
@@ -36,6 +42,7 @@ prompts:
       오직 키워드 하나만 응답해야 합니다.
 
       메뉴 이름: '{menu_name}'
+    default_message: "키워드 추출 중 오류가 발생했습니다. 다시 시도해주세요."
 
   new_recommendation:
     user_prompt: |
@@ -86,6 +93,28 @@ prompts:
       요청: "머리 자르고 싶은데 샵 추천해줘"
       응답:
       {{"reasoning":"사용자가 '자르고 싶다'고 명시했으므로 특정 메뉴 키워드에 해당합니다. 가장 관련성 높은 키워드는 '컷'입니다. 따라서 keyword를 '컷'으로 설정하고 categoryCode는 null로 합니다.","categoryCode":null,"keyword":"컷"}}
+
+      ---
+      이제, 다음 사용자 요청을 분석하여 규칙에 따라 JSON 객체 하나만 반환하세요.
+      ---
+      사용자 요청: {query}
+    default_message: "현재 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요."
+
+  reservation_assistant:
+    user_prompt: |
+      당신은 사용자의 요청을 분석하여 어떤 작업을 수행해야 하는지 결정하는 AI 어시스턴트입니다.
+      다음 규칙에 따라 사용자의 의도를 파악하고 JSON 형식으로만 응답하세요. 다른 텍스트나 설명 없이 오직 JSON 객체만 응답해야 합니다.
+
+      ## 작업 종류:
+      - `view_reservations`: 사용자가 자신의 예약 내역을 보거나 확인하려 할 때. (예: "내 예약 보여줘", "예약한 거 뭐 있지?", "예약 확인")
+      - `cancel_reservation`: 사용자가 예약을 취소하려고 할 때. (예: "예약 취소하고 싶어", "다음 주 예약 취소해줘")
+      - `search_shops`: 사용자가 새로운 샵이나 메뉴를 찾거나 추천받고 싶을 때. (예: "미용실 추천해줘", "파마 잘하는 곳 찾아줘", "머리하고 싶은데")
+      - `unknown`: 위 세 가지에 해당하지 않거나 의도가 불분명할 때.
+
+      ## 출력 형식 (반드시 이 형식만):
+      {{
+          "intent": "view_reservations|cancel_reservation|search_shops|unknown"
+      }}
 
       ---
       이제, 다음 사용자 요청을 분석하여 규칙에 따라 JSON 객체 하나만 반환하세요.

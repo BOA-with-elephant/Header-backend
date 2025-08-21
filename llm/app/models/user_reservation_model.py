@@ -30,3 +30,6 @@ class MenuCategory(BaseModel):
 class ShopAndMenuCategory(BaseModel):
     shopCategories: List[ShopCategory]
     menuCategories: List[MenuCategory]
+
+class Request(BaseModel):
+    query: str
