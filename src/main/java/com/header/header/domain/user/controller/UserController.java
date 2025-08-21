@@ -86,6 +86,7 @@ public class UserController {
                 .ok()
                 .body(new ResponseDTO(HttpStatus.OK, "회원 탈퇴 성공", null));
     }
+
     /**
      * 현재 로그인된 사용자의 정보를 반환하는 엔드포인트
      * 프론트엔드 Layout.jsx에서 사용자의 권한 등을 확인하기 위해 호출됩니다.
