@@ -63,7 +63,7 @@ async def ask_chatbot(request: ChatRequest):
 
     try:
         shop_id = getattr(request, 'shop_id', None)
-        answer = service.generate_response(request.question, shop_id)
+        answer = await service.generate_response(request.question, shop_id)
         return ChatResponse(session_id="visitors-session", answer=answer)
     except Exception as e:
         error_message = "죄송합니다. 일시적인 오류가 발생했어요. 다시 시도해주세요 🙏"
@@ -81,7 +81,7 @@ async def ask_chatbot_with_shop(
     try:
         # 한글 인코딩 수정
         fixed_question = fix_korean_encoding(question)
-        answer = service.generate_response(fixed_question, shop_id)
+        answer = await service.generate_response(fixed_question, shop_id)
 
         return ChatResponse(session_id="visitors-session", answer=answer)
 

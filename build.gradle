@@ -64,6 +64,9 @@ dependencies {
     // 로컬 캐싱 처리 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // Jakarta annotations (for @PostConstruct in Spring Boot 3.x)
+    implementation 'jakarta.annotation:jakarta.annotation-api'
 }
 
 tasks.named('test') {
