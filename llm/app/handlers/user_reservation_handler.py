@@ -4,10 +4,10 @@ from app.models.user_reservation_model import Shop, ShopAndMenuCategory
 from app.services.user_reservation_service import get_user_reservation_history, get_shop_and_menu_category, search_shops
 from app.core.user_reservation_client import generate_re_reservation_message, extract_intent_and_keyword, generate_chit_chat_response
 
-# 1. 응답 포맷 헬퍼 함수 (Response Formatter Helpers)
 
+### 응답 형식 정립 함수 ###
 def format_response(intent: str, message: str, actions: Optional[List[Dict]] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
-    """일관된 API 응답 객체를 생성합니다."""
+    """일관된 API 응답 객체 생성"""
     return {
         "intent": intent,
         "message": {"text": message},
@@ -16,47 +16,46 @@ def format_response(intent: str, message: str, actions: Optional[List[Dict]] = N
     }
 
 def format_navigate_action(label: str, url: str) -> Dict[str, Any]:
-    """프론트엔드의 페이지 이동(navigation)을 위한 action 객체를 생성합니다."""
+    """프론트엔드의 페이지 이동을 위한 action 객체"""
     return {"type": "NAVIGATE", "label": label, "payload": {"url": url}}
 
 def format_shop_details_action(shop_code: int, label: str = "샵 정보 보기") -> Dict[str, Any]:
-    """프론트엔드에서 샵 상세 정보를 표시하기 위한 action 객체를 생성합니다."""
+    """프론트엔드에서 샵 상세 정보를 표시하기 위한 action 객체"""
     return {"type": "SHOW_SHOP_DETAILS", "label": label, "payload": {"shopCode": shop_code}}
 
 def handle_error(message: str) -> Dict[str, Any]:
-    """일관된 에러 응답 객체를 생성합니다."""
+    """일관된 에러 응답 객체"""
     logging.error(f"Error response sent to user: {message}")
     return format_response(intent="error", message=message)
 
 
-# 2. 의도별 핸들러 함수 (Intent Handlers)
-
+### 정의된 사용자의 의도를 기반으로 메시지 출력 ###
 async def handle_greeting(context: Dict[str, Any]) -> Dict[str, Any]:
-    """초기 접속 시 환영 메시지를 생성합니다."""
+    """초기 접속 시 환영 메시지"""
     config = context["config"]
     greeting_message = config["response_templates"]["greeting"]
     return format_response(intent="greeting", message=greeting_message)
 
 async def handle_view_reservations(context: Dict[str, Any]) -> Dict[str, Any]:
-    """예약 확인 의도에 대한 응답을 생성합니다."""
+    """예약 확인에 대한 응답"""
     message = "예약 내역 조회 페이지로 이동하시겠어요?"
     action = format_navigate_action(label="예약 내역 보기", url="/shops/reservation")
     return format_response(intent="view_reservations", message=message, actions=[action])
 
 async def handle_cancel_reservation(context: Dict[str, Any]) -> Dict[str, Any]:
-    """예약 취소 의도에 대한 응답을 생성합니다."""
+    """예약 취소에 대한 응답"""
     message = "예약 취소는 예약 조회 페이지에서 하실 수 있습니다."
     action = format_navigate_action(label="예약 조회로 이동", url="/shops/reservation")
     return format_response(intent="cancel_reservation", message=message, actions=[action])
 
 async def handle_unknown(context: Dict[str, Any]) -> Dict[str, Any]:
-    """알 수 없는 의도(잡담 등)에 대한 응답을 생성합니다."""
+    """알 수 없는(잡담 등)에 대한 응답"""
     query = context["query"]
     response_message = await generate_chit_chat_response(query)
     return format_response(intent="unknown", message=response_message)
 
 async def handle_search_shops(context: Dict[str, Any]) -> Dict[str, Any]:
-    """샵 검색 의도에 대한 모든 비즈니스 로직을 처리합니다."""
+    """샵 검색 비즈니스 로직"""
     token = context["token"]
     query = context["query"]
 
@@ -66,9 +65,9 @@ async def handle_search_shops(context: Dict[str, Any]) -> Dict[str, Any]:
         return await _handle_re_recommendation(user_history)
     else:
         return await _handle_new_search(query)
+    
 
-# 3. `handle_search_shops`의 내부 로직 (Private Helpers)
-
+### handle_search_shops 내부 로직 ### 
 async def _handle_re_recommendation(user_history) -> Dict[str, Any]:
     """예약 내역이 있는 사용자를 위한 재예약 추천 로직"""
     bot_message = await generate_re_reservation_message(user_history)
@@ -134,7 +133,7 @@ async def _handle_new_search(query: str) -> Dict[str, Any]:
         )
 
 def _generate_dynamic_recommend_message(keyword: Optional[str], category_code: Optional[int], recommended_shop: Shop, categories: ShopAndMenuCategory) -> str:
-    """검색 조건과 결과에 따라 동적인 추천 메시지를 생성하는 내부 함수."""
+    """검색 조건과 결과에 따라 동적인 추천 메시지하는 내부 함수."""
     if keyword:
         relevant_menus = [menu for menu in recommended_shop.menus if keyword in menu.menuName]
         popular_menu = max(relevant_menus, key=lambda m: m.menuRevCount) if relevant_menus else None

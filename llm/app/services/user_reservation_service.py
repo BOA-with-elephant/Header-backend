@@ -44,6 +44,7 @@ async def get_user_reservation_history(token: str) -> Optional[RevInfo]:
             logging.error(f"예약 내역 처리 중 예외 발생: {e}")
             return None
     
+# 메뉴 키워드 혹은 카테고리 코드를 기반으로 샵 검색 URL 생성
 async def search_shops(keyword: Optional[str] = None, category_code: Optional[int] = None) -> List[Shop]:
     if not keyword and not category_code:
         raise ValueError("카테고리 코드 혹은 키워드를 반환해야 합니다.")

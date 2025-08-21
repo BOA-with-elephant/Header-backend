@@ -18,7 +18,7 @@ from app.handlers.user_reservation_handler import (
     handle_error
 )
 
-# 로깅 기본 설정 (애플리케이션 진입점에 위치)
+# 로깅 기본 설정
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -29,9 +29,10 @@ load_dotenv()
 
 router = APIRouter(prefix='/reservation', tags=['user-reservation'])
 
+# Bearer JWT 형식의 보안 형식을 처리
 security_scheme = HTTPBearer()
 
-# YAML 설정 파일 로드
+# 챗봇 설정 파일 로드
 def load_yaml_config():
     config_path = Path(__file__).parent.parent / "core/settings/user_reservation_bot.yaml"
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -54,15 +55,17 @@ async def reservation_assistant(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme)
 ) -> Dict[str, Any]:
     """
-    사용자 요청을 받아 의도를 파악하고, 적절한 핸들러에 전달하여 응답을 생성하는 API 엔드포인트.
+    사용자 요청을 받아 의도를 파악하고, 적절한 핸들러에 전달하여 응답을 생성하는 API 엔드포인트
     """
     try:
         token = credentials.credentials
         query = request.query
 
         # 1. 의도 결정
+        # 시작 메시지
         if query == "__INIT__":
             intent = "greeting"
+        # 시작 메시지가 없는 경우 llm을 활용해 handler에 매핑
         else:
             intent_data = await determine_reservation_intent(query)
             intent = intent_data.get("intent", "unknown")
@@ -81,7 +84,7 @@ async def reservation_assistant(
         return response
 
     except Exception as e:
-        # 최종 안전망: 처리되지 않은 모든 예외를 여기서 처리
+        # 예외 처리
         logging.critical(f"예상치 못한 에러가 발생했습니다: {e}", exc_info=True) # exc_info=True로 스택 트레이스 기록
         error_message = config["response_templates"]["error"]["general"]
         return handle_error(message=error_message)
