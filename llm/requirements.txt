@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-gunicorn
 pyyaml
 openai
 python-dotenv
