@@ -29,30 +29,41 @@ async def reservation_assistant(
     token = credentials.credentials
     query = request.query
 
+    # 1. 초기 접속 처리
     if query == "__INIT__":
         return {
             "intent": "greeting",
-            "message": config["response_templates"]["greeting"]
+            "message": {"text": config["response_templates"]["greeting"]},
+            "actions": [],
+            "data": None
         }
 
     intent_data = await determine_reservation_intent(query)
     intent = intent_data.get("intent", "unknown")
 
-# TODO. 처음 채팅을 시작할 때 인삿말 추가
-# TODO. 의도가 없는 채팅 (너 누구야?, 너 뭐 할 수 있어? 코딩 해줘 등)도 자연스럽게 처리할 수 있나? 
-
+    # 2. 의도별 응답 분기
     if intent == "view_reservations":
         return {
             "intent": "view_reservations",
-            "message": "예약 내역 조회 페이지로 이동하시겠어요?",
-            "url": "/shops/reservation"
+            "message": {"text": "예약 내역 조회 페이지로 이동하시겠어요?"},
+            "actions": [{
+                "type": "NAVIGATE",
+                "label": "예약 내역 보기",
+                "payload": {"url": "/shops/reservation"}
+            }],
+            "data": None
         }
     
     elif intent == "cancel_reservation":
         return {
             "intent": "cancel_reservation",
-            "message": "예약 취소는 예약 조회 페이지에서 가능합니다.",
-            "url": "/shops/reservation"
+            "message": {"text": "예약 취소는 예약 조회 페이지에서 가능합니다."},
+            "actions": [{
+                "type": "NAVIGATE",
+                "label": "예약 조회로 이동",
+                "payload": {"url": "/shops/reservation"}
+            }],
+            "data": None
         }
 
     elif intent == "search_shops":
@@ -63,27 +74,49 @@ async def reservation_assistant(
             bot_message = await generate_re_reservation_message(user_history)
             return {
                 "intent": "search_shops",
-                "sub_intent": "re_recommendation",
-                "message": bot_message,
-                "recommend_url": f'/shops/{user_history.shopCode}' # TODO. 프론트엔드에 클릭 액션으로 샵 상세조회 페이지를 구현해놔서 url이 없음.. 어캄
+                "message": {"text": bot_message},
+                "actions": [{
+                    "type": "SHOW_SHOP_DETAILS",
+                    "label": "샵 정보 보기",
+                    "payload": {"shopCode": user_history.shopCode}
+                }],
+                "data": {"sub_intent": "re_recommendation"}
             }
         else:
             # 예약 내역이 없으면 -> 키워드 기반 검색
             categories = await get_shop_and_menu_category()
             extracted_json = await extract_intent_and_keyword(query=query, shop_and_menu_category=categories)
+            
+            shop_name = extracted_json.get("shopName", "추천 샵")
+            bot_message = f"'{shop_name}'은(는) 어떠세요? 마음에 드시면 알려주세요."
+
             return {
                 "intent": "search_shops",
-                "sub_intent": "new_search",
-                "message": "", # TODO. bot_message에 ' 샵 이름 '은 어떠세요? 같은 메시지 담아 넘기기
-                "result": extracted_json
+                "message": {"text": bot_message},
+                "actions": [],
+                "data": {
+                    "sub_intent": "new_search",
+                    "search_result": extracted_json
+                }
             }
-
-        # TODO. 예약 내역이 있는 고객이라도 새로운 예약 추천(키워드 기반 검색) 가능해야 함, 그러나 예약 내역이 없으면 재예약 추천을 못 하는 문제는 어떻게 해결할 건지?
             
-    else: # unknown
+    else: # unknown 또는 chit-chat
+        chit_chat_map = {
+            "누구야": "저는 예약을 도와드리는 챗봇입니다.",
+            "뭐 할 수 있어": "샵 검색, 예약 확인 및 취소를 도와드릴 수 있어요."
+        }
+        
+        response_message = "죄송합니다. 요청하신 내용을 이해하지 못했습니다. '예약 확인', '샵 검색'과 같이 말씀해주시겠어요?"
+        for key, value in chit_chat_map.items():
+            if key in query:
+                response_message = value
+                break
+        
         return {
             "intent": "unknown",
-            "message": "죄송합니다. 요청하신 내용을 이해하지 못했습니다. '예약 확인', '샵 검색'과 같이 말씀해주시겠어요?"
+            "message": {"text": response_message},
+            "actions": [],
+            "data": None
         }
 
 """
