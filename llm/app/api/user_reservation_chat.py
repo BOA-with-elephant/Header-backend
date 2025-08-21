@@ -1,3 +1,5 @@
+import yaml
+from pathlib import Path
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
@@ -11,6 +13,14 @@ router = APIRouter(prefix='/reservation', tags=['user-reservation'])
 
 security_scheme = HTTPBearer()
 
+# YAML 설정 파일 로드
+def load_yaml_config():
+    config_path = Path(__file__).parent.parent / "core/settings/user_reservation_bot.yaml"
+    with open(config_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
+
+config = load_yaml_config()
+
 @router.post("/chat")
 async def reservation_assistant(
     request: Request,
@@ -18,6 +28,12 @@ async def reservation_assistant(
 ):
     token = credentials.credentials
     query = request.query
+
+    if query == "__INIT__":
+        return {
+            "intent": "greeting",
+            "message": config["response_templates"]["greeting"]
+        }
 
     intent_data = await determine_reservation_intent(query)
     intent = intent_data.get("intent", "unknown")
