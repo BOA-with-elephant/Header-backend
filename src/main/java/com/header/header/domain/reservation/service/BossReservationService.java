@@ -25,6 +25,7 @@ import com.header.header.domain.visitors.service.VisitorsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,59 +117,62 @@ public class BossReservationService {
          * 4. 가져온 값을 다시 DTO에 저장하기
          */
 
-        BossReservationDTO registDTO = new BossReservationDTO();
-        registDTO.setMenuInfo(new BossResvMenuDTO());
-        registDTO.setUserInfo(new BossResvUserDTO());
+        try{
+            bossReservationRepository.findByShopInfo_ShopCodeAndResvDateAndResvTime(shopCode, inputDTO.getResvDate(), inputDTO.getResvTime())
+                    .ifPresent(reservation -> {
+                        throw new IllegalStateException("이미 해당 날짜와 시간에 예약된 건이 있습니다.");
+                    });
 
-        User newUser = null;
+            BossReservationDTO registDTO = new BossReservationDTO();
+            registDTO.setMenuInfo(new BossResvMenuDTO());
+            registDTO.setUserInfo(new BossResvUserDTO());
 
-        // reservationDTO에 입력받은 userName과 userPhone으로 userCode 찾아서 넣기
-        User user = userRepository.findByUserNameAndUserPhone(inputDTO.getUserName(), inputDTO.getUserPhone());
+            User newUser = null;
 
-        if(user != null){
-            // 기존 회원 번호 저장
-            registDTO.getUserInfo().setUserCode(user.getUserCode());
-        } else {
-            // 새로운 회원 등록 후 해당 회원의 userCode 저장
-//            UserDTO userDTO = new UserDTO();
-//            userDTO.setUserName(inputDTO.getUserName());
-//            userDTO.setUserPhone(inputDTO.getUserPhone());
-//            userDTO.setIsAdmin(0);
-//            userDTO.setIsLeave(0);
-//
-//            newUser = userRepository.save(modelMapper.map(userDTO, User.class));
-            VisitorCreateRequest visitorCreateRequest = VisitorCreateRequest.builder()
-                    .name(inputDTO.getUserName())
-                    .phone(inputDTO.getUserPhone())
-                    .sendable(true)
-                    .build();
-            Visitors visitor = visitorsService.createVisitorsByUserNameAndUserPhone(shopCode, visitorCreateRequest);
-            registDTO.getUserInfo().setUserCode(visitor.getUserCode());
-            newUser = userRepository.findById(visitor.getUserCode()).orElseThrow(() -> new RuntimeException("User not found after visitor creation"));
+            // reservationDTO에 입력받은 userName과 userPhone으로 userCode 찾아서 넣기
+            User user = userRepository.findByUserNameAndUserPhone(inputDTO.getUserName(), inputDTO.getUserPhone());
+
+            if(user != null){
+                // 기존 회원 번호 저장
+                registDTO.getUserInfo().setUserCode(user.getUserCode());
+            } else {
+                // 새로운 회원 등록 후 해당 회원의 userCode 저장
+                VisitorCreateRequest visitorCreateRequest = VisitorCreateRequest.builder()
+                        .name(inputDTO.getUserName())
+                        .phone(inputDTO.getUserPhone())
+                        .sendable(true)
+                        .build();
+                Visitors visitor = visitorsService.createVisitorsByUserNameAndUserPhone(shopCode, visitorCreateRequest);
+                registDTO.getUserInfo().setUserCode(visitor.getUserCode());
+                newUser = userRepository.findById(visitor.getUserCode()).orElseThrow(() -> new RuntimeException("User not found after visitor creation"));
+            }
+
+            // reservationDTO에 입력받은 menuName과 shopCode로 menuCode 찾아서 넣기
+            Menu menu = menuRepository.findByMenuNameAndShopCode(inputDTO.getMenuName(), shopCode);
+            registDTO.getMenuInfo().setMenuCode(menu.getMenuCode());
+
+            // reservationDTO에 입력받은 resvDate, resvTime, userComment, resvState 넣기
+            registDTO.setShopCode(shopCode);
+            registDTO.setResvDate(inputDTO.getResvDate());
+            registDTO.setResvTime(inputDTO.getResvTime());
+            registDTO.setUserComment(inputDTO.getUserComment());
+            registDTO.setResvState(ReservationState.APPROVE);
+
+            Shop shop = shopRepository.findById(shopCode)
+                    .orElseThrow(() -> NotFoundException.shop(shopCode));
+
+            // 저장
+            BossReservation reservation = modelMapper.map(registDTO, BossReservation.class);
+            reservation.setMenu(menu);
+            reservation.setUser(user != null ? user : newUser);
+            reservation.setShop(shop);
+            bossReservationRepository.save(reservation);
+            Integer finalUserCode = (user != null ? user.getUserCode() : newUser.getUserCode());
+            return finalUserCode;
+        } catch (DataIntegrityViolationException e){
+            // DB unique 제약 조건 위반 발생 -> 정상 플로우 처리
+            throw new IllegalStateException("이미 해당 시간에 예약이 존재합니다.",  e);
         }
-
-        // reservationDTO에 입력받은 menuName과 shopCode로 menuCode 찾아서 넣기
-        Menu menu = menuRepository.findByMenuNameAndShopCode(inputDTO.getMenuName(), shopCode);
-        registDTO.getMenuInfo().setMenuCode(menu.getMenuCode());
-
-        // reservationDTO에 입력받은 resvDate, resvTime, userComment, resvState 넣기
-        registDTO.setShopCode(shopCode);
-        registDTO.setResvDate(inputDTO.getResvDate());
-        registDTO.setResvTime(inputDTO.getResvTime());
-        registDTO.setUserComment(inputDTO.getUserComment());
-        registDTO.setResvState(ReservationState.APPROVE);
-
-        Shop shop = shopRepository.findById(shopCode)
-                .orElseThrow(() -> NotFoundException.shop(shopCode));
-
-        // 저장
-        BossReservation reservation = modelMapper.map(registDTO, BossReservation.class);
-        reservation.setMenu(menu);
-        reservation.setUser(user != null ? user : newUser);
-        reservation.setShop(shop);
-        bossReservationRepository.save(reservation);
-        Integer finalUserCode = user.getUserCode();
-        return finalUserCode;
     }
 
     /* 예약 내용 수정하기 */

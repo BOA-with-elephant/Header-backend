@@ -202,6 +202,9 @@ alter table `tbl_reservation`
     add constraint `fk_tbl_shop_to_reservation_1` foreign key (`shop_code`) references `tbl_shop` (`shop_code`);
 alter table `tbl_reservation`
     add constraint `fk_tbl_menu_to_reservation_1` foreign key (`menu_code`) references `tbl_menu` (`menu_code`);
+alter table tbl_reservation
+    add constraint uniq_reservation_slot
+        unique (shop_code, resv_date, resv_time);
 
 alter table `tbl_sales`
     add constraint `fk_tbl_reservation_to_sales_1` foreign key (`resv_code`) references `tbl_reservation` (`resv_code`);
@@ -692,8 +695,8 @@ values
 (50, 1, 28, '2025-07-21', '15:00:00', '프리미엄 파마 예약', '예약확정'),
 (51, 1, 29, '2025-07-22', '10:30:00', '특별 스타일링 예약', '예약확정'),
 (52, 1, 30, '2025-07-22', '11:30:00', '프리미엄 두피케어 예약', '예약확정'),
-(28, 1, 4, '2025-07-23', '19:30:00', '스타일링 예약', '예약취소'),
-(34, 1, 2, '2025-08-01', '10:00:00', '8월 첫 방문', '예약취소');
+(28, 1, 4, '2025-07-23', '19:00:00', '스타일링 예약', '예약취소'),
+(34, 1, 2, '2025-08-01', '10:30:00', '8월 첫 방문', '예약취소');
 
 -- tbl_sales 데이터 삽입 (시술완료된 예약에 대해서만 - 기존 103건 + 7월 17건 = 120건)
 insert into tbl_sales (resv_code, pay_amount, pay_method, pay_datetime, pay_status, cancel_amount, cancel_datetime, cancel_reason, final_amount)
@@ -1059,4 +1062,4 @@ values
 -- 배치 3 (batch_code = 3, 샵 1) - 3건 (동일한 리뷰 요청 메시지)
 (3, 29, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:05'),
 (3, 30, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:20'),
-(3, 2, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:35
+(3, 2, '[미용실 이름] 서비스는 만족하셨나요? 리뷰 작성하고 1만원 쿠폰 받으세요! bit.ly/review123', 'success', null, '2025-07-25 16:30:35');

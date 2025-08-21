@@ -11,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+
 /**
  * JWT 토큰을 검증하고 SecurityContext에 인증 정보를 설정하는 필터입니다.
  * 모든 요청에 대해 한 번만 실행됩니다.
@@ -42,6 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        // CORS 프리플라이트 요청(OPTIONS)은 토큰 검증 로직을 건너뛰고 바로 통과시킵니다.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         String jwt = resolveToken(request); // 요청에서 JWT 토큰을 추출합니다.
 
         // 토큰이 존재하고 유효하면 인증 정보를 SecurityContext에 설정합니다.

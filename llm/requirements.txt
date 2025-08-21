@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+pyyaml
+openai
+python-dotenv
+sqlalchemy
+databases
+aiomysql
+langchain-community
+langchain
+langchain-openai
+pinecone
+langchain-pinecone
+pydantic
+pydantic-settings
+requests
+python-multipart

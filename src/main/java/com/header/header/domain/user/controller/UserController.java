@@ -5,6 +5,7 @@ import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.common.dto.ResponseDTO;
+import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.service.UserFacadeService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,8 @@ public class UserController {
 
             return ResponseEntity
                     .ok()
-                    .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", tokenDTO)); // HttpStatus.OK 사용
+                    //.body(new ResponseDTO(HttpStatus.OK, "로그인 성공")); //tokenDTO에서 JWT 노출됨. 삭제필요
+                    .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", tokenDTO));
 
         } catch (FailedLoginException e) {
             log.error("[UserController] Login Failed: {}", e.getMessage());
@@ -84,6 +86,7 @@ public class UserController {
                 .ok()
                 .body(new ResponseDTO(HttpStatus.OK, "회원 탈퇴 성공", null));
     }
+
     /**
      * 현재 로그인된 사용자의 정보를 반환하는 엔드포인트
      * 프론트엔드 Layout.jsx에서 사용자의 권한 등을 확인하기 위해 호출됩니다.
@@ -104,7 +107,15 @@ public class UserController {
             // ResponseDTO에 LoginUserDTO를 담아 반환합니다.
             return ResponseEntity
                     .ok()
-                    .body(new ResponseDTO(HttpStatus.OK, "사용자 정보 로드 성공", loginUserDTO));
+                    .body(new ResponseDTO(
+                            HttpStatus.OK,
+                            "사용자 정보 로드 성공",
+                            java.util.Map.of(
+                                    "userId",    loginUserDTO.getUserId(),
+                                    "role",      loginUserDTO.isAdmin(),
+                                    "shopCode",  java.util.Objects.toString(loginUserDTO.getShopCode(), "")
+                            )
+                    ));
         } else {
             // 인증 정보가 없거나, 예상치 못한 Principal 타입인 경우
             // 이 경우는 @PreAuthorize("isAuthenticated()") 때문에 발생하지 않아야 하지만, 안전을 위해 처리.
@@ -112,5 +123,13 @@ public class UserController {
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new ResponseDTO(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다.", null));
         }
+    }
+
+    @PostMapping("/password-reset")
+    public ResponseEntity<ResponseDTO> resetPassword(@RequestBody UserDTO userDTO) {
+        userFacadeService.modifyPwd(userDTO); // 본인확인 및 다음 단계 준비
+        return ResponseEntity
+                .ok()
+                .body(new ResponseDTO(HttpStatus.OK, "본인 확인 완료", null));
     }
 }
