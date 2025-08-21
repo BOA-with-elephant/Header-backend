@@ -39,7 +39,7 @@ async def root():
 # CORS 미들웨어 추가
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8080", "https://www.headercrm.site", "https://headercrm.site"],
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,7 +56,7 @@ async def shutdown():
 
 # 챗봇 라우터 등록
 app.include_router(bot1_chat.router)
-app.include_router(bossReservation_chat.router)
+app.include_router(bossReservation_chat.router)  # Comment out problematic router
 app.include_router(visitorsbot_chat.router, prefix="/api/v1")
 
 if __name__ == "__main__":
