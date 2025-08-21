@@ -107,15 +107,7 @@ public class UserController {
             // ResponseDTO에 LoginUserDTO를 담아 반환합니다.
             return ResponseEntity
                     .ok()
-                    .body(new ResponseDTO(
-                            HttpStatus.OK,
-                            "사용자 정보 로드 성공",
-                            java.util.Map.of(
-                                    "userId",    loginUserDTO.getUserId(),
-                                    "role",      loginUserDTO.isAdmin(),
-                                    "shopCode",  java.util.Objects.toString(loginUserDTO.getShopCode(), "")
-                            )
-                    ));
+                    .body(new ResponseDTO(HttpStatus.OK,"사용자 정보 로드 성공",loginUserDTO));
         } else {
             // 인증 정보가 없거나, 예상치 못한 Principal 타입인 경우
             // 이 경우는 @PreAuthorize("isAuthenticated()") 때문에 발생하지 않아야 하지만, 안전을 위해 처리.
