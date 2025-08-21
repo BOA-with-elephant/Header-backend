@@ -88,9 +88,9 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:rw
     healthcheck:
       test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      interval: 20s
+      timeout: 10s
+      retries: 10
     # command 설정을 통해 한글/이모지 깨짐 방지 가능
     command:
       - --character-set-server=utf8mb4  # MySQL 서버 기본 문자셋을 UTF-8로 설정
@@ -98,8 +98,31 @@ services:
     networks:
       - webnet
 
+  llm:
+    build:
+      context: ./llm
+      dockerfile: Dockerfile
+    container_name: llm
+    command:
+      - "uvicorn"
+      - "main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+      - "--workers"
+      - "4"
+    ports:
+      - "8000:8000"
+    networks:
+      - webnet
+    depends_on:
+      headerdb:
+        condition: service_healthy
+
 volumes:
   mysql-data:
 
 networks:
   webnet:
+

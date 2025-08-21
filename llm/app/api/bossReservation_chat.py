@@ -8,6 +8,8 @@ import logging
 import uuid
 from fastapi import HTTPException
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/v1/my-shops/{shop_id}/chatbot/reservation",tags=["reservation"])
 service = ChatBotService("BossReservationBot")
 

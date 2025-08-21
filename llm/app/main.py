@@ -7,15 +7,23 @@ from app.api import bossReservation_chat
 from app.api import visitorsbot_chat
 from app.core.db import database
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 # 환경 변수 로그
 load_dotenv()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database.connect()
+    yield
+    await database.disconnect()
 
 # FastAPI 앱 생성
 app = FastAPI(
     title="shop chatbot API",
     description= "이미용 샵 관리를 위한 AI 챗봇 서비스",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # 헬스 체크
@@ -24,7 +32,7 @@ def health_check():
     return {"status": "ok",
             "service": "customer-management-chatbot",
             "available_bots": ["visitors"]  # 추후 다른 봇들 추가
-    }
+            }
 
 @app.get("/")
 async def root():
@@ -44,15 +52,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# DB 연결
-@app.on_event("startup")
-async def startup():
-    await database.connect()
-
-@app.on_event("shutdown")
-async def shutdown():
-    await database.disconnect()
 
 # 챗봇 라우터 등록
 app.include_router(bot1_chat.router)
