@@ -1,3 +1,4 @@
+import os
 import httpx
 import logging
 from typing import Optional, List
@@ -8,7 +9,7 @@ from cachetools import TTLCache
 # 1개 아이템을 1시간(3600초) 동안 캐시 유지
 category_cache = TTLCache(maxsize=1, ttl=3600)
 
-BASE_API_URL = 'http://localhost:8080'
+BASE_API_URL = os.getenv('SPRING_API_URL', 'http://localhost:8080')
 
 # 고객 예약 내역 요청 함수
 async def get_user_reservation_history(token: str) -> Optional[RevInfo]:

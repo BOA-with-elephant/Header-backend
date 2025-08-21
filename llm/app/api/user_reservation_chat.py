@@ -35,8 +35,15 @@ security_scheme = HTTPBearer()
 # 챗봇 설정 파일 로드
 def load_yaml_config():
     config_path = Path(__file__).parent.parent / "core/settings/user_reservation_bot.yaml"
-    with open(config_path, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        logging.critical(f"설정 파일을 찾을 수 없습니다: {config_path}")
+        raise
+    except yaml.YAMLError as e:
+        logging.critical(f"YAML 파싱 오류: {e}")
+        raise
 
 config = load_yaml_config()
 

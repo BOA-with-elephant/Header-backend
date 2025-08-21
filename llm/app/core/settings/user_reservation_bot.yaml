@@ -86,6 +86,8 @@ prompts:
       3.  요청이 '메뉴'와 관련있으면, '사용 가능한 메뉴 키워드' 목록에서 가장 일치하는 키워드를 `keyword` 필드에 설정하세요. `categoryCode`는 `null`이어야 합니다.
       4.  `categoryCode`와 `keyword` 둘 다에 값이 있어서는 안 됩니다.
       5.  정확히 일치하는 카테고리나 키워드가 없으면 `categoryCode`와 `keyword` 모두 `null`로 설정하세요.
+      6.  모든 필드는 반드시 포함되어야 합니다
+      7.  reasoning 필드는 빈 문자열이 될 수 없습니다.
 
       ## 사용 가능한 샵 카테고리:
       {shop_categories_json}
