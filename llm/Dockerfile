@@ -17,4 +17,4 @@ EXPOSE 8000
 
 # uvicorn 단독 실행 : FastAPI에 최적화 및 단순한 설정
 # --workers 4 : CPU 4코어를 활용한 멀티 워커 실행
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
