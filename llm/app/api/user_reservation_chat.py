@@ -22,6 +22,9 @@ async def reservation_assistant(
     intent_data = await determine_reservation_intent(query)
     intent = intent_data.get("intent", "unknown")
 
+# TODO. 처음 채팅을 시작할 때 인삿말 추가
+# TODO. 의도가 없는 채팅 (너 누구야?, 너 뭐 할 수 있어? 코딩 해줘 등)도 자연스럽게 처리할 수 있나? 
+
     if intent == "view_reservations":
         return {
             "intent": "view_reservations",
