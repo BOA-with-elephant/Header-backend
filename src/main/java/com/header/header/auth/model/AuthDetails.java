@@ -1,7 +1,6 @@
 package com.header.header.auth.model;
 
 import com.header.header.auth.model.dto.LoginUserDTO;
-import com.header.header.domain.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,6 +48,11 @@ public class AuthDetails implements UserDetails {
     public String getUsername() {
         return loginUserDTO.getUserId();
         //userId를 갖고 와서 해당하는 일치하는 userName을 출력한다.  15:04
+    }
+
+    public Integer getShopCode() {
+        // AuthDetails에서 직접 shopCode를 관리하는 대신, LoginUserDTO의 shopCode를 반환
+        return this.loginUserDTO.getShopCode();
     }
 
     @Override

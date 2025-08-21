@@ -242,4 +242,156 @@ public class VisitorsService {
         // Visitors Table에 생성.
         return visitors;
     }
+
+    /**
+     * 오늘 예약된 고객 리스트 조회 (챗봇용)
+     *
+     * @param shopCode 샵 코드
+     * @return List<VisitorDetailResponse>
+     */
+    public List<VisitorDetailResponse> getTodayReservationCustomers(Integer shopCode) {
+        if(shopCode == null){
+            throw new IllegalArgumentException("shopCode는 필수입니다.");
+        }
+
+        // 1. 오늘 예약된 고객 정보
+        List<VisitorWithUserInfoView> visitors = visitorsRepository.findTodayReservationCustomers(shopCode);
+
+        // 2. 모든 userCode 추출
+        List<Integer> userCodes = visitors.stream()
+                .map(VisitorWithUserInfoView::getUserCode)
+                .collect(Collectors.toList());
+
+        if (userCodes.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 3. 배치로 통계 정보 조회
+        Map<Integer, VisitStatisticsView> statisticsMap = getVisitStatisticsBatch(userCodes);
+        Map<Integer, String> favoriteMenuMap = getFavoriteMenusBatch(userCodes);
+
+        return visitors.stream()
+                .map(visitor -> {
+                    VisitStatisticsView stats = statisticsMap.get(visitor.getUserCode());
+                    String favoriteMenu = favoriteMenuMap.get(visitor.getUserCode());
+
+                    return  VisitorDetailResponse.from(
+                            VisitorDetailDTO.builder()
+                                    .clientCode(visitor.getClientCode())
+                                    .userCode(visitor.getUserCode())
+                                    .memo(visitor.getMemo())
+                                    .sendable(visitor.getSendable())
+                                    .userName(visitor.getUserName())
+                                    .userPhone(visitor.getUserPhone())
+                                    .birthday(visitor.getBirthday() != null ?
+                                            visitor.getBirthday() : null)
+                                    // 통계 정보
+                                    .visitCount(stats != null ? stats.getVisitCount() : 0)
+                                    .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
+                                    .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
+                                    // 선호 메뉴
+                                    .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
+                                    .build());
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 특정 고객의 상세 정보 조회 (챗봇용)
+     *
+     * @param shopCode 샵 코드
+     * @param clientCode 고객 코드
+     * @return VisitorDetailResponse
+     */
+    public VisitorDetailResponse getCustomerDetailInfo(Integer shopCode, Integer clientCode) {
+        if(shopCode == null || clientCode == null){
+            throw new IllegalArgumentException("shopCode와 clientCode는 필수입니다.");
+        }
+
+        // 1. 고객 기본 정보 조회
+        VisitorWithUserInfoView visitor = visitorsRepository.findCustomerBasicInfo(clientCode)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 고객입니다."));
+
+        // 2. 통계 정보 조회
+        List<Integer> userCodes = List.of(visitor.getUserCode());
+        Map<Integer, VisitStatisticsView> statisticsMap = getVisitStatisticsBatch(userCodes);
+        Map<Integer, String> favoriteMenuMap = getFavoriteMenusBatch(userCodes);
+
+        VisitStatisticsView stats = statisticsMap.get(visitor.getUserCode());
+        String favoriteMenu = favoriteMenuMap.get(visitor.getUserCode());
+
+        return VisitorDetailResponse.from(
+                VisitorDetailDTO.builder()
+                        .clientCode(visitor.getClientCode())
+                        .userCode(visitor.getUserCode())
+                        .memo(visitor.getMemo())
+                        .sendable(visitor.getSendable())
+                        .userName(visitor.getUserName())
+                        .userPhone(visitor.getUserPhone())
+                        .birthday(visitor.getBirthday() != null ?
+                                visitor.getBirthday() : null)
+                        // 통계 정보
+                        .visitCount(stats != null ? stats.getVisitCount() : 0)
+                        .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
+                        .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
+                        // 선호 메뉴
+                        .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "" )
+                        .build());
+    }
+
+    /**
+     * 고객명으로 고객 검색 (챗봇용)
+     * 동일한 이름의 고객이 여러명일 수 있으므로 List 반환
+     * 
+     * @param shopCode 샵 코드
+     * @param name 검색할 고객명
+     * @return List<VisitorDetailResponse>
+     */
+    public List<VisitorDetailResponse> searchCustomersByName(Integer shopCode, String name) {
+        if(shopCode == null || name == null || name.trim().isEmpty()){
+            throw new IllegalArgumentException("shopCode와 name은 필수입니다.");
+        }
+
+        // 1. 고객명으로 기본 정보 검색
+        List<VisitorWithUserInfoView> visitors = visitorsRepository.findCustomersByName(shopCode, name.trim());
+        
+        if(visitors.isEmpty()) {
+            return new ArrayList<>(); // 빈 리스트 반환
+        }
+
+        // 2. 모든 userCode 추출
+        List<Integer> userCodes = visitors.stream()
+                .map(VisitorWithUserInfoView::getUserCode)
+                .collect(Collectors.toList());
+
+        // 3. 통계 정보 일괄 조회
+        Map<Integer, VisitStatisticsView> statisticsMap = getVisitStatisticsBatch(userCodes);
+        Map<Integer, String> favoriteMenuMap = getFavoriteMenusBatch(userCodes);
+
+        // 4. 결과 생성
+        return visitors.stream()
+                .map(visitor -> {
+                    VisitStatisticsView stats = statisticsMap.get(visitor.getUserCode());
+                    String favoriteMenu = favoriteMenuMap.get(visitor.getUserCode());
+
+                    return VisitorDetailResponse.from(
+                            VisitorDetailDTO.builder()
+                                    .clientCode(visitor.getClientCode())
+                                    .userCode(visitor.getUserCode())
+                                    .memo(visitor.getMemo())
+                                    .sendable(visitor.getSendable())
+                                    .userName(visitor.getUserName())
+                                    .userPhone(visitor.getUserPhone())
+                                    .birthday(visitor.getBirthday() != null ?
+                                            visitor.getBirthday() : null)
+                                    // 통계 정보
+                                    .visitCount(stats != null ? stats.getVisitCount() : 0)
+                                    .totalPaymentAmount(stats != null ? stats.getTotalPaymentAmount() : 0)
+                                    .lastVisitDate(stats != null ? stats.getLastVisitDate() : null)
+                                    // 선호 메뉴
+                                    .favoriteMenuName(favoriteMenu != null ? favoriteMenu : "")
+                                    .build());
+                })
+                .collect(Collectors.toList());
+    }
 }

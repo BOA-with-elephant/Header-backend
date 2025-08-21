@@ -78,4 +78,53 @@ public interface VisitorsRepository extends JpaRepository<Visitors,Integer> {
          WHERE v.userCode = :userCode
     """)
     Visitors findByUserCode(@Param("userCode") Integer userCode);
+
+    // 오늘 예약된 고객 정보 조회 (챗봇용)
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "INNER JOIN Reservation r ON v.userCode = r.userCode " +
+            "WHERE v.shopCode = :shopCode " +
+            "  AND v.isActive = true " +
+            "  AND DATE(r.resvDate) = CURRENT_DATE " +
+            "  AND r.resvState = '예약확정' " +
+            "  AND r.shopCode = :shopCode " +
+            "ORDER BY r.resvTime ASC")
+    List<VisitorWithUserInfoView> findTodayReservationCustomers(@Param("shopCode") Integer shopCode);
+
+    // 특정 고객의 기본 정보 조회 (챗봇용)
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "WHERE v.clientCode = :clientCode " +
+            "  AND v.isActive = true")
+    Optional<VisitorWithUserInfoView> findCustomerBasicInfo(@Param("clientCode") Integer clientCode);
+
+    // 고객명으로 고객 검색 (챗봇용) - 동일한 이름의 고객이 여러명일 수 있으므로 List 반환
+    @Query("SELECT v.clientCode as clientCode, " +
+            "       v.userCode as userCode, " +
+            "       v.memo as memo, " +
+            "       v.sendable as sendable, " +
+            "       u.userName as userName, " +
+            "       u.userPhone as userPhone, " +
+            "       u.birthday as birthday " +
+            "FROM Visitors v " +
+            "INNER JOIN User u ON v.userCode = u.userCode " +
+            "WHERE v.shopCode = :shopCode " +
+            "  AND v.isActive = true " +
+            "  AND u.userName LIKE CONCAT('%', :name, '%') " +
+            "ORDER BY u.userName, u.birthday")
+    List<VisitorWithUserInfoView> findCustomersByName(@Param("shopCode") Integer shopCode, @Param("name") String name);
 }

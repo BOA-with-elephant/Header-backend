@@ -125,4 +125,30 @@ public class UserService {
         }
         user.modifyUserLeave(true);
     }
+
+    /**
+     * RESET PWD
+     *
+     * @return
+     */
+    @Transactional
+    public UserDTO resetPwd(UserDTO userDTO) {
+        // 1. 필수 입력값 누락 여부 체크
+        if (userDTO.getUserId() == null || userDTO.getUserPhone() == null || userDTO.getUserName() == null) {
+            throw new IllegalArgumentException("필수 입력값이 누락되었습니다.");
+        }
+
+        // 2. DB에서 유저 정보 조회
+        User user = userRepository.findByUserId(userDTO.getUserId());
+
+        // 3. 유저가 존재하지 않거나 정보가 일치하지 않으면 예외 발생
+        if (user == null || !user.getUserName().equals(userDTO.getUserName()) || !user.getUserPhone().equals(userDTO.getUserPhone())) {
+            throw new IllegalArgumentException("일치하는 회원 정보가 없습니다.");
+        }
+
+        // 4. 본인 확인 성공 시 다음 단계 로직 호출 (예: 이메일 전송)
+        // 이 부분에 ⭐이메일 전송 로직이 추가되어야 함.
+        // sendEmailForPasswordReset(user.getUserEmail()); user에는 email이 없기 때문에 이거 그대로 쓰면 안 되고 redis에 저장한 이메일 써야함
+        return userDTO;
+    }
 }

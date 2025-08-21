@@ -6,7 +6,6 @@ import com.header.header.auth.config.handler.LoginSuccessHandler;
 import com.header.header.domain.shop.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,8 +20,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -75,15 +72,18 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, ShopService shopService) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(withDefaults()) // CORS 설정은 그대로 유지 (예람님 코드에서 갖고 옴)
+                .cors(withDefaults())
                 // 세션 관리 전략을 STATELESS로 설정 (세션을 사용하지 않음)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 요청에 대한 권한 설정
                 .authorizeHttpRequests(auth -> {
                     // 다음 경로들은 인증 없이 모든 사용자에게 허용
-                    auth.requestMatchers("/auth/**", "/", "/main").permitAll();
-                    // "/auth/session" (POST) 요청도 허용하여 로그인 시도를 가능하게 합니다.
+                    //auth.requestMatchers("/auth/**", "/", "/main").permitAll();
+                    auth.requestMatchers("/", "/main").permitAll();
+                    // "/auth/session" (POST) 요청을 허용하여 로그인 시도를 가능하게 합니다.
                     auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
+                    // "auth/password-reset"(POST) 요청도 허용하여 비 로그인 상태에서의 비밀번호 변경활동을 가능하게 합니다.
+                    auth.requestMatchers(HttpMethod.POST, "/auth/password-reset").permitAll();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
                     auth.requestMatchers("/api/v1/my-shops/**").permitAll();
 //                    auth.requestMatchers("/api/v1/myshops/**").hasRole("ADMIN");
