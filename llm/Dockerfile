@@ -5,9 +5,15 @@ WORKDIR /app
 # requirements.txt만 먼저 복사(캐시 최적화)
 COPY requirements.txt .
 
-RUN apt-get update && apt-get install -y build-essential libssl-dev libffi-dev python3-dev \
-    && pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+ && pip install --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt \
+ && pip show cryptography
+
 
 # 나머지 소스 전체 복사
 COPY . .
