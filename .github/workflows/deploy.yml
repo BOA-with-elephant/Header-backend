@@ -27,6 +27,13 @@ jobs:
           echo "COOLSMS_API_KEY=${COOLSMS_API_KEY}" >> .env
           echo "COOLSMS_API_SECRET=${COOLSMS_API_SECRET}" >> .env
           echo "COOLSMS_BASE_URL=${COOLSMS_BASE_URL}" >> .env
+          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env
+          echo "PINECONE_API_KEY=${PINECONE_API_KEY}" >> .env
+          echo "PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}" >> .env
+          echo "PINECONE_NAMESPACE=${PINECONE_NAMESPACE}" >> .env
+          echo "ALGORITHM=${ALGORITHM}" >> .env
+          echo "SECRET_KEY=${SECRET_KEY}" >> .env
+          echo "CHATBOT_DATABASE_URL=${CHATBOT_DATABASE_URL}" >> .env
         env:
           SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
@@ -38,6 +45,13 @@ jobs:
           COOLSMS_API_KEY: ${{ secrets.COOLSMS_API_KEY }}
           COOLSMS_API_SECRET: ${{ secrets.COOLSMS_API_SECRET }}
           COOLSMS_BASE_URL: ${{ secrets.COOLSMS_BASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
+          PINECONE_NAMESPACE: ${{ secrets.PINECONE_NAMESPACE }}
+          ALGORITHM: ${{ secrets.ALGORITHM }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          CHATBOT_DATABASE_URL: ${{ secrets.CHATBOT_DATABASE_URL }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -77,6 +91,8 @@ jobs:
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:master .
           docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/header-backend-llm:master ./llm
+          docker push ${{ secrets.DOCKER_USERNAME }}/header-backend-llm:master
 
       - name: Docker build & push (develope)
         if: contains(github.ref, 'develope')
@@ -84,6 +100,8 @@ jobs:
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/header-back-img:develope .
           docker push ${{ secrets.DOCKER_USERNAME }}/header-back-img:develope
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/header-backend-llm:develope ./llm
+          docker push ${{ secrets.DOCKER_USERNAME }}/header-backend-llm:develope
 
       # deploy to EC2 - master
       - name: Deploy to EC2 with docker-compose
@@ -115,5 +133,6 @@ jobs:
             git pull origin master
 
             docker pull ${{ secrets.DOCKER_USERNAME }}/header-back-img:master
+            docker pull ${{ secrets.DOCKER_USERNAME }}/header-backend-llm:master
             docker compose -f docker-compose.yml down || true
             docker compose -f docker-compose.yml up -d
