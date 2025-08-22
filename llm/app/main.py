@@ -7,6 +7,7 @@ from app.api import bossReservation_chat
 from app.api import user_reservation_chat
 from app.api import visitorsbot_chat
 from app.core.db import database
+from app.core.redis_manager import redis_manager
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -15,8 +16,16 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 데이터베이스 연결
     await database.connect()
+
+    # Redis 매니저 연결
+    await redis_manager.connect()
+
     yield
+
+    # 정리 작업
+    await redis_manager.disconnect()
     await database.disconnect()
 
 # FastAPI 앱 생성

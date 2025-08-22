@@ -6,7 +6,10 @@ from typing import Dict, Any, List, Optional
 from openai import OpenAI
 from app.core.config import ChatBotConfig
 from app.core.config import get_settings
+from app.core.redis_manager import get_redis_manager
+from app.models.redis_schemas import DataRequest
 import logging
+from datetime import datetime
 
 # 로깅 설정
 logger = logging.getLogger(__name__)
@@ -24,13 +27,9 @@ class VisitorsChatBotService:
         self.config = ChatBotConfig("visitors_bot")
         self.settings = get_settings()
         self.client = OpenAI(api_key=self.settings.openai_api_key)
+        self.redis_manager = None
 
-        # 사용 가능한 API 엔드포인트 매핑 (YAML 단일 소스)
-        self.available_apis = self.config.get("spring_api.endpoints", {}) or {}
-        if not self.available_apis:
-            logger.warning("spring_api.endpoints가 비어있습니다. 설정 파일을 확인하세요.")
-
-    def generate_response(self, user_question: str, shop_id: int = None) -> str:
+    async def generate_response(self, user_question: str, shop_id: int = None) -> str:
         """자연어 기반 응답 생성"""
         try:
             logger.info(f"🤖 자연어 처리 시작 - 질문: '{user_question}', Shop ID: {shop_id}")
@@ -41,8 +40,8 @@ class VisitorsChatBotService:
             # 2단계: 필요한 데이터 수집 계획 수립
             data_plan = self._create_data_collection_plan(analysis, shop_id)
 
-            # 3단계: API 호출을 통한 데이터 수집
-            collected_data = self._collect_required_data(data_plan, shop_id)
+            # 3단계: Redis Stream을 통한 데이터 수집
+            collected_data = await self._collect_required_data(data_plan, shop_id)
 
             # 4단계: 수집된 데이터로 자연스러운 답변 생성
             return self._generate_natural_response(user_question, analysis, collected_data)
@@ -101,8 +100,8 @@ class VisitorsChatBotService:
 
         return plan
 
-    def _collect_required_data(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
-        """계획에 따른 데이터 수집 (API 권한 처리 포함)"""
+    async def _collect_required_data(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
+        """Redis Stream을 통한 데이터 수집"""
 
         collected_data = {
             "success": [],
@@ -110,34 +109,33 @@ class VisitorsChatBotService:
             "errors": []
         }
 
+        # Redis 매니저 초기화
+        if not self.redis_manager:
+            self.redis_manager = await get_redis_manager()
+
         # 고객 관련 요청의 경우 2단계 프로세스 처리
         if plan["primary_intent"] in ["customer_inquiry", "memo_update"]:
-            return self._collect_customer_data_with_lookup(plan, shop_id)
-        
-        # 일반적인 API 호출 (예약 브리핑 등)
+            return await self._collect_customer_data_with_lookup(plan, shop_id)
+
+        # 일반적인 데이터 요청 (예약 브리핑 등)
         for api_name in plan["required_apis"]:
             try:
-                if api_name not in self.available_apis:
-                    collected_data["errors"].append({
+                # Redis Stream으로 데이터 요청
+                data = await self._request_data_via_redis(api_name, plan["parameters"], shop_id)
+
+                if data and data.get("status") == "success":
+                    collected_data["success"].append({
                         "api": api_name,
-                        "error": "API endpoint not available"
+                        "data": data.get("data", {})
                     })
-                    continue
-
-                # API 호출 시도
-                data = self._call_spring_api(api_name, plan["parameters"], shop_id)
-                collected_data["success"].append({
-                    "api": api_name,
-                    "data": data
-                })
-
-            except APIException as e:
-                collected_data["failed"].append({
-                    "api": api_name,
-                    "error": str(e)
-                })
+                else:
+                    collected_data["failed"].append({
+                        "api": api_name,
+                        "error": data.get("error", "데이터 요청 실패") if data else "Redis 응답 없음"
+                    })
 
             except Exception as e:
+                logger.error(f"❌ Redis 데이터 요청 실패 - {api_name}: {e}")
                 collected_data["errors"].append({
                     "api": api_name,
                     "error": str(e)
@@ -145,7 +143,7 @@ class VisitorsChatBotService:
 
         return collected_data
 
-    def _collect_customer_data_with_lookup(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
+    async def _collect_customer_data_with_lookup(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
         """고객 관련 데이터 수집 - 2단계 프로세스 (검색 → 상세정보)"""
         
         collected_data = {
@@ -165,8 +163,17 @@ class VisitorsChatBotService:
         try:
             # 1단계: 고객 검색으로 client_code 찾기
             logger.info(f"🔍 1단계: 고객 검색 - '{customer_name}'")
-            search_data = self._call_spring_api("customer_search", plan["parameters"], shop_id)
-            
+            search_result = await self._request_data_via_redis("customer_search", plan["parameters"], shop_id)
+
+            if not search_result or search_result.get("status") != "success":
+                collected_data["failed"].append({
+                    "api": "customer_search",
+                    "error": search_result.get("error", "고객 검색 실패") if search_result else "Redis 응답 없음"
+                })
+                return collected_data
+
+            search_data = search_result.get("data", {})
+
             # 검색 결과 검증
             if not search_data or self._is_customer_not_found(search_data):
                 collected_data["failed"].append({
@@ -215,26 +222,34 @@ class VisitorsChatBotService:
                 try:
                     logger.info(f"🔍 2단계: 고객 상세정보 조회")
                     detail_params = {"client_code": client_code}
-                    detail_data = self._call_spring_api("customer_detail", detail_params, shop_id)
-                    
-                    collected_data["success"].append({
-                        "api": "customer_detail",
-                        "data": detail_data
-                    })
-                    
-                    # 방문 이력도 조회 (선택적)
-                    try:
-                        logger.info(f"🔍 3단계: 방문 이력 조회")
-                        history_data = self._call_spring_api("visit_history", detail_params, shop_id)
+                    detail_result = await self._request_data_via_redis("customer_detail", detail_params, shop_id)
+
+                    if detail_result and detail_result.get("status") == "success":
+                        detail_data = detail_result.get("data", {})
                         collected_data["success"].append({
-                            "api": "visit_history", 
-                            "data": history_data
+                            "api": "customer_detail",
+                            "data": detail_data
                         })
-                    except APIException as e:
-                        logger.warning(f"방문 이력 조회 실패: {e}")
-                        # 방문 이력 실패는 치명적이지 않음
+
+                        # 방문 이력도 조회 (선택적)
+                        try:
+                            logger.info(f"🔍 3단계: 방문 이력 조회")
+                            history_result = await self._request_data_via_redis("visit_history", detail_params, shop_id)
+                            if history_result and history_result.get("status") == "success":
+                                collected_data["success"].append({
+                                    "api": "visit_history",
+                                    "data": history_result.get("data", {})
+                                })
+                        except Exception as e:
+                            logger.warning(f"방문 이력 조회 실패: {e}")
+                            # 방문 이력 실패는 치명적이지 않음
+                    else:
+                        collected_data["failed"].append({
+                            "api": "customer_detail",
+                            "error": detail_result.get("error", "고객 상세정보 조회 실패") if detail_result else "Redis 응답 없음"
+                        })
                         
-                except APIException as e:
+                except Exception as e:
                     collected_data["failed"].append({
                         "api": "customer_detail",
                         "error": str(e)
@@ -248,21 +263,28 @@ class VisitorsChatBotService:
                         "client_code": client_code,
                         "memo_content": plan["parameters"].get("memo_content", "")
                     }
-                    memo_data = self._call_spring_api("memo_update", memo_params, shop_id)
-                    
-                    collected_data["success"].append({
-                        "api": "memo_update",
-                        "data": memo_data
-                    })
-                    
-                except APIException as e:
+                    memo_result = await self._request_data_via_redis("memo_update", memo_params, shop_id)
+
+                    if memo_result and memo_result.get("status") == "success":
+                        collected_data["success"].append({
+                            "api": "memo_update",
+                            "data": memo_result.get("data", {})
+                        })
+                    else:
+                        collected_data["failed"].append({
+                            "api": "memo_update",
+                            "error": memo_result.get("error", "메모 업데이트 실패") if memo_result else "Redis 응답 없음"
+                        })
+
+                except Exception as e:
                     collected_data["failed"].append({
                         "api": "memo_update",
                         "error": str(e)
                     })
                     
-        except APIException as e:
-            collected_data["failed"].append({
+        except Exception as e:
+            logger.error(f"❌ 고객 데이터 수집 중 오류: {e}")
+            collected_data["errors"].append({
                 "api": "customer_search",
                 "error": str(e)
             })
@@ -481,73 +503,36 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
         
         return fallback
     
-    def _call_spring_api(self, api_name: str, parameters: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
-        """Spring Boot API 호출"""
-        
+    async def _request_data_via_redis(self, request_type: str, parameters: Dict[str, Any], shop_id: int) -> Optional[Dict[str, Any]]:
+        """Redis Stream을 통한 데이터 요청"""
         try:
-            # API URL 구성
-            base_url = self.config.get("spring_api", {}).get("base_url", "http://localhost:8080")
-            endpoint_template = self.available_apis.get(api_name)
-            
-            if not endpoint_template:
-                raise APIException(f"알 수 없는 API: {api_name}", None, api_name)
-            
-            # URL 파라미터 처리
-            if api_name == "customer_detail" or api_name == "memo_update" or api_name == "visit_history":
-                client_code = parameters.get("client_code")
-                if not client_code:
-                    raise APIException("client_code가 필요합니다", None, api_name)
-                url = base_url + endpoint_template.format(shop_id=shop_id, client_code=client_code)
+            # 데이터 요청 객체 생성
+            data_request = DataRequest(
+                request_type=request_type,
+                shop_id=shop_id,
+                parameters=parameters,
+                timestamp=datetime.now()
+            )
+
+            logger.info(f"📤 Redis 데이터 요청: {request_type} - Shop: {shop_id}")
+
+            # Redis Stream에 요청 발행
+            correlation_id = self.redis_manager.publish_data_request(data_request.dict())
+
+            # 결과 대기 (최대 30초)
+            result = await self.redis_manager.wait_for_data_result(correlation_id, timeout=30)
+
+            if result:
+                logger.info(f"✅ Redis 데이터 수신: {request_type} - Status: {result.get('status')}")
+                return result
             else:
-                url = base_url + endpoint_template.format(shop_id=shop_id)
-            
-            logger.info(f"📡 API 호출: {api_name} -> {url}")
-            
-            # HTTP 메서드 및 파라미터 처리
-            if api_name == "memo_update":
-                # 메모 업데이트는 PATCH 요청
-                memo_content = parameters.get("memo_content", "")
-                response = requests.patch(url, 
-                                        params={"memo": memo_content}, 
-                                        timeout=10)
-            elif api_name == "customer_search":
-                # 고객 검색은 GET 요청에 이름 파라미터 포함
-                customer_name = parameters.get("customer_name", "")
-                params = {"name": customer_name} if customer_name else {}
-                response = requests.get(url, params=params, timeout=10)
-            else:
-                # 나머지는 GET 요청
-                response = requests.get(url, timeout=10)
-            
-            # 응답 처리
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    logger.info(f"✅ API 호출 성공: {api_name}")
-                    return data.get("data", data)  # Spring Boot 응답 구조에 따라 조정
-                except json.JSONDecodeError:
-                    # JSON이 아닌 경우 (예: 메모 업데이트 성공 응답)
-                    return {"success": True, "message": "성공"}
-            
-            elif response.status_code == 403:
-                raise APIException("접근 권한이 없습니다", 403, api_name)
-            elif response.status_code == 404:
-                raise APIException("요청한 데이터를 찾을 수 없습니다", 404, api_name)
-            elif response.status_code == 500:
-                raise APIException("서버 내부 오류가 발생했습니다", 500, api_name)
-            else:
-                raise APIException(f"API 호출 실패: HTTP {response.status_code}", response.status_code, api_name)
-                
-        except requests.exceptions.Timeout:
-            raise APIException("서버 응답 시간이 초과되었습니다", None, api_name)
-        except requests.exceptions.ConnectionError:
-            raise APIException("서버에 연결할 수 없습니다", None, api_name)
-        except requests.exceptions.RequestException as e:
-            raise APIException(f"네트워크 오류: {str(e)}", None, api_name)
+                logger.warning(f"⏰ Redis 데이터 요청 타임아웃: {request_type}")
+                return None
+
         except Exception as e:
-            logger.error(f"API 호출 중 예상치 못한 오류: {e}")
-            raise APIException(f"API 호출 중 오류 발생: {str(e)}", None, api_name)
-    
+            logger.error(f"❌ Redis 데이터 요청 실패 - {request_type}: {e}")
+            return None
+
     def _handle_data_collection_failure(self, user_question: str) -> str:
         """데이터 수집 실패시 자연스러운 대안 응답"""
         
