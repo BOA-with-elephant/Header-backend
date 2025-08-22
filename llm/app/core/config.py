@@ -3,6 +3,7 @@ from pathlib import Path
 from functools import lru_cache
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 class ChatBotConfig:
     def __init__(self, bot_name: str):
         file_path = Path(__file__).parent / "settings" / f"{bot_name}.yaml"
