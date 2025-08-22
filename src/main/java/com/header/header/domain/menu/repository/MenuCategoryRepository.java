@@ -3,6 +3,8 @@ package com.header.header.domain.menu.repository;
 import com.header.header.domain.menu.entity.MenuCategory;
 import com.header.header.domain.menu.entity.MenuCategoryId;
 import java.util.List;
+
+import com.header.header.domain.shop.projection.MenuCategoryForLLM;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +30,11 @@ public interface MenuCategoryRepository extends JpaRepository<MenuCategory, Menu
 
     // 복합키로 존재 여부 확인
     boolean existsByIdCategoryCodeAndIdShopCode(int categoryCode, int shopCode);
+
+    @Query("""
+    SELECT mc.categoryName as menuCategoryName
+    FROM MenuCategory mc
+    GROUP BY mc.categoryName
+    """)
+    List<MenuCategoryForLLM> findMenuCategoryForLLM();
 }

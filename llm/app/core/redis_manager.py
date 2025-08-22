@@ -5,12 +5,16 @@ from typing import Dict, Any, Optional, List
 import redis
 import logging
 from app.core.config import get_settings
+import os
 
 logger = logging.getLogger(__name__)
 
 class RedisStreamManager:
     def __init__(self):
         self.settings = get_settings()
+        redis_host = os.getenv("SPRING_REDIS_HOST", "localhost")
+        redis_port = int(os.getenv("SPRING_REDIS_PORT", 6379))
+        self.redis_url = f"redis://{redis_host}:{redis_port}"
         self.redis_client = None
         self.consumer_tasks = {}
 
@@ -18,7 +22,7 @@ class RedisStreamManager:
         """Redis 연결 초기화"""
         try:
             self.redis_client = redis.from_url(
-                self.settings.redis_url,
+                self.redis_url,
                 decode_responses=True,
                 socket_connect_timeout=5,
                 socket_timeout=5

@@ -34,6 +34,8 @@ jobs:
           echo "ALGORITHM=${ALGORITHM}" >> .env
           echo "SECRET_KEY=${SECRET_KEY}" >> .env
           echo "CHATBOT_DATABASE_URL=${CHATBOT_DATABASE_URL}" >> .env
+          echo "SPRING_REDIS_HOST=${SPRING_REDIS_HOST}" >> .env
+          echo "SPRING_REDIS_PORT=${SPRING_REDIS_PORT}" >> .env
         env:
           SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
@@ -52,6 +54,8 @@ jobs:
           ALGORITHM: ${{ secrets.ALGORITHM }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           CHATBOT_DATABASE_URL: ${{ secrets.CHATBOT_DATABASE_URL }}
+          SPRING_REDIS_HOST: ${{ secrets.SPRING_REDIS_HOST }}
+          SPRING_REDIS_PORT: ${{ secrets.SPRING_REDIS_PORT }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
