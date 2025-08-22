@@ -83,6 +83,10 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/auth/session").permitAll();
                     // "auth/password-reset"(POST) 요청도 허용하여 비 로그인 상태에서의 비밀번호 변경활동을 가능하게 합니다.
                     auth.requestMatchers(HttpMethod.POST, "/auth/password-reset").permitAll();
+                    // "auth/profile" (PUT) 요청을 ADMIN과 USER에게 허용해 프로필 수정 활동이 가능하게 합니다.
+//                    auth.requestMatchers(HttpMethod.PUT, "/auth/profile").hasAnyRole("ADMIN", "USER");
+                    auth.requestMatchers(HttpMethod.PUT, "/profile").authenticated();
+                    auth.requestMatchers(HttpMethod.GET, "/profile").authenticated();
                     // "/my-shops/**" 경로는 ADMIN 역할만 접근 가능합니다.
                     auth.requestMatchers("/api/v1/my-shops/**").permitAll();
 //                    auth.requestMatchers("/api/v1/myshops/**").hasRole("ADMIN");

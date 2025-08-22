@@ -6,7 +6,6 @@ import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
-import com.header.header.domain.shop.exception.ShopExceptionHandler;
 import com.header.header.domain.shop.service.ShopService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

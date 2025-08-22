@@ -7,7 +7,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"userPwd"})
 public class LoginUserDTO {
     private Integer userCode;
     private String userId;
