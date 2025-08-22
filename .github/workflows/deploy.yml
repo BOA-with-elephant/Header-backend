@@ -133,6 +133,15 @@ jobs:
             echo "COOLSMS_API_KEY=${{ secrets.COOLSMS_API_KEY }}" >> .env
             echo "COOLSMS_API_SECRET=${{ secrets.COOLSMS_API_SECRET }}" >> .env
             echo "COOLSMS_BASE_URL=${{ secrets.COOLSMS_BASE_URL }}" >> .env
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+            echo "PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }}" >> .env
+            echo "PINECONE_INDEX_NAME=${{ secrets.PINECONE_INDEX_NAME }}" >> .env
+            echo "PINECONE_NAMESPACE=${{ secrets.PINECONE_NAMESPACE }}" >> .env
+            echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> .env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "CHATBOT_DATABASE_URL=${{ secrets.CHATBOT_DATABASE_URL }}" >> .env
+            echo "SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }}" >> .env
+            echo "SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }}" >> .env
 
             git pull origin master
 
