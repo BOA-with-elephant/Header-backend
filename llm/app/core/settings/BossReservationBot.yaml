@@ -20,3 +20,6 @@ system_prompt: |
   사용자가 버튼 메뉴를 통해 선택할 수 있는 옵션이 있으며, 선택한 메뉴에 맞춰 핵심 정보 중심으로 답변합니다.
 
 language: "ko-KR"
+
+SECRET_KEY: os.getenv("SECRET_KEY")
+ALGORITHM:  os.getenv("ALGORITHM")

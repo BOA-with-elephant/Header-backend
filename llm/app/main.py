@@ -17,12 +17,12 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     # 데이터베이스 연결
     await database.connect()
-    
+
     # Redis 매니저 연결
     await redis_manager.connect()
-    
+
     yield
-    
+
     # 정리 작업
     await redis_manager.disconnect()
     await database.disconnect()
