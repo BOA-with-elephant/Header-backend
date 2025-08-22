@@ -174,11 +174,12 @@ public interface UserReservationRepository extends JpaRepository<BossReservation
               r.shopInfo.shopCode as shopCode,
               r.shopInfo.shopName as shopName,
               r.menuInfo.menuCode as menuCode,
+              r.menuInfo.menuCategory.id.categoryCode as menuCategoryCode,
               r.menuInfo.menuName as menuName,
               COUNT(*) as revCount
            FROM BossReservation r
            WHERE r.userInfo.userCode = :userCode
-           GROUP BY r.shopInfo.shopCode, r.shopInfo.shopName, r.menuInfo.menuCode, r.menuInfo.menuName
+           GROUP BY r.shopInfo.shopCode, r.shopInfo.shopName, r.menuInfo.menuCode, r.menuInfo.menuCategory.id.categoryCode, r.menuInfo.menuName
            ORDER BY revCount DESC
            LIMIT 1
            """)

@@ -4,6 +4,7 @@ import multiprocessing
 from fastapi import FastAPI
 from app.api import bot1_chat
 from app.api import bossReservation_chat
+from app.api import user_reservation_chat
 from app.api import visitorsbot_chat
 from app.core.db import database
 from app.core.redis_manager import redis_manager
@@ -66,6 +67,7 @@ app.add_middleware(
 app.include_router(bot1_chat.router)
 app.include_router(bossReservation_chat.router)  # Comment out problematic router
 app.include_router(visitorsbot_chat.router, prefix="/api/v1")
+app.include_router(user_reservation_chat.router, prefix='/api/v1')
 
 if __name__ == "__main__":
     import uvicorn

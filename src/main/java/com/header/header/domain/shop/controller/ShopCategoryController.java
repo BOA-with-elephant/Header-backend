@@ -1,6 +1,7 @@
 package com.header.header.domain.shop.controller;
 
 import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.domain.shop.dto.ShopAndMenuCategoryDTO;
 import com.header.header.domain.shop.dto.ShopCategoryDTO;
 import com.header.header.domain.shop.service.ShopCategoryService;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,18 @@ public class ShopCategoryController {
         ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", responseMap);
 
         return new ResponseEntity<>(responseMessage, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/shop-menu-categories")
+    public ResponseEntity<ResponseMessage> getShopCategoryAndMenu() {
+        ShopAndMenuCategoryDTO shopAndMenuCategories = shopCategoryService.findAllShopAndMenuCategories();
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("categories", shopAndMenuCategories);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
     }
 }

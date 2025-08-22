@@ -117,6 +117,7 @@ public interface MenuRepository extends JpaRepository<Menu, Integer> {
         SELECT 
                 m.menuCategory.id.shopCode as shopCode,
                 m.menuCode as menuCode,
+                m.menuCategory.id.categoryCode as menuCategoryCode,
                 m.menuName as menuName,
                 COUNT(r.resvCode) as menuRevCount
         FROM Menu m
