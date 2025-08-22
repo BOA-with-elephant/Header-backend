@@ -14,12 +14,24 @@ public class CoolSmsService {
     private final DefaultMessageService messageService;
 
     public CoolSmsService(CoolSmsApiConfig config){
-        this.messageService = NurigoApp.INSTANCE.initialize(
-                config.getApiKey(),
-                config.getApiSecret(),
-                config.getBaseUrl()
-        );
-        log.info("CoolSMS SDK 초기화 완료");
+        try {
+            // Check for valid URL configuration
+            String baseUrl = config.getBaseUrl();
+            if (baseUrl == null || baseUrl.startsWith("default-") || !baseUrl.startsWith("http")) {
+                baseUrl = "https://api.coolsms.co.kr"; // Default CoolSMS API URL
+                log.warn("Invalid base URL configuration, using default: {}", baseUrl);
+            }
+            
+            this.messageService = NurigoApp.INSTANCE.initialize(
+                    config.getApiKey(),
+                    config.getApiSecret(),
+                    baseUrl
+            );
+            log.info("CoolSMS SDK 초기화 완료");
+        } catch (Exception e) {
+            log.error("CoolSMS SDK 초기화 실패: {}", e.getMessage());
+            throw new RuntimeException("CoolSMS 초기화 실패", e);
+        }
     }
 
     /**

@@ -15,4 +15,5 @@ pydantic
 pydantic-settings
 requests
 python-multipart
+redis
 cryptography
