@@ -12,7 +12,7 @@ import java.util.List;
 @ToString
 public class ShopAndMenuCategoryDTO {
 
-    List<ShopCategoryDTO> shopCategories;
+    private List<ShopCategoryDTO> shopCategories;
 
-    List<MenuCategoryForLLM> menuCategories;
+    private List<MenuCategoryForLLM> menuCategories;
 }

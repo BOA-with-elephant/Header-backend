@@ -40,6 +40,6 @@ public class ShopCategoryService {
         shopAndMenuCategories.setShopCategories(shopCategories);
         shopAndMenuCategories.setMenuCategories(menuCategories);
 
-        return shopAndMenuCategories; // TODO. 테스트 코드 작성
+        return shopAndMenuCategories;
     }
 }
