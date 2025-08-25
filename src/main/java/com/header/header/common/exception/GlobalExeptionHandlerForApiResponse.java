@@ -4,6 +4,7 @@ import com.header.header.auth.exception.DuplicatedPhoneException;
 import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.domain.chatbot.exception.ChatbotException;
+import com.header.header.domain.chatbot.exception.ChatbotErrorCode;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
@@ -102,30 +103,26 @@ public class GlobalExeptionHandlerForApiResponse {
             ChatbotException ex, WebRequest request) {
 
         String path = request.getDescription(false).replace("uri=", "");
+        HttpStatus httpStatus = determineHttpStatusForChatbotError(ex.getErrorCode());
         
         // 개발자용 상세 로그 (에러 타입별로 다른 로그 레벨 적용)
-        switch (ex.getErrorCode().getErrorCode().substring(0, 10)) { // CHATBOT_XXX
-            case "CHATBOT_0": // FastAPI errors
-                log.error("FastAPI 통신 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
-                break;
-            case "CHATBOT_1": // OpenAI errors  
-                log.error("OpenAI API 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
-                break;
-            case "CHATBOT_2": // Database errors
-                log.error("DB 연결 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
-                break;
-            case "CHATBOT_3": // Validation errors
-                log.warn("요청 검증 실패: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage());
-                break;
-            case "CHATBOT_4": // Redis errors
-                log.error("Redis 스트림 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
-                break;
-            default:
-                log.error("알 수 없는 챗봇 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
+        switch (ex.getErrorCode()) {
+            case FASTAPI_CONNECTION_ERROR, FASTAPI_TIMEOUT_ERROR, FASTAPI_SERVER_ERROR, FASTAPI_INVALID_RESPONSE -> // FastAPI errors
+                log.error("FastAPI 통신 오류: {} - 개발자 메시지: {}", ex.getErrorCode().getErrorCode(), ex.getDeveloperMessage(), ex);
+            case OPENAI_API_ERROR, OPENAI_QUOTA_EXCEEDED, OPENAI_RATE_LIMIT -> // OpenAI errors  
+                log.error("OpenAI API 오류: {} - 개발자 메시지: {}", ex.getErrorCode().getErrorCode(), ex.getDeveloperMessage(), ex);
+            case DATABASE_CONNECTION_ERROR, DATABASE_QUERY_ERROR, SHOP_NOT_FOUND, CUSTOMER_DATA_ERROR -> // Database errors
+                log.error("DB 연결 오류: {} - 개발자 메시지: {}", ex.getErrorCode().getErrorCode(), ex.getDeveloperMessage(), ex);
+            case INVALID_REQUEST_FORMAT, MISSING_REQUIRED_FIELD, INVALID_SHOP_ID, EMPTY_MESSAGE, MESSAGE_TOO_LONG -> // Validation errors
+                log.warn("요청 검증 실패: {} - 개발자 메시지: {}", ex.getErrorCode().getErrorCode(), ex.getDeveloperMessage());
+            case REDIS_CONNECTION_ERROR, REDIS_STREAM_ERROR -> // Redis errors
+                log.error("Redis 스트림 오류: {} - 개발자 메시지: {}", ex.getErrorCode().getErrorCode(), ex.getDeveloperMessage(), ex);
+            default -> // General errors
+                log.error("알 수 없는 챗봇 오류: {} - 개발자 메시지: {}", ex.getErrorCode().getErrorCode(), ex.getDeveloperMessage(), ex);
         }
 
         ErrorResponse errorResponse = ErrorResponse.of(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                httpStatus.value(),
                 ex.getErrorCode().getErrorCode(),
                 ex.getUserMessage(), // 사용자용 메시지
                 path
@@ -134,14 +131,14 @@ public class GlobalExeptionHandlerForApiResponse {
         // 개발자용 추가 정보는 별도 필드로 제공 (프로덕션에서는 제외 가능)
         if (isDevelopmentEnvironment()) {
             errorResponse = ErrorResponse.of(
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    httpStatus.value(),
                     ex.getErrorCode().getErrorCode(),
                     ex.getUserMessage() + " [DEV: " + ex.getDeveloperMessage() + "]",
                     path
             );
         }
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(httpStatus)
                 .body(ApiResponse.fail(ex.getUserMessage(), errorResponse));
     }
 
@@ -191,6 +188,50 @@ public class GlobalExeptionHandlerForApiResponse {
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(errorMessage.toString(), errorResponse));
+    }
+
+    /**
+     * ChatbotErrorCode에 따른 적절한 HTTP 상태 코드 결정
+     */
+    private HttpStatus determineHttpStatusForChatbotError(ChatbotErrorCode errorCode) {
+        String code = errorCode.getErrorCode();
+        
+        // FastAPI Communication Errors (001-004) -> 502 Bad Gateway
+        if (code.startsWith("CHATBOT_00")) {
+            if (code.equals("CHATBOT_002")) { // Timeout
+                return HttpStatus.GATEWAY_TIMEOUT; // 504
+            }
+            return HttpStatus.BAD_GATEWAY; // 502
+        }
+        
+        // OpenAI API Errors (101-103) -> 502 Bad Gateway or 429 Too Many Requests
+        if (code.startsWith("CHATBOT_10")) {
+            if (code.equals("CHATBOT_103")) { // Rate Limit
+                return HttpStatus.TOO_MANY_REQUESTS; // 429
+            }
+            return HttpStatus.BAD_GATEWAY; // 502
+        }
+        
+        // Database Errors (201-204) -> 503 Service Unavailable
+        if (code.startsWith("CHATBOT_20")) {
+            if (code.equals("CHATBOT_203")) { // Shop Not Found
+                return HttpStatus.NOT_FOUND; // 404
+            }
+            return HttpStatus.SERVICE_UNAVAILABLE; // 503
+        }
+        
+        // Request Validation Errors (301-305) -> 400 Bad Request
+        if (code.startsWith("CHATBOT_30")) {
+            return HttpStatus.BAD_REQUEST; // 400
+        }
+        
+        // Redis Stream Errors (401-402) -> 503 Service Unavailable
+        if (code.startsWith("CHATBOT_40")) {
+            return HttpStatus.SERVICE_UNAVAILABLE; // 503
+        }
+        
+        // General Errors (500, 999) -> 500 Internal Server Error
+        return HttpStatus.INTERNAL_SERVER_ERROR; // 500
     }
 
     /**

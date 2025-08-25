@@ -66,7 +66,7 @@ public class RedisChatbotService {
                 List<MapRecord<String, Object, Object>> messages = redisStreamTemplate.opsForStream().read(
                     Consumer.from("chatbot-response-group", consumerName),
                     StreamReadOptions.empty().count(10).block(Duration.ofSeconds(1)),
-                    StreamOffset.create(CHATBOT_RESPONSE_STREAM, ReadOffset.latest())
+                        StreamOffset.create(CHATBOT_RESPONSE_STREAM, ReadOffset.lastConsumed())
                 );
 
                 for (MapRecord<String, Object, Object> message : messages) {

@@ -22,14 +22,10 @@ public class ChatbotController extends MyShopBaseController {
             @PathVariable("shopId") @Positive(message = "올바르지 않은 매장 ID입니다.") Integer shopId,
             @RequestBody @Valid CustomerChatRequestDTO request) {
 
-        try {
-            ChatResponseDTO response = chatbotService.sendCustomerMessageAboutVisitors(
-                shopId, 
-                request.getMessage()
-            );
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("고객 챗봇 요청 처리 실패: " + e.getMessage(), null));
-        }
+        ChatResponseDTO response = chatbotService.sendCustomerMessageAboutVisitors(
+            shopId, 
+            request.getMessage()
+        );
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

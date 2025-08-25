@@ -2,6 +2,7 @@ package com.header.header.domain.chatbot.service;
 
 import com.header.header.domain.chatbot.exception.ChatbotException;
 import com.header.header.domain.chatbot.exception.ChatbotErrorCode;
+import com.header.header.domain.chatbot.dto.VisitorsAskResponse;
 import com.header.header.domain.reservation.dto.ChatRequestDTO;
 import com.header.header.domain.reservation.dto.ChatResponseDTO;
 import org.slf4j.Logger;
@@ -32,7 +33,17 @@ public class ChatbotService {
     public ChatbotService(WebClient.Builder webClientBuilder) {
         // Auto-detect environment: Docker (llm) or Local (localhost)
         String baseUrl = detectFastApiUrl();
-        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
+        reactor.netty.http.client.HttpClient httpClient =
+                reactor.netty.http.client.HttpClient.create()
+                        .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+                        .responseTimeout(java.time.Duration.ofSeconds(30))
+                        .doOnConnected(conn -> conn
+                                .addHandlerLast(new io.netty.handler.timeout.ReadTimeoutHandler(30))
+                                .addHandlerLast(new io.netty.handler.timeout.WriteTimeoutHandler(30)));
+        this.webClient = webClientBuilder
+                .baseUrl(baseUrl)
+                .clientConnector(new org.springframework.http.client.reactive.ReactorClientHttpConnector(httpClient))
+                .build();
         logger.info("🌐 FastAPI WebClient initialized with URL: {}", baseUrl);
     }
     
@@ -64,12 +75,25 @@ public class ChatbotService {
         formData.add("shop_id", shopId.toString());
         
         try {
-            Map<String, Object> responseBody = webClient.post()
+            VisitorsAskResponse responseBody = webClient.post()
                     .uri("/api/v1/visitors/ask_with_shop")
                     .body(BodyInserters.fromFormData(formData))
                     .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+                    .onStatus(s -> s.is4xxClientError(), resp ->
+                            resp.bodyToMono(String.class).defaultIfEmpty("")
+                                    .flatMap(body -> reactor.core.publisher.Mono.error(
+                                           new ChatbotException(ChatbotErrorCode.INVALID_REQUEST_FORMAT, 
+                                           "Client error (HTTP " + resp.statusCode().value() + "): " + body))))
+                    .onStatus(s -> s.is5xxServerError(), resp ->
+                            resp.bodyToMono(String.class).defaultIfEmpty("")
+                                    .flatMap(body -> reactor.core.publisher.Mono.error(
+                                                   new ChatbotException(ChatbotErrorCode.FASTAPI_SERVER_ERROR,
+                                                   "Upstream error (HTTP " + resp.statusCode().value() + "): " + body))))
+                    .bodyToMono(VisitorsAskResponse.class)
+                    .timeout(java.time.Duration.ofSeconds(30))
+                    .retryWhen(reactor.util.retry.Retry.backoff(2, java.time.Duration.ofMillis(200))
+                            .filter(ex -> ex instanceof org.springframework.web.reactive.function.client.WebClientRequestException))
+            .block();
             
             if (responseBody == null) {
                 throw new ChatbotException(
@@ -78,15 +102,17 @@ public class ChatbotService {
                 );
             }
             
-            // Validate response structure
-            validateResponse(responseBody);
-            
-            logger.info("✅ Received response from FastAPI: {}", responseBody);
-            
+            // Validate response fields
+            if (responseBody.answer() == null || responseBody.answer().trim().isEmpty()) {
+                throw new ChatbotException(
+                    ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
+                    "FastAPI returned empty answer for shop: " + shopId
+                );
+            }
+
             ChatResponseDTO chatResponse = new ChatResponseDTO();
-            chatResponse.setAnswer((String) responseBody.get("answer"));
-            chatResponse.setSessionId((String) responseBody.get("session_id"));
-            
+            chatResponse.setAnswer(responseBody.answer());
+            chatResponse.setSessionId(responseBody.sessionId());
             return chatResponse;
             
         } catch (WebClientRequestException e) {
@@ -153,25 +179,6 @@ public class ChatbotService {
         return sessionId;
     }
     
-    /**
-     * Validate FastAPI response structure
-     */
-    private void validateResponse(Map<String, Object> responseBody) {
-        if (!responseBody.containsKey("answer")) {
-            throw new ChatbotException(
-                ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
-                "Missing 'answer' field in FastAPI response: " + responseBody
-            );
-        }
-        
-        Object answer = responseBody.get("answer");
-        if (answer == null || !StringUtils.hasText(answer.toString())) {
-            throw new ChatbotException(
-                ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
-                "Empty 'answer' field in FastAPI response: " + responseBody
-            );
-        }
-    }
     
     /**
      * Handle specific FastAPI HTTP error responses
