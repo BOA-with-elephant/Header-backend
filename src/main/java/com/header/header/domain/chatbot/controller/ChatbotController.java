@@ -8,6 +8,8 @@ import com.header.header.domain.reservation.dto.ChatResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,8 +19,8 @@ public class ChatbotController extends MyShopBaseController {
 
     @PostMapping("/chatbot/customer")
     public ResponseEntity<ApiResponse<ChatResponseDTO>> sendCustomerMessage(
-            @PathVariable("shopId") Integer shopId,
-            @RequestBody CustomerChatRequestDTO request) {
+            @PathVariable("shopId") @Positive(message = "올바르지 않은 매장 ID입니다.") Integer shopId,
+            @RequestBody @Valid CustomerChatRequestDTO request) {
 
         try {
             ChatResponseDTO response = chatbotService.sendCustomerMessageAboutVisitors(

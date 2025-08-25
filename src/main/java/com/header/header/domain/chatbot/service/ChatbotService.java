@@ -1,5 +1,7 @@
 package com.header.header.domain.chatbot.service;
 
+import com.header.header.domain.chatbot.exception.ChatbotException;
+import com.header.header.domain.chatbot.exception.ChatbotErrorCode;
 import com.header.header.domain.reservation.dto.ChatRequestDTO;
 import com.header.header.domain.reservation.dto.ChatResponseDTO;
 import org.slf4j.Logger;
@@ -7,10 +9,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.net.ConnectException;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class ChatbotService {
@@ -47,7 +55,7 @@ public class ChatbotService {
         }
     }
 
-    public ChatResponseDTO sendCustomerMessageAboutVisitors(Integer shopId, String message) throws Exception {
+    public ChatResponseDTO sendCustomerMessageAboutVisitors(Integer shopId, String message) {
         logger.info("📤 Sending message to FastAPI: Shop={}, Message={}", shopId, message);
 
         // Create form data (matching your test script)
@@ -63,21 +71,63 @@ public class ChatbotService {
                     .bodyToMono(Map.class)
                     .block();
             
-            if (responseBody != null) {
-                logger.info("✅ Received response from FastAPI: {}", responseBody);
-                
-                ChatResponseDTO chatResponse = new ChatResponseDTO();
-                chatResponse.setAnswer((String) responseBody.get("answer"));
-                chatResponse.setSessionId((String) responseBody.get("session_id"));
-                
-                return chatResponse;
-            } else {
-                throw new Exception("FastAPI returned null response");
+            if (responseBody == null) {
+                throw new ChatbotException(
+                    ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
+                    "FastAPI returned null response for shop: " + shopId
+                );
             }
             
+            // Validate response structure
+            validateResponse(responseBody);
+            
+            logger.info("✅ Received response from FastAPI: {}", responseBody);
+            
+            ChatResponseDTO chatResponse = new ChatResponseDTO();
+            chatResponse.setAnswer((String) responseBody.get("answer"));
+            chatResponse.setSessionId((String) responseBody.get("session_id"));
+            
+            return chatResponse;
+            
+        } catch (WebClientRequestException e) {
+            // Connection errors (FastAPI is down)
+            throw new ChatbotException(
+                ChatbotErrorCode.FASTAPI_CONNECTION_ERROR,
+                "Failed to connect to FastAPI: " + e.getMessage(),
+                e
+            );
+        } catch (WebClientResponseException e) {
+            // HTTP error responses from FastAPI
+            handleFastApiHttpErrors(e);
+            throw new ChatbotException(
+                ChatbotErrorCode.FASTAPI_SERVER_ERROR,
+                "FastAPI returned HTTP " + e.getStatusCode() + ": " + e.getResponseBodyAsString(),
+                e
+            );
+        } catch (WebClientException e) {
+            // Other WebClient errors (timeouts, etc.)
+            if (e.getCause() instanceof TimeoutException) {
+                throw new ChatbotException(
+                    ChatbotErrorCode.FASTAPI_TIMEOUT_ERROR,
+                    "FastAPI request timeout for shop: " + shopId,
+                    e
+                );
+            }
+            throw new ChatbotException(
+                ChatbotErrorCode.FASTAPI_CONNECTION_ERROR,
+                "WebClient error: " + e.getMessage(),
+                e
+            );
+        } catch (ChatbotException e) {
+            // Re-throw our custom exceptions
+            throw e;
         } catch (Exception e) {
-            logger.error("❌ Error calling FastAPI: {}", e.getMessage());
-            throw new Exception("FastAPI call failed: " + e.getMessage());
+            // Catch any other unexpected exceptions
+            throw new ChatbotException(
+                ChatbotErrorCode.INTERNAL_SERVER_ERROR,
+                "Unexpected error during FastAPI call: " + e.getMessage(),
+                e
+            );
         }
     }
 
@@ -101,5 +151,67 @@ public class ChatbotService {
 
     public String getSessionId(){
         return sessionId;
+    }
+    
+    /**
+     * Validate FastAPI response structure
+     */
+    private void validateResponse(Map<String, Object> responseBody) {
+        if (!responseBody.containsKey("answer")) {
+            throw new ChatbotException(
+                ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
+                "Missing 'answer' field in FastAPI response: " + responseBody
+            );
+        }
+        
+        Object answer = responseBody.get("answer");
+        if (answer == null || !StringUtils.hasText(answer.toString())) {
+            throw new ChatbotException(
+                ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
+                "Empty 'answer' field in FastAPI response: " + responseBody
+            );
+        }
+    }
+    
+    /**
+     * Handle specific FastAPI HTTP error responses
+     */
+    private void handleFastApiHttpErrors(WebClientResponseException e) {
+        String responseBody = e.getResponseBodyAsString();
+        
+        // Check for OpenAI API specific errors in response
+        if (responseBody.contains("quota_exceeded") || responseBody.contains("insufficient_quota")) {
+            throw new ChatbotException(
+                ChatbotErrorCode.OPENAI_QUOTA_EXCEEDED,
+                "OpenAI quota exceeded. Response: " + responseBody,
+                e
+            );
+        }
+        
+        if (responseBody.contains("rate_limit") || e.getStatusCode().value() == 429) {
+            throw new ChatbotException(
+                ChatbotErrorCode.OPENAI_RATE_LIMIT,
+                "OpenAI rate limit exceeded. Response: " + responseBody,
+                e
+            );
+        }
+        
+        if (responseBody.contains("openai") || responseBody.contains("OpenAI")) {
+            throw new ChatbotException(
+                ChatbotErrorCode.OPENAI_API_ERROR,
+                "OpenAI API error. Response: " + responseBody,
+                e
+            );
+        }
+        
+        // Database errors from FastAPI
+        if (responseBody.contains("database") || responseBody.contains("Database") || 
+            responseBody.contains("mysql") || responseBody.contains("connection")) {
+            throw new ChatbotException(
+                ChatbotErrorCode.DATABASE_CONNECTION_ERROR,
+                "Database error from FastAPI. Response: " + responseBody,
+                e
+            );
+        }
     }
 }

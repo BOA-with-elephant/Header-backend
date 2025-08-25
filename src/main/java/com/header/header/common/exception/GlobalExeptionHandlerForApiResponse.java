@@ -3,6 +3,7 @@ package com.header.header.common.exception;
 import com.header.header.auth.exception.DuplicatedPhoneException;
 import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
+import com.header.header.domain.chatbot.exception.ChatbotException;
 import com.header.header.common.dto.ResponseDTO;
 import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.reservation.enums.UserReservationErrorCode;
@@ -17,6 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.validation.FieldError;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolation;
 
 import javax.security.auth.login.FailedLoginException;
 
@@ -32,7 +37,8 @@ import javax.security.auth.login.FailedLoginException;
         "com.header.header.domain.message",
         "com.header.header.domain.user",
         "com.header.header.domain.shop",
-        "com.header.header.domain.reservation"
+        "com.header.header.domain.reservation",
+        "com.header.header.domain.chatbot"
 })
 @Slf4j
 public class GlobalExeptionHandlerForApiResponse {
@@ -82,6 +88,117 @@ public class GlobalExeptionHandlerForApiResponse {
                 request.getDescription(false).replace("uri=", "")
         );
         return ResponseEntity.status(errorCode.getHttpStatus()).body(ApiResponse.fail(errorCode.getMessage(), errorResponse));
+    }
+
+    /**
+     * ChatbotException 처리
+     *
+     * - Chatbot 도메인의 예외 처리 시 발생
+     * - FastAPI, OpenAI, Database 등 다양한 에러 유형별로 처리
+     * - 사용자용 메시지와 개발자용 메시지 분리 제공
+     */
+    @ExceptionHandler(ChatbotException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleChatbotException(
+            ChatbotException ex, WebRequest request) {
+
+        String path = request.getDescription(false).replace("uri=", "");
+        
+        // 개발자용 상세 로그 (에러 타입별로 다른 로그 레벨 적용)
+        switch (ex.getErrorCode().getErrorCode().substring(0, 10)) { // CHATBOT_XXX
+            case "CHATBOT_0": // FastAPI errors
+                log.error("FastAPI 통신 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
+                break;
+            case "CHATBOT_1": // OpenAI errors  
+                log.error("OpenAI API 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
+                break;
+            case "CHATBOT_2": // Database errors
+                log.error("DB 연결 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
+                break;
+            case "CHATBOT_3": // Validation errors
+                log.warn("요청 검증 실패: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage());
+                break;
+            case "CHATBOT_4": // Redis errors
+                log.error("Redis 스트림 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
+                break;
+            default:
+                log.error("알 수 없는 챗봇 오류: {} - 개발자 메시지: {}", ex.getErrorCode(), ex.getDeveloperMessage(), ex);
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getErrorCode().getErrorCode(),
+                ex.getUserMessage(), // 사용자용 메시지
+                path
+        );
+
+        // 개발자용 추가 정보는 별도 필드로 제공 (프로덕션에서는 제외 가능)
+        if (isDevelopmentEnvironment()) {
+            errorResponse = ErrorResponse.of(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    ex.getErrorCode().getErrorCode(),
+                    ex.getUserMessage() + " [DEV: " + ex.getDeveloperMessage() + "]",
+                    path
+            );
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.fail(ex.getUserMessage(), errorResponse));
+    }
+
+    /**
+     * Bean Validation (@Valid) 예외 처리
+     * - @RequestBody에서 validation 실패 시 발생
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleValidationException(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        
+        StringBuilder errorMessage = new StringBuilder("입력 데이터 검증 실패: ");
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errorMessage.append(fieldError.getDefaultMessage()).append("; ");
+        }
+        
+        log.warn("Validation error: {}", errorMessage.toString());
+        
+        ErrorResponse errorResponse = ErrorResponse.badRequest(
+                errorMessage.toString(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(errorMessage.toString(), errorResponse));
+    }
+
+    /**
+     * Path Variable/Request Parameter validation 예외 처리
+     * - @PathVariable, @RequestParam에서 validation 실패 시 발생
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleConstraintViolationException(
+            ConstraintViolationException ex, WebRequest request) {
+        
+        StringBuilder errorMessage = new StringBuilder("요청 파라미터 검증 실패: ");
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            errorMessage.append(violation.getMessage()).append("; ");
+        }
+        
+        log.warn("Constraint violation: {}", errorMessage.toString());
+        
+        ErrorResponse errorResponse = ErrorResponse.badRequest(
+                errorMessage.toString(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(errorMessage.toString(), errorResponse));
+    }
+
+    /**
+     * 개발 환경 여부 확인
+     */
+    private boolean isDevelopmentEnvironment() {
+        String profile = System.getProperty("spring.profiles.active");
+        return profile != null && (profile.contains("dev") || profile.contains("local"));
     }
 
     /*
