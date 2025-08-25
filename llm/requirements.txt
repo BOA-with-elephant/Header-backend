@@ -17,3 +17,4 @@ requests
 python-multipart
 redis
 cryptography==42.0.8
+cachetools
