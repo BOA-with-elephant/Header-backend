@@ -71,7 +71,12 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<ResponseDTO> modifyUsers(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<ResponseDTO> modifyUsers(@RequestBody UserDTO userDTO, Authentication authentication) {
+        AuthDetails authDetails = (AuthDetails) authentication.getPrincipal();
+        LoginUserDTO loginUserDTO = authDetails.getLoginUserDTO();
+
+        userDTO.setUserCode(loginUserDTO.getUserCode());
+
         return ResponseEntity
                 .ok()
                 .body(new ResponseDTO(HttpStatus.OK, "회원정보 수정 성공", userFacadeService.updateUser(userDTO)));
