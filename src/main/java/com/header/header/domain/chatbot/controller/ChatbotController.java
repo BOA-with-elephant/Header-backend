@@ -3,6 +3,8 @@ package com.header.header.domain.chatbot.controller;
 import com.header.header.common.controller.MyShopBaseController;
 import com.header.header.common.dto.response.ApiResponse;
 import com.header.header.domain.chatbot.dto.CustomerChatRequestDTO;
+import com.header.header.domain.chatbot.dto.UserReservationRequestDTO;
+import com.header.header.domain.chatbot.dto.UserReservationResponseDTO;
 import com.header.header.domain.chatbot.service.ChatbotService;
 import com.header.header.domain.reservation.dto.ChatResponseDTO;
 import lombok.RequiredArgsConstructor;
