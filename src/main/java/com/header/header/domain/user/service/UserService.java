@@ -7,6 +7,7 @@ import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.NoSuchElementException;
 
 import static com.header.header.auth.common.ApiResponse.*;
 import static com.header.header.auth.common.ApiResponse.SUCCESS_MODIFY_USER;
+import static org.apache.logging.log4j.util.Strings.isNotEmpty;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class UserService {
 
     private final MainUserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     /***
      * dummy user을 추가한다.
@@ -86,7 +89,10 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
         // 2. 이전에 사용한 값과 동일한지 확인
-        if (userDTO.getUserPwd() != null && user.getUserPwd().equals(userDTO.getUserPwd())) {
+//        if (userDTO.getUserPwd() != null && user.getUserPwd().equals(userDTO.getUserPwd())) {
+//            return userDTO.getUserPwd() + SAME_PASSWORD.getMessage();
+//        }
+        if (userDTO.getUserPwd() != null && passwordEncoder.matches(userDTO.getUserPwd(), user.getUserPwd())) {
             return userDTO.getUserPwd() + SAME_PASSWORD.getMessage();
         }
 
@@ -104,9 +110,14 @@ public class UserService {
         }
 
         // 4. 도메인 메서드를 통한 정보 수정
-        if (userDTO.getUserPwd() != null) user.modifyUserPassword(userDTO.getUserPwd());
-        if (userDTO.getUserPhone() != null) user.modifyUserPhone(userDTO.getUserPhone());
-        if (userDTO.getUserName() != null) user.modifyUserName(userDTO.getUserName());
+        if (isNotEmpty(userDTO.getUserPwd())) {
+            String encodedPwd = passwordEncoder.encode(userDTO.getUserPwd());
+            user.modifyUserPassword(encodedPwd);
+        }
+        if (isNotEmpty(userDTO.getUserPhone())) user.modifyUserPhone(userDTO.getUserPhone());
+        if (isNotEmpty(userDTO.getUserName())) user.modifyUserName(userDTO.getUserName());
+
+        userRepository.save(user); //Put .save explicitly
 
         return SUCCESS_MODIFY_USER.getMessage();
     }
