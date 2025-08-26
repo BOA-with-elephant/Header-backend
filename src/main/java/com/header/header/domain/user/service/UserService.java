@@ -1,11 +1,18 @@
 package com.header.header.domain.user.service;
 
+import com.header.header.auth.common.ApiResponse;
+import com.header.header.auth.exception.DuplicatedPhoneException;
+import com.header.header.auth.exception.SameNameException;
+import com.header.header.auth.exception.SamePhoneException;
+import com.header.header.auth.exception.SamePwdException;
 import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +31,7 @@ public class UserService {
     private final MainUserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     /***
      * dummy user을 추가한다.
@@ -84,29 +92,30 @@ public class UserService {
      * @throws IllegalArgumentException */
     @Transactional
     public String modifyUser(UserDTO userDTO){
+        //String을 UserDTO로 자료형 바꿔야하나? 0826 14:43
         // 1. 기존 유저 엔티티 조회
         User user = userRepository.findById(userDTO.getUserCode())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
         // 2. 이전에 사용한 값과 동일한지 확인
-//        if (userDTO.getUserPwd() != null && user.getUserPwd().equals(userDTO.getUserPwd())) {
-//            return userDTO.getUserPwd() + SAME_PASSWORD.getMessage();
-//        }
-        if (userDTO.getUserPwd() != null && passwordEncoder.matches(userDTO.getUserPwd(), user.getUserPwd())) {
-            return userDTO.getUserPwd() + SAME_PASSWORD.getMessage();
+        if (userDTO.getUserName() != null && user.getUserName().equals(userDTO.getUserName())) {
+            log.info("[UserService] 이전과 같은 이름을 입력함");
+            throw new SameNameException(userDTO.getUserName() + SAME_NAME.getMessage());
         }
 
         if (userDTO.getUserPhone() != null && user.getUserPhone().equals(userDTO.getUserPhone())) {
-            return userDTO.getUserPhone() + SAME_PHONE.getMessage();
+            log.info("[UserService] 이전과 같은 전화번호를 입력함");
+            throw new SamePhoneException(userDTO.getUserPhone() + SAME_PHONE.getMessage());
         }
 
-        if (userDTO.getUserName() != null && user.getUserName().equals(userDTO.getUserName())) {
-            return userDTO.getUserName() + SAME_NAME.getMessage();
+        if (userDTO.getUserPwd() != null && passwordEncoder.matches(userDTO.getUserPwd(), user.getUserPwd())) {
+            log.info("[UserService] 이전과 같은 비밀번호를 입력함");
+            throw new SamePwdException(userDTO.getUserPwd() + SAME_PASSWORD.getMessage());
         }
 
         // 3. DB 전체와 비교, 전화번호 중복 확인 (자기 자신 제외)
         if (userRepository.existsByUserPhoneAndUserCodeNot(userDTO.getUserPhone(), userDTO.getUserCode())) {
-            return DUPLICATE_PHONE.getMessage();
+            throw new DuplicatedPhoneException(ApiResponse.DUPLICATE_PHONE.getMessage());
         }
 
         // 4. 도메인 메서드를 통한 정보 수정

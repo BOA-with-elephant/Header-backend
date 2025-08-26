@@ -38,17 +38,14 @@ public class JwtTokenProvider {
     // JWT 토큰에 권한 정보를 담을 클레임의 키
     private static final String AUTHORITIES_KEY = "role";
     private static final String BEARER_TYPE = "Bearer";
-    private final AuthUserService authUserService;
     private final UserService userService;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
                             @Value("${jwt.expiration}") long tokenValidityTime,
-                            @Lazy AuthUserService authUserService,
-                            UserService userService) {
+                            @Lazy UserService userService) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = tokenValidityTime;
-        this.authUserService = authUserService;
         this.userService = userService;
     }
 
