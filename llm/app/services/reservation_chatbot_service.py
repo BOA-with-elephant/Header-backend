@@ -1,6 +1,6 @@
 import os
 import time
-import pinecone
+from pinecone import Pinecone
 import logging
 from datetime import date, timedelta
 from app.core.config import ChatBotConfig
@@ -17,18 +17,36 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 class ChatBotService:
+    # def __init__(self, bot_name: str):
+    #     self.config = ChatBotConfig(bot_name)
+    #
+    #     # LLM, Embedding 모델 로드
+    #     self.model = ChatOpenAI(
+    #         model = self.config.get("model_name", "gpt-4o"),
+    #         temperature = self.config.get("temperature", 0.5)
+    #     )
+    #     self.embedding_model = OpenAIEmbeddings()
+    #
+    #     # Pinecone 클라이언트 초기화
+    #     pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    #
+    #     # VectorStore 초기화
+    #     self.vector_store = PineconeVectorStore(
+    #         index_name=os.getenv("PINECONE_INDEX_NAME"),
+    #         embedding=self.embedding_model,
+    #     )
     def __init__(self, bot_name: str):
         self.config = ChatBotConfig(bot_name)
 
         # LLM, Embedding 모델 로드
         self.model = ChatOpenAI(
-            model = self.config.get("model_name", "gpt-4o"),
-            temperature = self.config.get("temperature", 0.5)
+            model=self.config.get("model_name", "gpt-4o"),
+            temperature=self.config.get("temperature", 0.5)
         )
         self.embedding_model = OpenAIEmbeddings()
 
         # Pinecone 클라이언트 초기화
-        pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+        self.pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
         # VectorStore 초기화
         self.vector_store = PineconeVectorStore(
