@@ -35,7 +35,8 @@ class Settings(BaseSettings):
     spring_api_base_url: str = Field(default="http://127.0.0.1:8080")
 
     # Redis 설정
-    redis_url: str = Field(default="redis://localhost:6379")
+    # redis_url: str = Field(default="redis://localhost:6379")
+    redis_url: str = Field(default="redis://redis:6379")
     redis_stream_data_requests: str = Field(default="data-requests")
     redis_stream_data_results: str = Field(default="data-results")
     redis_consumer_group: str = Field(default="fastapi-consumers")
