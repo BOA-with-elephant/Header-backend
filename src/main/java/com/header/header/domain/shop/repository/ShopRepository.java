@@ -56,13 +56,13 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     @Query(
             value = """
         select distinct 
-            s.shop_code as shopcode,
-            s.shop_name as shopname,
-            s.shop_phone as shopphone,
-            s.shop_location as shoplocation,
-            s.shop_long as shoplong,
-            s.shop_la as shopla,
-            sc.category_name as categoryname,
+            s.shop_code as shopCode,
+            s.shop_name as shopName,
+            s.shop_phone as shopPhone,
+            s.shop_location as shoplLcation,
+            s.shop_long as shopLong,
+            s.shop_la as shopLa,
+            sc.category_name as categoryName,
             st_distance_sphere(
                     point(s.shop_long, s.shop_la), 
                     point(:longitude, :latitude)) as distance
@@ -70,7 +70,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         from tbl_shop s
         join tbl_shop_category sc on s.category_code = sc.category_code
         left join tbl_menu m on m.shop_code = s.shop_code
-        where (:categorycode is null or s.category_code = :categorycode)
+        where (:categoryCode is null or s.category_code = :categoryCode)
           and (:keyword is null
                         or s.shop_name like %:keyword%
                         or s.shop_location like %:keyword%
@@ -84,7 +84,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
         from tbl_shop s
         left join tbl_menu m on m.shop_code = s.shop_code
         where s.is_active = 1
-          and (:categorycode is null or s.category_code = :categorycode)
+          and (:categoryCode is null or s.category_code = :categoryCode)
           and (:keyword is null
                         or s.shop_name like %:keyword%
                         or s.shop_location like %:keyword%
