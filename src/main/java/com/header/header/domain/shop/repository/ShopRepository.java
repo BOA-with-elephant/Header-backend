@@ -59,7 +59,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
             s.shop_code as shopCode,
             s.shop_name as shopName,
             s.shop_phone as shopPhone,
-            s.shop_location as shopLcation,
+            s.shop_location as shopLocation,
             s.shop_long as shopLong,
             s.shop_la as shopLa,
             sc.category_name as categoryName,
