@@ -117,7 +117,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           timeout: 30s # SSH 연결 대기(기본값이면 충분)
-          command_timeout: 30m # 원격 스크립트 실행 제한(배포가 10분 넘으면 필수)
+          command_timeout: 60m # 원격 스크립트 실행 제한(배포가 10분 넘으면 필수)
           script_stop: true # 중간 커맨드 실패 시 즉시 실패 처리
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
