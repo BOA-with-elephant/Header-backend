@@ -223,16 +223,18 @@ public class ChatbotService {
         }
     }
 
-    public UserReservationResponseDTO sendUserReservationChat(String message) {
-        logger.info("FastAPI에 유저 예약 챗봇 요청 전송: message: {}", message);
+    public UserReservationResponseDTO sendUserReservationChat(
+            String token,
+            String query) {
+        logger.info("FastAPI에 유저 예약 챗봇 요청 전송: query: {}", query);
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("question", message);
+        Map<String, String> requestBody = Map.of("query", query);
 
         try {
             UserReservationResponseDTO responseBody = webClient.post()
-                    .uri("/api/v1/reservation/chat")
-                    .body(BodyInserters.fromFormData(formData))
+                    .uri("api/v1/reservation/chat")
+                    .header("Authorization", "Bearer " + token) // jwt 토큰 추가
+                    .bodyValue(requestBody)
                     .retrieve()
                     .onStatus(s -> s.is4xxClientError(), resp ->
                             resp.bodyToMono(String.class).defaultIfEmpty("")
@@ -250,7 +252,7 @@ public class ChatbotService {
                             .filter(ex -> ex instanceof org.springframework.web.reactive.function.client.WebClientRequestException))
                     .block();
 
-            if (responseBody == null || responseBody.getAnswer().trim().isEmpty()) {
+            if (responseBody == null || responseBody.getMessage() == null) {
                 throw new ChatbotException(
                         ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
                         "FastAPI의 응답이 비어있습니다."
