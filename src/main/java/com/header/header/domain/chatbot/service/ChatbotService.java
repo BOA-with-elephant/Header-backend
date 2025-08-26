@@ -1,5 +1,6 @@
 package com.header.header.domain.chatbot.service;
 
+import com.header.header.domain.chatbot.dto.UserReservationResponseDTO;
 import com.header.header.domain.chatbot.exception.ChatbotException;
 import com.header.header.domain.chatbot.exception.ChatbotErrorCode;
 import com.header.header.domain.chatbot.dto.VisitorsAskResponse;
@@ -218,6 +219,81 @@ public class ChatbotService {
                 ChatbotErrorCode.DATABASE_CONNECTION_ERROR,
                 "Database error from FastAPI. Response: " + responseBody,
                 e
+            );
+        }
+    }
+
+    public UserReservationResponseDTO sendUserReservationChat(String message) {
+        logger.info("FastAPI에 유저 예약 챗봇 요청 전송: message: {}", message);
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("question", message);
+
+        try {
+            UserReservationResponseDTO responseBody = webClient.post()
+                    .uri("/api/v1/reservation/chat")
+                    .body(BodyInserters.fromFormData(formData))
+                    .retrieve()
+                    .onStatus(s -> s.is4xxClientError(), resp ->
+                            resp.bodyToMono(String.class).defaultIfEmpty("")
+                                    .flatMap(body -> reactor.core.publisher.Mono.error(
+                                            new ChatbotException(ChatbotErrorCode.INVALID_REQUEST_FORMAT,
+                                                    "Client 에러 (HTTP " + resp.statusCode().value() + "): " + body))))
+                    .onStatus(s -> s.is5xxServerError(), resp ->
+                            resp.bodyToMono(String.class).defaultIfEmpty("")
+                                    .flatMap(body -> reactor.core.publisher.Mono.error(
+                                            new ChatbotException(ChatbotErrorCode.FASTAPI_SERVER_ERROR,
+                                                    "Upstream 에러 (HTTP " + resp.statusCode().value() + "): " + body))))
+                    .bodyToMono(UserReservationResponseDTO.class)
+                    .timeout(java.time.Duration.ofSeconds(30))
+                    .retryWhen(reactor.util.retry.Retry.backoff(2, java.time.Duration.ofMillis(200))
+                            .filter(ex -> ex instanceof org.springframework.web.reactive.function.client.WebClientRequestException))
+                    .block();
+
+            if (responseBody == null || responseBody.getAnswer().trim().isEmpty()) {
+                throw new ChatbotException(
+                        ChatbotErrorCode.FASTAPI_INVALID_RESPONSE,
+                        "FastAPI의 응답이 비어있습니다."
+                );
+            }
+
+            UserReservationResponseDTO chatResponse = responseBody;
+
+            return chatResponse;
+
+        } catch (WebClientRequestException e) {
+            throw new ChatbotException(
+                    ChatbotErrorCode.FASTAPI_CONNECTION_ERROR,
+                    "FastAPI 연결 실패 : " + e.getMessage(),
+                    e
+            );
+        } catch (WebClientResponseException e) {
+            handleFastApiHttpErrors(e);
+            throw new ChatbotException(
+                    ChatbotErrorCode.FASTAPI_SERVER_ERROR,
+                    "FastAPI가 전송한 HTTP 상태: " + e.getStatusCode() + ": " + e.getResponseBodyAsString(),
+                    e
+            );
+        } catch (WebClientException e) {
+            if (e.getCause() instanceof TimeoutException) {
+                throw new ChatbotException(
+                        ChatbotErrorCode.FASTAPI_TIMEOUT_ERROR,
+                        "FastAPI의 응답 시간이 초과됐습니다.",
+                        e
+                );
+            }
+            throw new ChatbotException(
+                    ChatbotErrorCode.FASTAPI_CONNECTION_ERROR,
+                    "WebClient 오류 : " + e.getMessage(),
+                    e
+            );
+        } catch (ChatbotException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ChatbotException(
+                    ChatbotErrorCode.INTERNAL_SERVER_ERROR,
+                    "FastAPI와 통신 중 예상치 못한 오류가 발생했습니다 : " + e.getMessage(),
+                    e
             );
         }
     }
