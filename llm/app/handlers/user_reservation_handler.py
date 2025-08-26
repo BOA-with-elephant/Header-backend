@@ -19,7 +19,7 @@ def format_navigate_action(label: str, url: str) -> Dict[str, Any]:
     """프론트엔드의 페이지 이동을 위한 action 객체"""
     return {"type": "NAVIGATE", "label": label, "payload": {"url": url}}
 
-def format_shop_details_action(shop_code: int, label: str = "샵 정보 보기") -> Dict[str, Any]:
+def format_shop_details_action(shop_code: int, label: str = "샵 예약하러 가기") -> Dict[str, Any]:
     """프론트엔드에서 샵 상세 정보를 표시하기 위한 action 객체"""
     return {"type": "SHOW_SHOP_DETAILS", "label": label, "payload": {"shopCode": shop_code}}
 
@@ -39,13 +39,13 @@ async def handle_greeting(context: Dict[str, Any]) -> Dict[str, Any]:
 async def handle_view_reservations(context: Dict[str, Any]) -> Dict[str, Any]:
     """예약 확인에 대한 응답"""
     message = "예약 내역 조회 페이지로 이동하시겠어요?"
-    action = format_navigate_action(label="예약 내역 보기", url="/shops/reservation")
+    action = format_navigate_action(label="예약 내역 조회하기", url="/shops/reservation")
     return format_response(intent="view_reservations", message=message, actions=[action])
 
 async def handle_cancel_reservation(context: Dict[str, Any]) -> Dict[str, Any]:
     """예약 취소에 대한 응답"""
     message = "예약 취소는 예약 조회 페이지에서 하실 수 있습니다."
-    action = format_navigate_action(label="예약 조회로 이동", url="/shops/reservation")
+    action = format_navigate_action(label="예약 내역 조회하기", url="/shops/reservation")
     return format_response(intent="cancel_reservation", message=message, actions=[action])
 
 async def handle_unknown(context: Dict[str, Any]) -> Dict[str, Any]:
@@ -138,16 +138,16 @@ def _generate_dynamic_recommend_message(keyword: Optional[str], category_code: O
         relevant_menus = [menu for menu in recommended_shop.menus if keyword in menu.menuName]
         popular_menu = max(relevant_menus, key=lambda m: m.menuRevCount) if relevant_menus else None
         if popular_menu and popular_menu.menuRevCount > 0:
-            return f"'{keyword}' 관련 메뉴 중 '{popular_menu.menuName}'을(를) 보유한 '{recommended_shop.shopName}'은(는) 어떠세요?"
+            return f"'{keyword}' 관련 메뉴 중 주변의 '{recommended_shop.shopName}'은(는) 어떠세요? 이 샵의 인기 메뉴 '{popular_menu.menuName}'를 예약해 보세요!"
         else:
-            return f"'{keyword}' 관련 샵으로 '{recommended_shop.shopName}'을(를) 추천드려요."
+            return f"'{keyword}' 관련 샵 중 주변의 '{recommended_shop.shopName}'을(를) 추천드려요."
     
     elif category_code:
         category_name = next((cat.categoryName for cat in categories.shopCategories if cat.categoryCode == category_code), "")
         popular_menu = max(recommended_shop.menus, key=lambda m: m.menuRevCount) if recommended_shop.menus else None
         if popular_menu and popular_menu.menuRevCount > 0:
-            return f"'{category_name}' 카테고리의 인기 샵 '{recommended_shop.shopName}'을(를) 추천드려요. 이 샵의 대표 메뉴는 '{popular_menu.menuName}'입니다."
+            return f"주변의 인기 샵 '{recommended_shop.shopName}'을(를) 추천드려요. 이 샵의 인기 메뉴 '{popular_menu.menuName}'를 예약해 보세요!"
         else:
-            return f"'{category_name}' 카테고리의 '{recommended_shop.shopName}'을(를) 추천드려요."
+            return f"'{category_name}' 카테고리 중 주변의 '{recommended_shop.shopName}'을(를) 추천드려요."
     
     return f"'{recommended_shop.shopName}'을(를) 추천드려요. 한번 둘러보시겠어요?" # Fallback
