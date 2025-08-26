@@ -7,8 +7,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from app.models.user_reservation_model import Request
 from app.core.user_reservation_client import determine_reservation_intent
-from typing import Optional, List
-from app.models.user_reservation_model import RevInfo
 
 # 핸들러 임포트
 from app.handlers.user_reservation_handler import (
@@ -97,6 +95,3 @@ async def reservation_assistant(
         logging.critical(f"예상치 못한 에러가 발생했습니다: {e}", exc_info=True) # exc_info=True로 스택 트레이스 기록
         error_message = config["response_templates"]["error"]["general"]
         return handle_error(message=error_message)
-    
-# @router.get("/history", response_model=Optional[RevInfo])
-# async def get_user_reservation_history(credentials: HTTPAuthorizationCredentials = Depends(security_scheme))
