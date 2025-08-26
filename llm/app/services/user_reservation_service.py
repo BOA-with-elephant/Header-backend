@@ -9,7 +9,16 @@ from cachetools import TTLCache
 # 1개 아이템을 1시간(3600초) 동안 캐시 유지
 category_cache = TTLCache(maxsize=1, ttl=3600)
 
-BASE_API_URL = os.getenv('SPRING_API_URL', 'http://localhost:8080')
+def detect_url():
+    """ Docker / local 환경 감지 -> url 반환 함수 """
+    if "HOSTNAME" in os.environ:
+        logging.info("🐳 도커 환경이 감지되었습니다. [llm:8000]")
+        return "http://llm:8000"
+    else:
+        logging.info("💻 로컬 환경으로 추정됩니다. [localhost:8080]")
+        return "http://localhost:8080"
+
+BASE_API_URL = detect_url()
 
 # 고객 예약 내역 요청 함수
 async def get_user_reservation_history(token: str) -> Optional[RevInfo]:
