@@ -126,7 +126,7 @@ public class UserService {
         if (isNotEmpty(userDTO.getUserPhone())) user.modifyUserPhone(userDTO.getUserPhone());
         if (isNotEmpty(userDTO.getUserName())) user.modifyUserName(userDTO.getUserName());
 
-        userRepository.save(user); //Put .save explicitly
+        userRepository.save(user);
 
         return SUCCESS_MODIFY_USER.getMessage();
     }
