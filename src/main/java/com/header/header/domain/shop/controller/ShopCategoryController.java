@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1/shops")
+@RequestMapping(value = "api/v1/shops", produces = "application/json; charset=UTF-8")
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
         allowedHeaders = "*",
         methods = RequestMethod.GET)

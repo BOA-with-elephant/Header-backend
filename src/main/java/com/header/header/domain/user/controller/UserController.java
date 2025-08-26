@@ -10,6 +10,7 @@ import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.service.UserFacadeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +48,7 @@ public class UserController {
 
             return ResponseEntity
                     .ok()
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                     //.body(new ResponseDTO(HttpStatus.OK, "로그인 성공")); //tokenDTO에서 JWT 노출됨. 삭제필요
                     .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", tokenDTO));
 
@@ -67,6 +69,7 @@ public class UserController {
     public ResponseEntity<ResponseDTO> signup(@RequestBody UserDTO userDTO) {    // 회원 가입 정보를 받아 냄
         return ResponseEntity
                 .ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                 .body(new ResponseDTO(HttpStatus.CREATED, "회원가입 성공", userFacadeService.registerUser(userDTO)));
     }
 
@@ -79,6 +82,7 @@ public class UserController {
 
         return ResponseEntity
                 .ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                 .body(new ResponseDTO(HttpStatus.OK, "회원정보 수정 성공", userFacadeService.updateUser(userDTO)));
     }
 

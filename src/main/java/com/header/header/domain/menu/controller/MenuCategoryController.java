@@ -5,6 +5,8 @@ import com.header.header.domain.menu.service.MenuCategoryService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,7 +44,11 @@ public class MenuCategoryController {
     public ResponseEntity<List<MenuCategoryDTO>> getAllMenuCategories(@PathVariable int shopCode) {
         List<MenuCategoryDTO> menuCategories = menuCategoryService.findAllMenuCategoriesByShopCode(
             shopCode);
-        return ResponseEntity.ok(menuCategories);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        return new ResponseEntity<>(menuCategories, headers, HttpStatus.OK);
     }
 
     /**
@@ -56,7 +62,11 @@ public class MenuCategoryController {
         @PathVariable int shopCode) {
         List<MenuCategoryDTO> activeMenuCategories = menuCategoryService.findActiveMenuCategoriesByShopCode(
             shopCode);
-        return ResponseEntity.ok(activeMenuCategories);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        return new ResponseEntity<>(activeMenuCategories, headers, HttpStatus.OK);
     }
 
     /**
@@ -71,7 +81,11 @@ public class MenuCategoryController {
         @PathVariable int categoryCode) {
         MenuCategoryDTO menuCategory = menuCategoryService.findMenuCategoryById(categoryCode,
             shopCode);
-        return ResponseEntity.ok(menuCategory);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        return new ResponseEntity<>(menuCategory, headers, HttpStatus.OK);
     }
 
     /**
@@ -86,7 +100,11 @@ public class MenuCategoryController {
         @RequestBody MenuCategoryDTO menuCategoryDTO) {
         MenuCategoryDTO createdCategory = menuCategoryService.createMenuCategory(menuCategoryDTO,
             shopCode);
-        return ResponseEntity.ok(createdCategory);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        return new ResponseEntity<>(createdCategory, headers, HttpStatus.OK);
     }
 
     /**
@@ -104,7 +122,11 @@ public class MenuCategoryController {
         @RequestBody MenuCategoryDTO menuCategoryDTO) {
         MenuCategoryDTO updatedCategory = menuCategoryService.updateMenuCategory(categoryCode,
             shopCode, menuCategoryDTO);
-        return ResponseEntity.ok(updatedCategory);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        return new ResponseEntity<>(updatedCategory, headers, HttpStatus.OK);
     }
 
     /**
@@ -118,7 +140,11 @@ public class MenuCategoryController {
     public ResponseEntity<String> deleteMenuCategory(@PathVariable int shopCode,
         @PathVariable int categoryCode) {
         menuCategoryService.deleteMenuCategoryWithBulkUpdate(categoryCode, shopCode);
-        return ResponseEntity.ok("Menu category deleted successfully");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        return new ResponseEntity<>("Menu category deleted successfully", headers, HttpStatus.OK);
     }
 
 }
