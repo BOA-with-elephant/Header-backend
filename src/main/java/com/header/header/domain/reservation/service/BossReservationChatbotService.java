@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-public class ChatbotService {
+public class BossReservationChatbotService {
 
     private final WebClient webClient;
     private String sessionId;
 
-    public ChatbotService(WebClient.Builder builder){
+    public BossReservationChatbotService(WebClient.Builder builder){
         this.webClient = builder.baseUrl("http://llm:8000").build();
 //        this.webClient = builder.baseUrl("http://localhost:8000").build();
     }

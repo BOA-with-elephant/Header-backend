@@ -1,7 +1,5 @@
 import json
 import re
-import requests
-import time
 from typing import Dict, Any, List, Optional
 from openai import OpenAI
 from app.core.config import ChatBotConfig
@@ -116,13 +114,13 @@ class VisitorsChatBotService:
         # 고객 관련 요청의 경우 2단계 프로세스 처리
         if plan["primary_intent"] in ["customer_inquiry", "memo_update"]:
             return await self._collect_customer_data_with_lookup(plan, shop_id)
-
+        
         # 일반적인 데이터 요청 (예약 브리핑 등)
         for api_name in plan["required_apis"]:
             try:
                 # Redis Stream으로 데이터 요청
                 data = await self._request_data_via_redis(api_name, plan["parameters"], shop_id)
-
+                
                 if data and data.get("status") == "success":
                     collected_data["success"].append({
                         "api": api_name,
@@ -164,16 +162,16 @@ class VisitorsChatBotService:
             # 1단계: 고객 검색으로 client_code 찾기
             logger.info(f"🔍 1단계: 고객 검색 - '{customer_name}'")
             search_result = await self._request_data_via_redis("customer_search", plan["parameters"], shop_id)
-
+            
             if not search_result or search_result.get("status") != "success":
                 collected_data["failed"].append({
                     "api": "customer_search",
                     "error": search_result.get("error", "고객 검색 실패") if search_result else "Redis 응답 없음"
                 })
                 return collected_data
-
+                
             search_data = search_result.get("data", {})
-
+            
             # 검색 결과 검증
             if not search_data or self._is_customer_not_found(search_data):
                 collected_data["failed"].append({
@@ -223,21 +221,21 @@ class VisitorsChatBotService:
                     logger.info(f"🔍 2단계: 고객 상세정보 조회")
                     detail_params = {"client_code": client_code}
                     detail_result = await self._request_data_via_redis("customer_detail", detail_params, shop_id)
-
+                    
                     if detail_result and detail_result.get("status") == "success":
                         detail_data = detail_result.get("data", {})
                         collected_data["success"].append({
                             "api": "customer_detail",
                             "data": detail_data
                         })
-
+                        
                         # 방문 이력도 조회 (선택적)
                         try:
                             logger.info(f"🔍 3단계: 방문 이력 조회")
                             history_result = await self._request_data_via_redis("visit_history", detail_params, shop_id)
                             if history_result and history_result.get("status") == "success":
                                 collected_data["success"].append({
-                                    "api": "visit_history",
+                                    "api": "visit_history", 
                                     "data": history_result.get("data", {})
                                 })
                         except Exception as e:
@@ -264,7 +262,7 @@ class VisitorsChatBotService:
                         "memo_content": plan["parameters"].get("memo_content", "")
                     }
                     memo_result = await self._request_data_via_redis("memo_update", memo_params, shop_id)
-
+                    
                     if memo_result and memo_result.get("status") == "success":
                         collected_data["success"].append({
                             "api": "memo_update",
@@ -275,7 +273,7 @@ class VisitorsChatBotService:
                             "api": "memo_update",
                             "error": memo_result.get("error", "메모 업데이트 실패") if memo_result else "Redis 응답 없음"
                         })
-
+                        
                 except Exception as e:
                     collected_data["failed"].append({
                         "api": "memo_update",
@@ -513,26 +511,26 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
                 parameters=parameters,
                 timestamp=datetime.now()
             )
-
+            
             logger.info(f"📤 Redis 데이터 요청: {request_type} - Shop: {shop_id}")
-
+            
             # Redis Stream에 요청 발행
-            correlation_id = self.redis_manager.publish_data_request(data_request.dict())
-
+            correlation_id = await self.redis_manager.publish_data_request(data_request.dict())
+            
             # 결과 대기 (최대 30초)
             result = await self.redis_manager.wait_for_data_result(correlation_id, timeout=30)
-
+            
             if result:
                 logger.info(f"✅ Redis 데이터 수신: {request_type} - Status: {result.get('status')}")
                 return result
             else:
                 logger.warning(f"⏰ Redis 데이터 요청 타임아웃: {request_type}")
                 return None
-
+                
         except Exception as e:
             logger.error(f"❌ Redis 데이터 요청 실패 - {request_type}: {e}")
             return None
-
+    
     def _handle_data_collection_failure(self, user_question: str) -> str:
         """데이터 수집 실패시 자연스러운 대안 응답"""
         
