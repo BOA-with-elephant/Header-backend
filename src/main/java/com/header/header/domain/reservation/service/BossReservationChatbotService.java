@@ -2,6 +2,7 @@ package com.header.header.domain.reservation.service;
 
 import com.header.header.domain.reservation.dto.ChatRequestDTO;
 import com.header.header.domain.reservation.dto.ChatResponseDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -11,9 +12,9 @@ public class BossReservationChatbotService {
     private final WebClient webClient;
     private String sessionId;
 
-    public BossReservationChatbotService(WebClient.Builder builder){
-        this.webClient = builder.baseUrl("http://llm:8000").build();
-//        this.webClient = builder.baseUrl("http://localhost:8000").build();
+    public BossReservationChatbotService(WebClient.Builder builder,
+                                       @Value("${fastapi.base-url:http://localhost:8000}") String fastApiUrl){
+        this.webClient = builder.baseUrl(fastApiUrl).build();
     }
 
     public ChatResponseDTO askChatbot(Integer shopId, String question){
