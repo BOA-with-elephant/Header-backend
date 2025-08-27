@@ -27,7 +27,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: GET /api/v1/my-shops/{shopId}/customers
      */
-    @GetMapping("/customers")
+    @GetMapping(value = "/customers", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<List<VisitorDetailResponse>>> getShopCustomerList(
             @PathVariable Integer shopId) {
 
@@ -40,7 +40,7 @@ public class VisitorsController extends MyShopBaseController {
      * @param shopId
      * @return 오늘 예약 고객 리스트
      */
-    @GetMapping("/customers/today-reservations")
+    @GetMapping(value = "/customers/today-reservations", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<List<VisitorDetailResponse>>> getShopCustomerTodayReservationList(
             @PathVariable Integer shopId) {
 
@@ -58,7 +58,7 @@ public class VisitorsController extends MyShopBaseController {
      * 
      * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/search?name={name}
      */
-    @GetMapping("/customers/search")
+    @GetMapping(value = "/customers/search", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<List<VisitorDetailResponse>>> searchCustomersByName(
             @PathVariable Integer shopId,
             @RequestParam String name) {
@@ -76,7 +76,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: POST /api/v1/my-shops/{shopId}/customers
      */
-    @PostMapping("/customers")
+    @PostMapping(value = "/customers", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<VisitorCreateResponse>> registerCustomer(
             @PathVariable Integer shopId,
             @RequestBody VisitorCreateRequest requestBody) {
@@ -91,7 +91,7 @@ public class VisitorsController extends MyShopBaseController {
      * @param customerId 고객 아이디
      * @return 고객 상세 정보
      */
-    @GetMapping("/customers/{customerId}")
+    @GetMapping(value = "/customers/{customerId}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<VisitorDetailResponse>> getCustomerDetail(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId) {
@@ -110,7 +110,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: GET /api/v1/my-shops/{shopId}/customers/{customerId}/history
      */
-    @GetMapping("/customers/{customerId}/history")
+    @GetMapping(value = "/customers/{customerId}/history", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<List<VisitorHistoryResponse>>> getCustomerHistory(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId) {
@@ -129,7 +129,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: PATCH /api/v1/my-shops/{shopId}/customers/{customerId}?memo={memo}
      */
-    @PatchMapping("/customers/{customerId}")
+    @PatchMapping(value = "/customers/{customerId}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<String>> updateCustomerMemo(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId,
@@ -148,7 +148,7 @@ public class VisitorsController extends MyShopBaseController {
      *
      * 최종 URL: DELETE /api/v1/my-shops/{shopId}/customers/{customerId}
      */
-    @DeleteMapping("/customers/{customerId}")
+    @DeleteMapping(value = "/customers/{customerId}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<String>> deleteCustomer(
             @PathVariable Integer shopId,
             @PathVariable Integer customerId) {

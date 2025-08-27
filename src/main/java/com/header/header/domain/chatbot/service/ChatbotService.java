@@ -8,17 +8,16 @@ import com.header.header.domain.reservation.dto.ChatRequestDTO;
 import com.header.header.domain.reservation.dto.ChatResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.net.ConnectException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -31,9 +30,8 @@ public class ChatbotService {
 
     private String sessionId;
 
-    public ChatbotService(WebClient.Builder webClientBuilder) {
-        // Auto-detect environment: Docker (llm) or Local (localhost)
-        String baseUrl = detectFastApiUrl();
+    public ChatbotService(WebClient.Builder webClientBuilder,
+                         @Value("${fastapi.base-url:http://localhost:8000}") String fastApiUrl) {
         reactor.netty.http.client.HttpClient httpClient =
                 reactor.netty.http.client.HttpClient.create()
                         .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
@@ -42,29 +40,10 @@ public class ChatbotService {
                                 .addHandlerLast(new io.netty.handler.timeout.ReadTimeoutHandler(30))
                                 .addHandlerLast(new io.netty.handler.timeout.WriteTimeoutHandler(30)));
         this.webClient = webClientBuilder
-                .baseUrl(baseUrl)
+                .baseUrl(fastApiUrl)
                 .clientConnector(new org.springframework.http.client.reactive.ReactorClientHttpConnector(httpClient))
                 .build();
-        logger.info("🌐 FastAPI WebClient initialized with URL: {}", baseUrl);
-    }
-    
-    private String detectFastApiUrl() {
-        // Check if we're in Docker environment by looking for container hostname
-        String hostname = System.getenv("HOSTNAME");
-        if (hostname != null && hostname.contains("header-backend")) {
-            logger.info("🐳 Docker environment detected, using container name");
-            return "http://llm:8000";
-        }
-        
-        // Check if llm service is available (Docker compose)
-        try {
-            java.net.InetAddress.getByName("llm");
-            logger.info("🐳 Docker service 'llm' found");
-            return "http://llm:8000";
-        } catch (java.net.UnknownHostException e) {
-            logger.info("💻 Local development environment detected");
-            return "http://localhost:8000";
-        }
+        logger.info("🌐 FastAPI WebClient initialized with URL: {}", fastApiUrl);
     }
 
     public ChatResponseDTO sendCustomerMessageAboutVisitors(Integer shopId, String message) {

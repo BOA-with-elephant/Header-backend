@@ -27,6 +27,16 @@ class ChatBotConfig:
 
         return value
 
+def detect_env_file():
+    """환경에 따라 적절한 .env 파일을 선택"""
+    import os
+    
+    # Docker 환경 감지 (HOSTNAME 환경변수 또는 컨테이너 특정 조건)
+    if os.getenv("HOSTNAME") or os.path.exists("/.dockerenv"):
+        return "../.env"
+    else:
+        return "../.env.local"
+
 class Settings(BaseSettings):
     # OpenAI 설정
     openai_api_key: str = Field(default="")
@@ -35,8 +45,7 @@ class Settings(BaseSettings):
     spring_api_base_url: str = Field(default="http://127.0.0.1:8080")
 
     # Redis 설정
-    # redis_url: str = Field(default="redis://localhost:6379")
-    redis_url: str = Field(default="redis://redis:6379")
+    redis_url: str = Field(default="redis://localhost:6379")
     redis_stream_data_requests: str = Field(default="data-requests")
     redis_stream_data_results: str = Field(default="data-results")
     redis_consumer_group: str = Field(default="fastapi-consumers")
@@ -51,7 +60,7 @@ class Settings(BaseSettings):
 
     # pydantic-settings v2 권장 구성
     model_config = SettingsConfigDict(
-            env_file=".env",
+        env_file=detect_env_file(),
         env_file_encoding="utf-8",
         extra="ignore",
     )
