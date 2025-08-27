@@ -8,29 +8,45 @@ import java.util.Map;
 public class ShopApiResponse {
 
     /**
-     * 데이터(Key-Value)를 포함하는 성공 응답을 생성합니다.
-     * @param message 응답 메시지 (예: "조회 성공")
-     * @param dataKey 응답 데이터의 키 (예: "shops")
-     * @param dataValue 응답 데이터의 값
+     * 생성 성공 응답을 생성할 때 사용
      * @return 생성된 ResponseEntity<ResponseMessage> 객체
      */
-    public static ResponseEntity<ResponseMessage> success(String message, String dataKey, Object dataValue) {
+    public static ResponseEntity<ResponseMessage> create(String dataKey, Object dataValue) {
 
         Map<String, Object> data = new HashMap<>();
         data.put(dataKey, dataValue);
 
-        ResponseMessage responseMessage = new ResponseMessage(200, message, data);
+        ResponseMessage responseMessage = new ResponseMessage(201, "리소스 생성 성공", data);
+
+        return ResponseEntity.ok(responseMessage);
+    }
+
+    public static ResponseEntity<ResponseMessage> read(String dataKey, Object dataValue) {
+
+        Map<String, Object> data = new HashMap<>();
+        data.put(dataKey, dataValue);
+
+        ResponseMessage responseMessage = new ResponseMessage(200, "조회 성공", data);
+
+        return ResponseEntity.ok(responseMessage);
+    }
+
+    public static ResponseEntity<ResponseMessage> update(String dataKey, Object dataValue) {
+
+        Map<String, Object> data = new HashMap<>();
+        data.put(dataKey, dataValue);
+
+        ResponseMessage responseMessage = new ResponseMessage(201, "리소스 수정 성공", data);
 
         return ResponseEntity.ok(responseMessage);
     }
 
     /**
      * 삭제 성공 응답을 생성할 때 사용
-     * @param message 응답 메시지 (예: "삭제 성공")
      * @return 생성된 ResponseEntity<ResponseMessage> 객체
      */
-    public static ResponseEntity<ResponseMessage> delete(String message) {
-        ResponseMessage responseMessage = new ResponseMessage(204, message, null);
+    public static ResponseEntity<ResponseMessage> delete() {
+        ResponseMessage responseMessage = new ResponseMessage(204, "삭제 성공", null);
         return ResponseEntity.ok(responseMessage);
     }
 }
