@@ -51,6 +51,16 @@ RUN ./gradlew clean bootJar --no-daemon -x test
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 
+# ===== Locale 세팅 추가 =====
+RUN apt-get update && apt-get install -y locales \
+    && locale-gen ko_KR.UTF-8 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=ko_KR.UTF-8
+ENV LANGUAGE=ko_KR:ko
+ENV LC_ALL=ko_KR.UTF-8
+# ============================
+
 # 애플리케이션 JAR 복사
 COPY --from=build /app/build/libs/*.jar app.jar
 
