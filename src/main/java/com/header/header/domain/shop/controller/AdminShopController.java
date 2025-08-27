@@ -1,6 +1,7 @@
 package com.header.header.domain.shop.controller;
 
 import com.header.header.auth.model.AuthDetails;
+import com.header.header.common.dto.response.ShopApiResponse;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
 import com.header.header.common.dto.response.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopCreationDTO;
@@ -15,9 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,10 +42,8 @@ public class AdminShopController {
         dto.setAdminCode(adminCode);
 
         ShopDTO shopDTO = shopService.createShop(dto);
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("created-shop", shopDTO);
 
-        return ResponseEntity.ok().body(new ResponseMessage(201, "리소스 생성 성공", responseMap));
+        return ShopApiResponse.create("created-shop", shopDTO);
     }
 
     // 보유한 샵 간략 조회
@@ -57,14 +54,9 @@ public class AdminShopController {
 
         Integer adminCode = getUserInfoByAuthDetails.getUserCodeByAuthDetails(authDetails);
 
-        System.out.println(adminCode);
-
         List<ShopSummary> shopList = shopService.readShopSummaryByAdminCode(adminCode);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shop-list", shopList);
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("shop-list", shopList);
     }
 
     // 샵 상세정보 조회
@@ -72,12 +64,10 @@ public class AdminShopController {
     public ResponseEntity<ResponseMessage> readShopDetailByShopCode(
             @PathVariable Integer shopCode
     ) {
+
         List<ShopDetailResponse> shopDetail = shopService.readShopDetailByShopCode(shopCode);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shop-detail", shopDetail);
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("shop-detail", shopDetail);
     }
 
     // 샵 정보 수정
@@ -92,10 +82,7 @@ public class AdminShopController {
 
         ShopDTO updatedShop = shopService.updateShop(adminCode, shopCode, dto);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("updated-shop", updatedShop);
-
-        return  ResponseEntity.ok().body(new ResponseMessage(201, "리소스 수정 성공", responseMap));
+        return ShopApiResponse.update("updated-shop", updatedShop);
     }
 
     // 샵 비활성화
@@ -109,6 +96,6 @@ public class AdminShopController {
 
         shopService.deActiveShop(adminCode, shopCode);
 
-        return ResponseEntity.accepted().body(new ResponseMessage(204, "삭제 성공", null));
+        return ShopApiResponse.delete();
     }
 }

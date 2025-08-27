@@ -20,9 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -62,7 +60,7 @@ public class ShopController {
                 pageable
         );
 
-        return ShopApiResponse.success("조회 성공", "shops", shopsWithPaging.getContent());
+        return ShopApiResponse.read("shops", shopsWithPaging.getContent());
     }
 
     /*샵 상세조회*/
@@ -73,7 +71,7 @@ public class ShopController {
         List<ShopDetailResponse> shopDetail
                 = shopService.readShopDetailByShopCode(shopCode);
 
-        return ShopApiResponse.success("조회 성공", "shop-detail", shopDetail);
+        return ShopApiResponse.read("shop-detail", shopDetail);
     }
 
     /*Post 새로운 예약 생성 */
@@ -89,7 +87,7 @@ public class ShopController {
         Optional<UserReservationDetail> reservationResult
                 = userReservationService.createReservation(shopCode, dto);
 
-        return ShopApiResponse.success("리소스 생성 성공", "reservation-result", reservationResult);
+        return ShopApiResponse.create("reservation-result", reservationResult);
     }
 
 }
