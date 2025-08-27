@@ -2,7 +2,7 @@ package com.header.header.domain.shop.controller;
 
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
-import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.common.dto.response.ResponseMessage;
 import com.header.header.domain.shop.dto.HolCreationDTO;
 import com.header.header.domain.shop.dto.HolResDTO;
 import com.header.header.domain.shop.dto.HolUpdateDTO;

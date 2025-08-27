@@ -1,6 +1,6 @@
 package com.header.header.domain.shop.controller;
 
-import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.common.dto.response.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopAndMenuCategoryDTO;
 import com.header.header.domain.shop.dto.ShopCategoryDTO;
 import com.header.header.domain.shop.service.ShopCategoryService;
