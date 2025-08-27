@@ -204,7 +204,7 @@ class ChatBotService:
         # 체인에 대화 기록 연결
         chain_with_history = RunnableWithMessageHistory(
             chain,
-            lambda s_id: self.get_session_history(s_id, shop_id=shop_id),
+            lambda s_id: self.get_session_history(s_id),
             input_messages_key="query",
             history_messages_key="history",
         )
