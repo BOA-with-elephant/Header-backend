@@ -93,6 +93,7 @@ public class UserController {
 
         return ResponseEntity
                 .ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                 .body(new ResponseDTO(HttpStatus.OK, "회원 탈퇴 성공", null));
     }
 
@@ -122,6 +123,7 @@ public class UserController {
             // 이 경우는 @PreAuthorize("isAuthenticated()") 때문에 발생하지 않아야 하지만, 안전을 위해 처리.
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                     .body(new ResponseDTO(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다.", null));
         }
     }
@@ -131,6 +133,7 @@ public class UserController {
         userFacadeService.modifyPwd(userDTO); // 본인확인 및 다음 단계 준비
         return ResponseEntity
                 .ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                 .body(new ResponseDTO(HttpStatus.OK, "본인 확인 완료", null));
     }
 }
