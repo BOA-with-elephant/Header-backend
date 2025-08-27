@@ -25,12 +25,12 @@ public class ShopApiResponse {
     }
 
     /**
-     * 데이터가 없는 성공 응답을 생성할 때를 위한 메소드 오버로딩
+     * 삭제 성공 응답을 생성할 때 사용
      * @param message 응답 메시지 (예: "삭제 성공")
      * @return 생성된 ResponseEntity<ResponseMessage> 객체
      */
-    public static ResponseEntity<ResponseMessage> success(String message) {
-        ResponseMessage responseMessage = new ResponseMessage(200, message, null);
+    public static ResponseEntity<ResponseMessage> delete(String message) {
+        ResponseMessage responseMessage = new ResponseMessage(204, message, null);
         return ResponseEntity.ok(responseMessage);
     }
 }
