@@ -36,6 +36,8 @@ jobs:
           echo "CHATBOT_DATABASE_URL=${CHATBOT_DATABASE_URL}" >> .env
           echo "SPRING_REDIS_HOST=${SPRING_REDIS_HOST}" >> .env
           echo "SPRING_REDIS_PORT=${SPRING_REDIS_PORT}" >> .env
+          echo "SPRING_API_BASE_URL=${SPRING_API_BASE_URL}" >> .env
+          echo "FASTAPI_BASE_URL=${FASTAPI_BASE_URL}" >> .env
         env:
           SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
@@ -56,6 +58,8 @@ jobs:
           CHATBOT_DATABASE_URL: ${{ secrets.CHATBOT_DATABASE_URL }}
           SPRING_REDIS_HOST: ${{ secrets.SPRING_REDIS_HOST }}
           SPRING_REDIS_PORT: ${{ secrets.SPRING_REDIS_PORT }}
+          SPRING_API_BASE_URL: ${{ secrets.SPRING_API_BASE_URL }}
+          FASTAPI_BASE_URL: ${{ secrets.FASTAPI_BASE_URL }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -145,6 +149,8 @@ jobs:
             echo "CHATBOT_DATABASE_URL=${{ secrets.CHATBOT_DATABASE_URL }}" >> .env
             echo "SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }}" >> .env
             echo "SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }}" >> .env
+            echo "SPRING_API_BASE_URL=${{ secrets.SPRING_API_BASE_URL }}" >> .env
+            echo "FASTAPI_BASE_URL=${{ secrets.FASTAPI_BASE_URL }}" >> .env
 
             git pull origin master
 
