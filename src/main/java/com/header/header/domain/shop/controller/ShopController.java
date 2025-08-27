@@ -62,7 +62,7 @@ public class ShopController {
                 pageable
         );
 
-        return ShopApiResponse.success("조회 성공", "shops", shopsWithPaging);
+        return ShopApiResponse.success("조회 성공", "shops", shopsWithPaging.getContent());
     }
 
     /*샵 상세조회*/
