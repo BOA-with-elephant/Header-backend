@@ -12,8 +12,8 @@ public class BossReservationChatbotService {
     private String sessionId;
 
     public BossReservationChatbotService(WebClient.Builder builder){
-//        this.webClient = builder.baseUrl("http://llm:8000").build();
-        this.webClient = builder.baseUrl("http://localhost:8000").build();
+        this.webClient = builder.baseUrl("http://llm:8000").build();
+//        this.webClient = builder.baseUrl("http://localhost:8000").build();
     }
 
     public ChatResponseDTO askChatbot(Integer shopId, String question){
