@@ -111,7 +111,7 @@ class ChatBotService:
         return user_question
 
     # ------------------ 세션 기록 조회 ------------------ #
-    def get_session_history(self, session_id: str, shop_id: int) -> BaseChatMessageHistory:
+    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
         namespace = self._get_namespace(session_id)
 
         try:
