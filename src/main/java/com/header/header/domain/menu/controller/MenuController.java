@@ -5,6 +5,8 @@ import com.header.header.domain.menu.service.MenuService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,7 +49,10 @@ public class MenuController {
 
             log.debug("샵코드 {}의 메뉴 조회 완료. 조회된 개수: {}", shopCode, menus.size());
 
-            return ResponseEntity.ok(menus);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(menus, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}의 메뉴 조회 중 오류 발생", shopCode, e);
@@ -69,7 +74,10 @@ public class MenuController {
 
             log.debug("샵코드 {}의 활성화된 메뉴 조회 완료. 조회된 개수: {}", shopCode, activeMenus.size());
 
-            return ResponseEntity.ok(activeMenus);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(activeMenus, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}의 활성화된 메뉴 조회 중 오류 발생", shopCode, e);
@@ -92,7 +100,10 @@ public class MenuController {
 
             log.debug("샵코드 {}, 카테고리코드 {}의 메뉴 조회 완료. 조회된 개수: {}", shopCode, categoryCode, menus.size());
 
-            return ResponseEntity.ok(menus);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(menus, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}, 카테고리코드 {}의 메뉴 조회 중 오류 발생", shopCode, categoryCode, e);
@@ -115,7 +126,10 @@ public class MenuController {
 
             log.debug("샵코드 {}, 메뉴코드 {}의 메뉴 조회 완료", shopCode, menuCode);
 
-            return ResponseEntity.ok(menu);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(menu, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}, 메뉴코드 {}의 메뉴 조회 중 오류 발생", shopCode, menuCode, e);
@@ -138,7 +152,10 @@ public class MenuController {
 
             log.debug("샵코드 {}에서 메뉴명 '{}'로 검색 완료. 조회된 개수: {}", shopCode, menuName, menus.size());
 
-            return ResponseEntity.ok(menus);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(menus, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}에서 메뉴명 '{}'로 검색 중 오류 발생", shopCode, menuName, e);
@@ -162,7 +179,10 @@ public class MenuController {
             log.info("샵코드 {}에 메뉴 생성 완료: 메뉴코드 {}, 메뉴명 '{}'",
                 shopCode, createdMenu.getMenuCode(), createdMenu.getMenuName());
 
-            return ResponseEntity.ok(createdMenu);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(createdMenu, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}에 메뉴 생성 중 오류 발생", shopCode, e);
@@ -186,7 +206,10 @@ public class MenuController {
 
             log.info("샵코드 {}, 메뉴코드 {}의 메뉴 수정 완료", shopCode, menuCode);
 
-            return ResponseEntity.ok(updatedMenu);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+            return new ResponseEntity<>(updatedMenu, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("샵코드 {}, 메뉴코드 {}의 메뉴 수정 중 오류 발생", shopCode, menuCode, e);
