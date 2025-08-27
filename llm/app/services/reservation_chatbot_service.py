@@ -17,31 +17,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 class ChatBotService:
-    # def __init__(self, bot_name: str):
-    #     self.config = ChatBotConfig(bot_name)
-    #
-    #     # LLM, Embedding 모델 로드
-    #     self.model = ChatOpenAI(
-    #         model = self.config.get("model_name", "gpt-4o"),
-    #         temperature = self.config.get("temperature", 0.5)
-    #     )
-    #     self.embedding_model = OpenAIEmbeddings()
-    #
-    #     # Pinecone 클라이언트 초기화
-    #     pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    #
-    #     # VectorStore 초기화
-    #     self.vector_store = PineconeVectorStore(
-    #         index_name=os.getenv("PINECONE_INDEX_NAME"),
-    #         embedding=self.embedding_model,
-    #     )
     def __init__(self, bot_name: str):
         self.config = ChatBotConfig(bot_name)
 
         # LLM, Embedding 모델 로드
         self.model = ChatOpenAI(
-            model=self.config.get("model_name", "gpt-4o"),
-            temperature=self.config.get("temperature", 0.5)
+            model = self.config.get("model_name", "gpt-4o"),
+            temperature = self.config.get("temperature", 0.5)
         )
         self.embedding_model = OpenAIEmbeddings()
 
@@ -129,8 +111,8 @@ class ChatBotService:
         return user_question
 
     # ------------------ 세션 기록 조회 ------------------ #
-    def get_session_history(self, session_id: str, shop_id: int) -> BaseChatMessageHistory:
-        namespace = self._get_namespace(session_id, shop_id)
+    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
+        namespace = self._get_namespace(session_id)
 
         try:
             response_gen = self.vector_store.index.list(namespace=namespace, limit=100)
@@ -161,8 +143,7 @@ class ChatBotService:
 
     # ------------------ 세션 초기화 ------------------ #
     async def init_session(self, session_id: str, shop_id: int):
-        # namespace = self._get_namespace(session_id, shop_id)
-        namespace = f"shop-{shop_id}"
+        namespace = self._get_namespace(session_id)
 
         # 네잌스페이스 수 초과 시 자동 정리
         try:
@@ -204,7 +185,7 @@ class ChatBotService:
 
     # ------------------ LLM 응답 생성 ------------------ #
     async def generate_response(self, session_id: str, user_question: str, shop_id: int) -> str:
-        namespace = f"shop-{shop_id}"
+        namespace = self._get_namespace(session_id)
 
         # 🔹 질문의 상대 날짜를 실제 날짜로 변환
         user_question_for_llm = self.replace_relative_date_with_actual(user_question)
@@ -289,6 +270,5 @@ class ChatBotService:
         return system_prompt
 
     # ------------------ Pinecone 네임스페이스 ------------------ #
-    def _get_namespace(self, session_id: str, shop_id: int) -> str:
-        # return f"{self.config.get('name')}-{shop_id}-{session_id}"
-        return f"shop-{shop_id}"
+    def _get_namespace(self, session_id: str) -> str:
+        return f"{self.config.get('name')}-{session_id}"
