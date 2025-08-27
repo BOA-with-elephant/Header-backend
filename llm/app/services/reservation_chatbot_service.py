@@ -17,31 +17,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 class ChatBotService:
-    # def __init__(self, bot_name: str):
-    #     self.config = ChatBotConfig(bot_name)
-    #
-    #     # LLM, Embedding 모델 로드
-    #     self.model = ChatOpenAI(
-    #         model = self.config.get("model_name", "gpt-4o"),
-    #         temperature = self.config.get("temperature", 0.5)
-    #     )
-    #     self.embedding_model = OpenAIEmbeddings()
-    #
-    #     # Pinecone 클라이언트 초기화
-    #     pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    #
-    #     # VectorStore 초기화
-    #     self.vector_store = PineconeVectorStore(
-    #         index_name=os.getenv("PINECONE_INDEX_NAME"),
-    #         embedding=self.embedding_model,
-    #     )
     def __init__(self, bot_name: str):
         self.config = ChatBotConfig(bot_name)
 
         # LLM, Embedding 모델 로드
         self.model = ChatOpenAI(
-            model=self.config.get("model_name", "gpt-4o"),
-            temperature=self.config.get("temperature", 0.5)
+            model = self.config.get("model_name", "gpt-4o"),
+            temperature = self.config.get("temperature", 0.5)
         )
         self.embedding_model = OpenAIEmbeddings()
 
@@ -76,6 +58,34 @@ class ChatBotService:
             user_question = user_question.replace("이번 주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}")
             user_question = user_question.replace("이번주", f"{start_of_week.strftime('%Y-%m-%d')}~{end_of_week.strftime('%Y-%m-%d')}")
 
+        # 다음 주
+        if "다음 주" in user_question or "다음주" in user_question:
+            start_of_next_week = today + timedelta(days=7 - today.weekday())
+            end_of_next_week = start_of_next_week + timedelta(days=6)
+            user_question = user_question.replace("다음 주", f"{start_of_next_week.strftime('%Y-%m-%d')}~{end_of_next_week.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("다음주", f"{start_of_next_week.strftime('%Y-%m-%d')}~{end_of_next_week.strftime('%Y-%m-%d')}")
+
+        # 저번 주
+        if "저번 주" in user_question or "저번주" in user_question:
+            start_of_last_week = today - timedelta(days=today.weekday() + 7)
+            end_of_last_week = start_of_last_week + timedelta(days=6)
+            user_question = user_question.replace("저번 주", f"{start_of_last_week.strftime('%Y-%m-%d')}~{end_of_last_week.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("저번주", f"{start_of_last_week.strftime('%Y-%m-%d')}~{end_of_last_week.strftime('%Y-%m-%d')}")
+
+        # 저번 달
+        if "저번 달" in user_question or "저번달" in user_question:
+            if today.month == 1:
+                start_of_last_month = today.replace(year=today.year - 1, month=12, day=1)
+            else:
+                start_of_last_month = today.replace(month=today.month - 1, day=1)
+            if start_of_last_month.month == 12:
+                start_of_this_month = start_of_last_month.replace(year=start_of_last_month.year + 1, month=1)
+            else:
+                start_of_this_month = start_of_last_month.replace(month=start_of_last_month.month + 1)
+            end_of_last_month = start_of_this_month - timedelta(days=1)
+            user_question = user_question.replace("저번 달", f"{start_of_last_month.strftime('%Y-%m-%d')}~{end_of_last_month.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("저번달", f"{start_of_last_month.strftime('%Y-%m-%d')}~{end_of_last_month.strftime('%Y-%m-%d')}")
+
         # 이번 달
         if "이번 달" in user_question or "이번달" in user_question:
             start_of_month = today.replace(day=1)
@@ -83,11 +93,26 @@ class ChatBotService:
             end_of_month = next_month - timedelta(days=1)
             user_question = user_question.replace("이번 달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}")
             user_question = user_question.replace("이번달", f"{start_of_month.strftime('%Y-%m-%d')}~{end_of_month.strftime('%Y-%m-%d')}")
+
+        # 다음 달
+        if "다음 달" in user_question or "다음달" in user_question:
+            if today.month == 12:
+                start_of_next_month = today.replace(year=today.year + 1, month=1, day=1)
+            else:
+                start_of_next_month = today.replace(month=today.month + 1, day=1)
+            if start_of_next_month.month == 12:
+                next_next_month = start_of_next_month.replace(year=start_of_next_month.year + 1, month=1)
+            else:
+                next_next_month = start_of_next_month.replace(month=start_of_next_month.month + 1)
+            end_of_next_month = next_next_month - timedelta(days=1)
+            user_question = user_question.replace("다음 달", f"{start_of_next_month.strftime('%Y-%m-%d')}~{end_of_next_month.strftime('%Y-%m-%d')}")
+            user_question = user_question.replace("다음달", f"{start_of_next_month.strftime('%Y-%m-%d')}~{end_of_next_month.strftime('%Y-%m-%d')}")
+
         return user_question
 
     # ------------------ 세션 기록 조회 ------------------ #
-    def get_session_history(self, session_id: str, shop_id: int) -> BaseChatMessageHistory:
-        namespace = self._get_namespace(session_id, shop_id)
+    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
+        namespace = self._get_namespace(session_id)
 
         try:
             response_gen = self.vector_store.index.list(namespace=namespace, limit=100)
@@ -118,16 +143,49 @@ class ChatBotService:
 
     # ------------------ 세션 초기화 ------------------ #
     async def init_session(self, session_id: str, shop_id: int):
-        namespace = self._get_namespace(session_id, shop_id)
-        system_prompt = await self._get_system_prompt(user_question="", shop_id=shop_id)
-        self.vector_store.add_documents(
-            documents=[Document(page_content=f"System: {system_prompt}", metadata={"created_at": time.time()})],
-            namespace=namespace
-        )
+        namespace = self._get_namespace(session_id)
+
+        # 네잌스페이스 수 초과 시 자동 정리
+        try:
+            stats = self.vector_store.index.describe_index_stats()
+            namespaces = stats.get("namespaces", {})
+            max_allowed = 100
+
+            if len(namespaces) >= max_allowed:
+                # 오래된 순으로 정렬
+                sorted_ns = sorted(
+                    namespaces.items(),
+                    key=lambda x: x[1].get("last_updated", "9999-12-31T00:00:00")
+                )
+                # 초과된 만큼 삭제
+                for ns, _ in sorted_ns[:len(namespaces) - max_allowed + 1]:
+                    logger.info(f"🧹 자동 삭제된 네임스페이스: {ns}")
+                    self.vector_store.index.delete(delete_all=True, namespace=ns)
+        except Exception as e:
+            logger.warning(f"네임스페이스 자동 정리 실패: {e}")
+
+        # 세션 초기화
+        try:
+            system_prompt = await self._get_system_prompt(user_question="", shop_id=shop_id)
+            self.vector_store.add_documents(
+                documents=[
+                    Document(
+                        page_content=f"System: {system_prompt}",
+                        metadata={
+                            "created_at": time.time(),
+                            "session_id": session_id  # ✅ 세션 구분
+                        }
+                    )
+                ],
+                namespace=namespace
+            )
+            logger.info(f"✨ 세션 초기화 완료: shop={shop_id}, session={session_id}")
+        except Exception as e:
+            logger.error(f"❌ 세션 초기화 실패: {e}")
 
     # ------------------ LLM 응답 생성 ------------------ #
     async def generate_response(self, session_id: str, user_question: str, shop_id: int) -> str:
-        namespace = self._get_namespace(session_id, shop_id)
+        namespace = self._get_namespace(session_id)
 
         # 🔹 질문의 상대 날짜를 실제 날짜로 변환
         user_question_for_llm = self.replace_relative_date_with_actual(user_question)
@@ -146,7 +204,7 @@ class ChatBotService:
         # 체인에 대화 기록 연결
         chain_with_history = RunnableWithMessageHistory(
             chain,
-            lambda s_id: self.get_session_history(s_id, shop_id=shop_id),
+            lambda s_id: self.get_session_history(s_id),
             input_messages_key="query",
             history_messages_key="history",
         )
@@ -166,7 +224,7 @@ class ChatBotService:
 
         # AI 답변 Pinecone에 저장
         self.vector_store.add_documents(
-            documents=[Document(page_content=f"AI: {bot_answer}", metadata={"created_at": time.time()})],
+            documents=[Document(page_content=f"AI: {bot_answer}", metadata={"created_at": time.time(), "session_id" : session_id})],
             namespace=namespace
         )
 
@@ -212,5 +270,5 @@ class ChatBotService:
         return system_prompt
 
     # ------------------ Pinecone 네임스페이스 ------------------ #
-    def _get_namespace(self, session_id: str, shop_id: int) -> str:
-        return f"{self.config.get('name')}-{shop_id}-{session_id}"
+    def _get_namespace(self, session_id: str) -> str:
+        return f"{self.config.get('name')}-{session_id}"
