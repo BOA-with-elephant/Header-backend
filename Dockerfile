@@ -54,7 +54,6 @@ WORKDIR /app
 # ===== Locale 세팅 추가 =====
 RUN apt-get update && apt-get install -y locales \
     && locale-gen ko_KR.UTF-8 \
-    && update-locale LANG=ko_KR.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV LANG=ko_KR.UTF-8
