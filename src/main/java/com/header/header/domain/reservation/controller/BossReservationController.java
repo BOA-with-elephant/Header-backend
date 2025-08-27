@@ -32,7 +32,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/my-shops/{shopCode}/reservation")
+@RequestMapping(value = "/api/v1/my-shops/{shopCode}/reservation", produces = "application/json; charset=UTF-8")
 @CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"},
         allowedHeaders = "*",
         methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
@@ -42,7 +42,6 @@ public class BossReservationController {
     private final MessageSendFacadeService messageSendFacadeService;
     private final VisitorsService visitorsService;
     private final VisitorsRepository visitorsRepository;
-//    private final GetUserInfoByAuthDetails getUserInfoByAuthDetails;
 
     public BossReservationController(BossReservationService bossReservationService, MessageSendFacadeService messageSendFacadeService, VisitorsService visitorsService, VisitorsRepository visitorsRepository){
         this.bossReservationService = bossReservationService;

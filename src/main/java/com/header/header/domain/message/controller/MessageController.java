@@ -32,7 +32,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages
      */
-    @PostMapping("/messages")
+    @PostMapping(value = "/messages", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
             @PathVariable Integer shopId,
             @RequestBody MessageRequest requestBody)
@@ -53,7 +53,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @GetMapping("/messages/template")
+    @GetMapping(value = "/messages/template", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<List<MessageTemplateResponse>>> getTemplateList(
             @PathVariable Integer shopId) {
         List<MessageTemplateResponse> response = messageTemplateService.getAllTypeTemplateList(shopId);
@@ -68,7 +68,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @PostMapping("/messages/template")
+    @PostMapping(value="/messages/template", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<String>> registerTemplate(
             @PathVariable Integer shopId,
             @RequestBody MessageTemplateRequest requestBody
@@ -93,7 +93,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @PutMapping("/messages/template")
+    @PutMapping(value = "/messages/template", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<String>> modifyTemplateContent(
             @PathVariable Integer shopId,
             @RequestBody MessageTemplateRequest requestBody
@@ -120,7 +120,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/template
      */
-    @DeleteMapping("/messages/template/{templateCode}")
+    @DeleteMapping(value = "/messages/template/{templateCode}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<String>> deleteTemplate(
             @PathVariable Integer shopId,
             @PathVariable Integer templateCode
@@ -137,7 +137,7 @@ public class MessageController extends MyShopBaseController {
      *
      * 최종 URL: /api/v1/my-shops/{shopId}/messages/history
      */
-    @GetMapping("/messages/history")
+    @GetMapping(value = "/messages/history", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<List<MessageBatchListResponse>>> getMessageHistoryList(
             @PathVariable Integer shopId) {
 
@@ -161,7 +161,7 @@ public class MessageController extends MyShopBaseController {
      * @param batchCode 배치 코드
      * @return ResponseEntity<ApiResponse<MessageHistoryResponse>>
      */
-    @GetMapping("/messages/history/{batchCode}")
+    @GetMapping(value = "/messages/history/{batchCode}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<MessageHistoryResponse>> getMessageBatchDetail(
             @PathVariable Integer shopId,
             @PathVariable Integer batchCode
@@ -177,7 +177,7 @@ public class MessageController extends MyShopBaseController {
      * @param historyCode 히스토리 코드
      * @return ResponseEntity<ApiResponse<String>>
      */
-    @GetMapping("/messages/history/{batchCode}/{historyCode}")
+    @GetMapping(value = "/messages/history/{batchCode}/{historyCode}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<ApiResponse<String>> getReceiverMessageContent(
             @PathVariable Integer shopId,
             @PathVariable Integer batchCode,
