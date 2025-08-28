@@ -16,13 +16,13 @@ import java.util.List;
 @NoArgsConstructor
 public class ReservationDateAndTimeDTO {
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate targetDate;
 
-    @JsonFormat(pattern = "HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private List<LocalTime> availableTimes;
 
-    @JsonFormat(pattern = "HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private List<LocalTime> reservedTimes;
 
     public ReservationDateAndTimeDTO(LocalDate targetDate, List<LocalTime> availableTimes, List<LocalTime> reservedTimes){
