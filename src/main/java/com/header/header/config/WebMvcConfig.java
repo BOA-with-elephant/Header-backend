@@ -18,6 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         converter.setDefaultCharset(StandardCharsets.UTF_8);converter.setSupportedMediaTypes(List.of(
                 new MediaType("application", "json", StandardCharsets.UTF_8)
         ));
+        converters.clear();
         converters.add(converter);
     }
 }
