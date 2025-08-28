@@ -5,13 +5,10 @@ import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
-import com.header.header.auth.model.service.EmailService;
 import com.header.header.common.dto.ResponseDTO;
-import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.service.UserFacadeService;
 import com.header.header.domain.user.service.UserService;
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -23,8 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.FailedLoginException;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @Slf4j
