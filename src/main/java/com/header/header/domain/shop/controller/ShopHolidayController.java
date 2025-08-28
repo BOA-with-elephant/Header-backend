@@ -1,8 +1,9 @@
 package com.header.header.domain.shop.controller;
 
 import com.header.header.auth.model.AuthDetails;
+import com.header.header.common.dto.response.ShopApiResponse;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
-import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.common.dto.response.ResponseMessage;
 import com.header.header.domain.shop.dto.HolCreationDTO;
 import com.header.header.domain.shop.dto.HolResDTO;
 import com.header.header.domain.shop.dto.HolUpdateDTO;
@@ -14,9 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,11 +39,7 @@ public class ShopHolidayController {
 
         List<ShopHolidayInfo> holidayList = shopHolidayService.getShopHolidayInfo(adminCode, shopCode);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("holiday-list", holidayList);
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("holiday-list", holidayList);
     }
 
     /* 신규 휴일 등록 */
@@ -58,10 +53,7 @@ public class ShopHolidayController {
 
         HolResDTO res = shopHolidayService.createShopHoliday(adminCode, shopCode, dto);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("created-holiday", res);
-
-        return ResponseEntity.ok().body(new ResponseMessage(201, "휴일 생성 성공", responseMap));
+        return ShopApiResponse.create("holiday-list", res);
     }
 
     /* 휴일 정보 수정 */
@@ -76,10 +68,7 @@ public class ShopHolidayController {
 
         HolResDTO res = shopHolidayService.updateShopHoliday(adminCode, shopCode, shopHolCode, dto);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("updated-holiday", res);
-
-        return ResponseEntity.ok().body(new ResponseMessage(201, "휴일 수정 성공", responseMap));
+        return ShopApiResponse.update("updated-holiday", res);
     }
 
 

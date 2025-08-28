@@ -1,11 +1,12 @@
 package com.header.header.domain.shop.controller;
 
 import com.header.header.auth.model.AuthDetails;
+import com.header.header.common.dto.response.ShopApiResponse;
 import com.header.header.domain.reservation.dto.UserReservationDTO;
 import com.header.header.domain.reservation.projection.UserReservationDetail;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
-import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.common.dto.response.ResponseMessage;
 import com.header.header.domain.shop.dto.ShopWithMenusSummaryDTO;
 import com.header.header.domain.shop.projection.ShopDetailResponse;
 import com.header.header.domain.shop.service.ShopService;
@@ -19,9 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -61,11 +60,7 @@ public class ShopController {
                 pageable
         );
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shops", shopsWithPaging.getContent());
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("shops", shopsWithPaging.getContent());
     }
 
     /*샵 상세조회*/
@@ -76,11 +71,7 @@ public class ShopController {
         List<ShopDetailResponse> shopDetail
                 = shopService.readShopDetailByShopCode(shopCode);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("shop-detail", shopDetail);
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("shop-detail", shopDetail);
     }
 
     /*Post 새로운 예약 생성 */
@@ -96,11 +87,7 @@ public class ShopController {
         Optional<UserReservationDetail> reservationResult
                 = userReservationService.createReservation(shopCode, dto);
 
-        // 응답 데이터 설정
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("reservation-result", reservationResult);
-
-        return ResponseEntity.ok().body(new ResponseMessage(201, "리소스 생성 성공", responseMap));
+        return ShopApiResponse.create("reservation-result", reservationResult);
     }
 
 }

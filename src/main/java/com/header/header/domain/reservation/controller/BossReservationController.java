@@ -1,33 +1,20 @@
 package com.header.header.domain.reservation.controller;
 
-import com.header.header.domain.message.dto.MessageRequest;
 import com.header.header.domain.message.service.MessageSendFacadeService;
-import com.header.header.domain.reservation.dto.BossReservationDTO;
 import com.header.header.domain.reservation.dto.BossResvInputDTO;
 import com.header.header.domain.reservation.dto.BossResvProjectionDTO;
-import com.header.header.domain.reservation.entity.BossReservation;
 import com.header.header.domain.reservation.enums.ReservationState;
 import com.header.header.domain.reservation.service.BossReservationService;
 import com.header.header.domain.sales.dto.SalesDTO;
-import com.header.header.domain.shop.common.ResponseMessage;
-import com.header.header.domain.visitors.dto.VisitorCreateRequest;
-import com.header.header.domain.visitors.enitity.Visitors;
+import com.header.header.common.dto.response.ResponseMessage;
 import com.header.header.domain.visitors.repository.VisitorsRepository;
 import com.header.header.domain.visitors.service.VisitorsService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import retrofit2.http.GET;
-import retrofit2.http.Path;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j

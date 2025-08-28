@@ -1,4 +1,4 @@
-package com.header.header.domain.shop.common;
+package com.header.header.common.dto.response;
 
 import java.util.Map;
 
