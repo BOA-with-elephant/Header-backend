@@ -101,6 +101,11 @@ class VisitorsChatBotService:
             plan["required_apis"] = []
             plan["fallback_strategy"] = "out_of_scope_response"
 
+        elif intent == "general":
+            # 일반 대화는 API 호출 없이 템플릿 응답 처리
+            plan["required_apis"] = []
+            plan["fallback_strategy"] = "general_template_response"
+
         return plan
 
     async def _collect_required_data(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
@@ -353,6 +358,10 @@ class VisitorsChatBotService:
         if analysis.get("intent") == "out_of_scope":
             return self._handle_out_of_scope_response(user_question, analysis)
 
+        # 일반 대화 처리 (템플릿 응답)
+        if analysis.get("intent") == "general":
+            return self._handle_general_response(user_question, analysis)
+
         # 데이터 수집 실패 시 대안 제시
         if not collected_data["success"] and (collected_data["failed"] or collected_data["errors"]):
             return self._handle_data_collection_failure(user_question)
@@ -564,6 +573,31 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
             
         # 일반적인 범위 외 응답
         return error_responses.get("general", "죄송해요, 그 부분은 제가 도와드릴 수 없는 영역이에요.")
+
+    def _handle_general_response(self, user_question: str, analysis: Dict[str, Any]) -> str:
+        """일반 대화에 대한 템플릿 응답 생성"""
+        logger.info(f"💬 일반 대화 처리: {user_question}")
+        
+        question_lower = user_question.lower()
+        general_responses = self.config.get("error_responses", {}).get("general_responses", {})
+        
+        # 인사 관련
+        greeting_keywords = ["안녕", "hi", "hello", "헬로", "좋은", "반가"]
+        if any(keyword in question_lower for keyword in greeting_keywords):
+            return general_responses.get("greeting", general_responses.get("default", "안녕하세요!"))
+            
+        # 도움말 관련
+        help_keywords = ["도움", "help", "뭐", "what", "할 수", "기능", "메뉴"]
+        if any(keyword in question_lower for keyword in help_keywords):
+            return general_responses.get("help", general_responses.get("default", "도움이 필요하시군요!"))
+            
+        # 감사 관련
+        thanks_keywords = ["고마", "감사", "thanks", "thank you", "고맙"]
+        if any(keyword in question_lower for keyword in thanks_keywords):
+            return general_responses.get("thanks", general_responses.get("default", "천만에요!"))
+            
+        # 기본 응답
+        return general_responses.get("default", "안녕하세요! 뷰티샵 고객관리 도우미입니다!")
 
     def _handle_data_collection_failure(self, user_question: str) -> str:
         """데이터 수집 실패시 자연스러운 대안 응답"""
