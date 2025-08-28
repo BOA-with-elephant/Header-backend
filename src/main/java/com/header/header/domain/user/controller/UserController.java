@@ -2,12 +2,13 @@ package com.header.header.domain.user.controller;
 
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.common.dto.ResponseDTO;
-import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.service.UserFacadeService;
+import com.header.header.domain.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +30,8 @@ public class UserController {
     private final UserFacadeService userFacadeService;
     @Autowired
     private AuthUserService authUserService;
+    @Autowired
+    private UserService userService;
 
     public UserController(UserFacadeService userFacadeService) {
         this.userFacadeService = userFacadeService;
@@ -49,8 +52,7 @@ public class UserController {
             return ResponseEntity
                     .ok()
                     .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
-                    //.body(new ResponseDTO(HttpStatus.OK, "로그인 성공")); //tokenDTO에서 JWT 노출됨. 삭제필요
-                    .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", tokenDTO));
+                    .body(new ResponseDTO(HttpStatus.OK, "로그인 성공")); //tokenDTO에서 JWT 노출됨. 삭제필요
 
         } catch (FailedLoginException e) {
             log.error("[UserController] Login Failed: {}", e.getMessage());
@@ -66,11 +68,11 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<ResponseDTO> signup(@RequestBody UserDTO userDTO) {    // 회원 가입 정보를 받아 냄
+    public ResponseEntity<ResponseDTO> signup(@RequestBody SignupDTO signupDTO) {    // 회원 가입 정보를 받아 냄
         return ResponseEntity
                 .ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
-                .body(new ResponseDTO(HttpStatus.CREATED, "회원가입 성공", userFacadeService.registerUser(userDTO)));
+                .body(new ResponseDTO(HttpStatus.CREATED, "회원가입 성공", userFacadeService.registerUser(signupDTO)));
     }
 
     @PutMapping("/profile")

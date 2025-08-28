@@ -1,8 +1,6 @@
 package com.header.header.common.exception;
 
-import com.header.header.auth.exception.DuplicatedPhoneException;
-import com.header.header.auth.exception.DuplicatedUserIdException;
-import com.header.header.auth.exception.RegistrationUnknownException;
+import com.header.header.auth.exception.*;
 import com.header.header.domain.chatbot.exception.ChatbotException;
 import com.header.header.domain.chatbot.exception.ChatbotErrorCode;
 import com.header.header.common.dto.ResponseDTO;
@@ -377,5 +375,53 @@ public class GlobalExeptionHandlerForApiResponse {
                 request.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // SameNameException 처리 (400 BAD_REQUEST)
+    @ExceptionHandler(SameNameException.class)
+    public ResponseEntity<ErrorResponse> handleSameNameException (SameNameException ex, WebRequest request) {
+        log.warn("SameNameException 발생: {}", ex.getMessage());
+        // ErrorResponse의 of() 팩토리 메소드 사용
+        ErrorResponse errorResponse = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // SamePhoneException 처리 (400 BAD_REQUEST)
+    @ExceptionHandler(SamePhoneException.class)
+    public ResponseEntity<ErrorResponse> handleSamePhoneException (SamePhoneException ex, WebRequest request){
+        log.warn("SamePhoneException 발생 : {}", ex.getMessage());
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // SamePwdException 처리(400 BAD_REQUEST)
+    @ExceptionHandler(SamePwdException.class)
+    public ResponseEntity<ErrorResponse> handleSamePwdException (SamePwdException ex, WebRequest request){
+        //예외 발생 시 서버 로그를 남기는 코드
+        log.warn("SamePwdException 발생 : {}", ex.getMessage());
+        // ex.getMessage() : 발생한 예외(ex) 객체에 담긴 예외 메시지를 가져옵
+        ErrorResponse response = ErrorResponse.of(
+                // HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase():
+                // HTTP 상태 코드 400(Bad Request)의 숫자 값(400)과
+                // HTTP 상태 코드 400에 해당하는 문구인 "Bad Request"를 가져온다.
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                //request.getDescription(false).replace("uri=", ""): WebRequest 객체에서 요청 URI와 같은 요청 정보를 가져옵니다.
+                //        getDescription(false)는 요청 URI를 uri= 형태로 반환하기 때문에
+                //        replace("uri=", "")를 통해 uri= 부분을 제거하고 순수한 URI만 남긴다.
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

@@ -50,9 +50,9 @@ public class AuthDetails implements UserDetails {
         //userId를 갖고 와서 해당하는 일치하는 userName을 출력한다.  15:04
     }
 
-    public Integer getShopCode() {
+    public List<Integer> getShopCode() {
         // AuthDetails에서 직접 shopCode를 관리하는 대신, LoginUserDTO의 shopCode를 반환
-        return this.loginUserDTO.getShopCode();
+        return this.loginUserDTO.getShopCodes();
     }
 
     @Override

@@ -14,7 +14,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,35 +59,32 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 1. 인증된 사용자 정보 가져오기 (핵심!)
         LoginUserDTO loginUserDTO = null;
-
-        if (authentication.getPrincipal() instanceof AuthDetails) {
-            AuthDetails authDetails = (AuthDetails) authentication.getPrincipal();
-            loginUserDTO = authDetails.getLoginUserDTO();
-        }
+        AuthDetails authDetails = (AuthDetails) authentication.getPrincipal();
+        loginUserDTO = authDetails.getLoginUserDTO();
 
         // 2. JWT 토큰 생성 및 사용자 정보 포함 로직
         if (loginUserDTO != null) {
-            ShopDTO shopDTO;
+            List<ShopDTO> shopDTOs = shopService.findAllShopsByAdminCode(loginUserDTO.getUserCode());
 
-            shopDTO = shopService.findFirstShopByAdminCode(loginUserDTO.getUserCode());
-
-            if (shopDTO != null) {
-                loginUserDTO.setAdmin(true);
-            } else {
-                loginUserDTO.setAdmin(false);
+            // shopDTOs 리스트에서 shopCode만 추출하여 새로운 리스트를 만듭니다.
+            List<Integer> shopCodes = new ArrayList<>();
+            if (shopDTOs != null && !shopDTOs.isEmpty()) {
+                for (ShopDTO shopDTO : shopDTOs) {
+                    shopCodes.add(shopDTO.getShopCode());
+                }
             }
 
-            // shopDTO가 null이 아닌 경우에만 응답 본문에 추가 & 이 방식으로 NullPointerException을 방지할 수 있다.
-            if (shopDTO != null) {
-                responseBody.put("shopCode", shopDTO.getShopCode());
-            }
-
-            TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, shopDTO);
+            // TokenDTO 생성 시 List<ShopDTO>를 전달
+            TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, shopDTOs);
 
             String accessToken = tokenDto.getAccessToken();
 
+            // 응답 본문에 토큰 및 사용자 정보 추가
             responseBody.put("token", accessToken);
             responseBody.put("userInfo", loginUserDTO);
+
+            // 여러 개의 shopCode를 응답 본문에 추가
+            responseBody.put("shopCodes", shopCodes);
 
             response.setStatus(HttpServletResponse.SC_OK);
 

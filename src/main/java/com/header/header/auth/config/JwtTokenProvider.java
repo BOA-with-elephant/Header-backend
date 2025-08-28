@@ -16,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -38,21 +37,18 @@ public class JwtTokenProvider {
     // JWT 토큰에 권한 정보를 담을 클레임의 키
     private static final String AUTHORITIES_KEY = "role";
     private static final String BEARER_TYPE = "Bearer";
-    private final AuthUserService authUserService;
     private final UserService userService;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
                             @Value("${jwt.expiration}") long tokenValidityTime,
-                            @Lazy AuthUserService authUserService,
-                            UserService userService) {
+                            @Lazy UserService userService) {
         // 시크릿 키를 Base64 디코딩하여 Key 객체 생성
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = tokenValidityTime;
-        this.authUserService = authUserService;
         this.userService = userService;
     }
 
-    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO, ShopDTO shopDTO) {
+    public TokenDTO generateTokenDTO(LoginUserDTO loginUserDTO, List<ShopDTO> shopDTOs) {
         log.info("[TokenProvider] generateTokenDTO() Start");
 
         long now = System.currentTimeMillis();
@@ -60,7 +56,13 @@ public class JwtTokenProvider {
 
         String authorities = loginUserDTO.isAdmin() ? "ROLE_ADMIN" : "ROLE_USER";
 
-        Integer shopCode = null;
+        // Extract all shop codes into a List<Integer>
+        List<Integer> shopCodes = new ArrayList<>();
+        if (shopDTOs != null && !shopDTOs.isEmpty()) {
+            for (ShopDTO shopDTO : shopDTOs) {
+                shopCodes.add(shopDTO.getShopCode());
+            }
+        }
 
         // JWT 빌더를 준비합니다.
         JwtBuilder jwtBuilder = Jwts.builder()
@@ -69,10 +71,9 @@ public class JwtTokenProvider {
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS512);
 
-        // shopDTO가 null이 아닌 경우에만 shopCode 클레임 추가.
-        if (shopDTO != null && loginUserDTO.getUserCode().equals(shopDTO.getAdminCode())) {
-            shopCode = shopDTO.getShopCode();
-            jwtBuilder.claim("shopCode", shopCode);
+        // shopCodes가 비어있지 않은 경우에만 클레임에 추가합니다.
+        if (!shopCodes.isEmpty()) {
+            jwtBuilder.claim("shopCodes", shopCodes);
         }
 
         // JWT 토큰 생성
@@ -82,7 +83,8 @@ public class JwtTokenProvider {
 
         log.info("[TokenProvider] generateTokenDTO() End");
 
-        return new TokenDTO(BEARER_TYPE, loginUserDTO.getUserId(), shopCode, accessToken, accessTokenExpiresIn.getTime());
+        // TokenDTO도 여러 개의 shopCode를 받을 수 있도록 수정해야 합니다.
+        return new TokenDTO(BEARER_TYPE, loginUserDTO.getUserId(), shopCodes, accessToken, accessTokenExpiresIn.getTime());
     }
 
     /**
@@ -119,7 +121,7 @@ public class JwtTokenProvider {
         // 1. 클레임 파싱
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
-        // 2. JWT에서 사용자 ID를 추출해 UserService로 사용자 정보 로드 (이전처럼 userService.findByUserId 사용 가능)
+        // 2. JWT에서 사용자 ID를 추출해 UserService로 사용자 정보 로드
         String userId = claims.getSubject();
         LoginUserDTO loginUserDTO = userService.findByUserId(userId);
 
@@ -128,14 +130,16 @@ public class JwtTokenProvider {
             throw new UsernameNotFoundException("User not found from JWT subject: " + userId);
         }
 
-        // 4. JWT에서 shopCode 클레임 추출 및 DTO에 직접 설정
-        Integer shopCode = (Integer) claims.get("shopCode");
-        if (shopCode != null) {
-            loginUserDTO.setShopCode(shopCode);
+        // 4. JWT에서 List<Integer> 타입의 shopCodes 클레임 추출
+        // `get` 메소드의 두 번째 인자로 List.class를 사용하여 타입 캐스팅 오류를 방지합니다.
+        List<Integer> shopCodes = claims.get("shopCodes", List.class);
+        if (shopCodes != null) {
+            // LoginUserDTO에 List<Integer>를 받을 수 있는 setShopCodes 메소드 추가 필요
+            loginUserDTO.setShopCodes(shopCodes);
         }
 
         // 5. 업데이트된 DTO로 AuthDetails 객체 생성
-        AuthDetails principal = new AuthDetails(loginUserDTO); // DTO 하나만 받는 생성자 사용
+        AuthDetails principal = new AuthDetails(loginUserDTO);
 
         // 6. 권한 목록 생성
         Collection<? extends GrantedAuthority> authorities =

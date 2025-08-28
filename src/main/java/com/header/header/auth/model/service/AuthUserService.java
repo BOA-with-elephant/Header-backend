@@ -7,6 +7,7 @@ import com.header.header.auth.exception.DuplicatedPhoneException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.domain.shop.dto.ShopDTO;
 import com.header.header.domain.shop.service.ShopService;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.FailedLoginException;
+import java.util.List;
 
 @Service
 public class AuthUserService implements UserDetailsService {
@@ -69,11 +71,11 @@ public class AuthUserService implements UserDetailsService {
         loginUserDTO.setAdmin(user.isAdmin());
 
         // Shop 정보를 가져오는 로직 추가
-        ShopDTO shopDTO = shopService.findFirstShopByAdminCode(user.getUserCode());
+        List<ShopDTO> shopDTO = shopService.findAllShopsByAdminCode(user.getUserCode());
 
         TokenDTO tokenDto = jwtTokenProvider.generateTokenDTO(loginUserDTO, shopDTO);
 
-        log.info("[AuthService] login() Token Generated: {}", tokenDto); //⭐accessToken 여기서 노출! 확인하고 삭제할 것⭐
+        log.info("[AuthService] login() Token Generated");
         log.info("[AuthService] login() END");
 
         return tokenDto; // TokenDTO 객체를 직접 반환
@@ -81,37 +83,37 @@ public class AuthUserService implements UserDetailsService {
 
     /** save : registerNewUser
      -> UserDTO 사용
-     @param userDTO 생성할 user 정보가 담긴 DTO
+     @param signupDTO 생성할 user 정보가 담긴 DTO
      @return 생성된 signupDTO(user관련 DTO)
-     이미 존재하는 아이디나 전화번호일 때 */
-    public UserDTO signup(UserDTO userDTO) {
+     이미 존재하는 아이디나 전화번호일 때 Exception 반환 */
+    public UserDTO signup(SignupDTO signupDTO) {
         log.info("[AuthService] Let's start signup().");
         log.info("[AuthService] userDTO 생성");
 
         /* 1. 중복 유효성 검사 */
         // 중복확인 1 : userId
-        if (userRepository.existsByUserId(userDTO.getUserId())) {
+        if (userRepository.existsByUserId(signupDTO.getUserId())) {
             log.info("[AuthService] 아이디 중복");
             throw new DuplicatedUserIdException(ApiResponse.DUPLICATE_ID.getMessage());
         }
         // 중복확인 2 : userPhone
-        if (userRepository.existsByUserPhone(userDTO.getUserPhone())) {
+        if (userRepository.existsByUserPhone(signupDTO.getUserPhone())) {
             log.info("[AuthService] 전화번호 중복");
             throw new DuplicatedPhoneException(ApiResponse.DUPLICATE_PHONE.getMessage());
         }
 
         try {
             // 2. 비밀번호 암호화
-            String encodedPassword = passwordEncoder.encode(userDTO.getUserPwd());
+            String encodedPassword = passwordEncoder.encode(signupDTO.getUserPwd());
 
             // 3. User 엔티티 생성 및 기본 권한(isAdmin=false) 설정
             User registUser = new User(
-                    userDTO.getUserId(),
+                    signupDTO.getUserId(),
                     encodedPassword,
                     false, // isAdmin: 회원가입 시 기본값은 false (일반 사용자)
-                    userDTO.getUserName(),
-                    userDTO.getUserPhone(),
-                    userDTO.getBirthday(),
+                    signupDTO.getUserName(),
+                    signupDTO.getUserPhone(),
+                    signupDTO.getBirthday(),
                     false  // isLeave: 회원가입 시 기본값은 false (탈퇴하지 않음)
             );
 
@@ -122,7 +124,15 @@ public class AuthUserService implements UserDetailsService {
             log.info("[AuthService] 유저 생성 결과, {}",
                     (result != null) ? "회원 가입 성공" : "회원 가입 실패");
 
-            return userDTO;
+            return new UserDTO(signupDTO.getUserCode(),
+                             signupDTO.getUserId(),
+                            signupDTO.getUserPwd(),
+                            0,
+                            signupDTO.getUserName(),
+                            signupDTO.getUserPhone(),
+                            signupDTO.getBirthday(),
+                            0
+                    );
 
         } catch (Exception e) {
             log.error("회원가입 중 알 수 없는 오류 발생", e);

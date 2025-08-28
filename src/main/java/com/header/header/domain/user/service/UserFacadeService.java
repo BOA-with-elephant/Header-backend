@@ -5,6 +5,7 @@ import com.header.header.auth.exception.DuplicatedUserIdException;
 import com.header.header.auth.exception.RegistrationUnknownException;
 import com.header.header.auth.model.AuthDetails;
 import com.header.header.auth.model.dto.LoginUserDTO;
+import com.header.header.auth.model.dto.SignupDTO;
 import com.header.header.auth.model.dto.TokenDTO;
 import com.header.header.auth.model.service.AuthUserService;
 import com.header.header.domain.user.dto.UserDTO;
@@ -43,13 +44,13 @@ public class UserFacadeService {
 
     /* 3. 회원가입 처리 (중복검사 포함) */
     @Transactional
-    public UserDTO registerUser(UserDTO userDTO) { // SignupDTO 대신 UserDTO를 파라미터로 받음
-        log.info("[UserFacadeService] registerUser() started with UserDTO: {}", userDTO);
+    public UserDTO registerUser(SignupDTO signupDTO) { // SignupDTO 대신 UserDTO를 파라미터로 받음
+        log.info("[UserFacadeService] registerUser() started with UserDTO: {}", signupDTO);
 
         try {
             // AuthService의 signup 메소드를 호출하여 회원가입 처리
             // 비밀번호 암호화 및 중복 검사는 AuthService 내부에서 모두 처리됩니다.
-            UserDTO registeredUser = authService.signup(userDTO);
+            UserDTO registeredUser = authService.signup(signupDTO);
             log.info("[UserFacadeService] User registration successful for user: {}", registeredUser.getUserId());
             return registeredUser;
         } catch (DuplicatedUserIdException e) {
