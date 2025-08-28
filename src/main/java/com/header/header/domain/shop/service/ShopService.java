@@ -101,7 +101,7 @@ public class ShopService {
         /*사용자가 카테고리 검색을 했을 때 유효성 검사 실시*/
         if (categoryCode != null) {
 
-        ShopCategory category = shopCategoryRepository.findById(categoryCode)
+        shopCategoryRepository.findById(categoryCode)
                 .orElseThrow(() -> new ShopExceptionHandler(ShopErrorCode.SHOP_CATEGORY_NOT_FOUND));
         }
 

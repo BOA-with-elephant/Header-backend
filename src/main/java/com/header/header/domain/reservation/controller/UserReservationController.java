@@ -1,6 +1,7 @@
 package com.header.header.domain.reservation.controller;
 
 import com.header.header.auth.model.AuthDetails;
+import com.header.header.common.dto.response.ShopApiResponse;
 import com.header.header.domain.reservation.dto.ReservationDateAndTimeDTO;
 import com.header.header.domain.reservation.dto.UserReservationSearchConditionDTO;
 import com.header.header.domain.reservation.dto.UserResvAvailableScheduleDTO;
@@ -9,7 +10,7 @@ import com.header.header.domain.reservation.projection.UserReservationForLLM;
 import com.header.header.domain.reservation.projection.UserReservationSummary;
 import com.header.header.domain.reservation.service.UserReservationService;
 import com.header.header.domain.shop.common.GetUserInfoByAuthDetails;
-import com.header.header.domain.shop.common.ResponseMessage;
+import com.header.header.common.dto.response.ResponseMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -51,10 +52,7 @@ public class UserReservationController {
         List<UserReservationSummary> reservationSummaryList
                 = userReservationService.findResvSummaryByUserCode(condition);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("resv-list", reservationSummaryList);
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("resv-list", reservationSummaryList);
     }
 
     /*특정 예약 내역을 상세조회할 경우*/
@@ -69,10 +67,7 @@ public class UserReservationController {
         Optional<UserReservationDetail> resvDetail
                 = userReservationService.readDetailByUserCodeAndResvCode(userCode, resvCode);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("resv-detail", resvDetail);
-
-        return ResponseEntity.ok().body(new ResponseMessage(200, "조회 성공", responseMap));
+        return ShopApiResponse.read("resv-detail", resvDetail);
     }
 
     /*예약을 취소할 경우*/
@@ -85,8 +80,7 @@ public class UserReservationController {
 
         userReservationService.cancelReservation(userCode, resvCode);
 
-        return ResponseEntity.ok().body(
-                new ResponseMessage(204, "삭제 성공", null));
+        return ShopApiResponse.delete();
     }
 
     // 가능한 시간을 선택, 추출하여 json 형식으로 보내줌
@@ -99,12 +93,7 @@ public class UserReservationController {
 
         List<UserResvAvailableScheduleDTO> scheduleList = userReservationService.getAvailableSchedule(shopCode, dateRangeToGet);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("schedule", scheduleList);
-
-        return ResponseEntity.ok().body(
-                new ResponseMessage(200, "조회 성공", responseMap)
-        );
+        return ShopApiResponse.read("schedule", scheduleList);
     }
 
     @GetMapping("{shopCode}/resv-time-and-date")
@@ -128,11 +117,6 @@ public class UserReservationController {
 
         Optional<UserReservationForLLM> resvInfoForLLM = userReservationService.readUserReservationForLLM(userCode);
 
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("rev-info", resvInfoForLLM);
-
-        return ResponseEntity.ok().body(
-                new ResponseMessage(200, "조회 성공", responseMap)
-        );
+        return ShopApiResponse.read("rev-info", resvInfoForLLM);
     }
 }
