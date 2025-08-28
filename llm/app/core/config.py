@@ -3,6 +3,7 @@ from pathlib import Path
 from functools import lru_cache
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import os
 
 class ChatBotConfig:
     def __init__(self, bot_name: str):
@@ -33,7 +34,6 @@ def is_docker() -> bool:
 
 def detect_env_file():
     """환경에 따라 적절한 .env 파일을 선택"""
-    import os
 
     # Docker 환경 감지 (HOSTNAME 환경변수 또는 컨테이너 특정 조건)
     if os.getenv("HOSTNAME") or os.path.exists("/.dockerenv"):
