@@ -96,6 +96,11 @@ class VisitorsChatBotService:
                 "memo_update"
             ])
 
+        elif intent == "out_of_scope":
+            # 범위 외 쿼리는 API 호출 없이 바로 응답 처리
+            plan["required_apis"] = []
+            plan["fallback_strategy"] = "out_of_scope_response"
+
         return plan
 
     async def _collect_required_data(self, plan: Dict[str, Any], shop_id: int) -> Dict[str, Any]:
@@ -343,6 +348,10 @@ class VisitorsChatBotService:
     def _generate_natural_response(self, user_question: str, analysis: Dict[str, Any],
                                    collected_data: Dict[str, Any]) -> str:
         """수집된 데이터를 기반으로 자연스러운 응답 생성"""
+        
+        # 범위 외 쿼리 처리
+        if analysis.get("intent") == "out_of_scope":
+            return self._handle_out_of_scope_response(user_question, analysis)
 
         # 데이터 수집 실패 시 대안 제시
         if not collected_data["success"] and (collected_data["failed"] or collected_data["errors"]):
@@ -531,6 +540,31 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
             logger.error(f"❌ Redis 데이터 요청 실패 - {request_type}: {e}")
             return None
     
+    def _handle_out_of_scope_response(self, user_question: str, analysis: Dict[str, Any]) -> str:
+        """범위 외 쿼리에 대한 적절한 응답 생성"""
+        logger.info(f"🚫 범위 외 쿼리 감지: {user_question}")
+        
+        question_lower = user_question.lower()
+        error_responses = self.config.get("error_responses", {}).get("out_of_scope", {})
+        
+        # 미래 날짜 관련 쿼리
+        future_keywords = ["내일", "tomorrow", "다음", "next"]
+        if any(keyword in question_lower for keyword in future_keywords):
+            return error_responses.get("future_date", error_responses.get("general", ""))
+            
+        # 결제/매출 관련
+        payment_keywords = ["결제", "payment", "매출", "revenue", "돈", "money"]
+        if any(keyword in question_lower for keyword in payment_keywords):
+            return error_responses.get("payment_revenue", error_responses.get("general", ""))
+            
+        # 직원/근무 관련
+        staff_keywords = ["직원", "staff", "근무", "출퇴근", "employee"]
+        if any(keyword in question_lower for keyword in staff_keywords):
+            return error_responses.get("staff_management", error_responses.get("general", ""))
+            
+        # 일반적인 범위 외 응답
+        return error_responses.get("general", "죄송해요, 그 부분은 제가 도와드릴 수 없는 영역이에요.")
+
     def _handle_data_collection_failure(self, user_question: str) -> str:
         """데이터 수집 실패시 자연스러운 대안 응답"""
         
