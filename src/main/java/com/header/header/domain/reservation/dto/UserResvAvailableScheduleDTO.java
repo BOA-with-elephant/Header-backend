@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,8 +20,10 @@ public class UserResvAvailableScheduleDTO {
 
     /* 날짜만 다뤄야 하기 때문에, 혹시 모를 문제점을 방지하기 위해 LocalDate 사용
     *  + LocalDate는 불변 객체로 스레드 안전성을 보장한다 */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate targetDate;
 
     // 현재 시간대 정보 필요해서 LocalTime 사용
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private List<LocalTime> availableTimes;
 }

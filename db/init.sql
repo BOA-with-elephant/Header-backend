@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 create database if not exists `headerdb`;
 grant all privileges on headerdb.* to 'ohgiraffers'@'%';
 
