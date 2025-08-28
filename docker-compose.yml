@@ -93,7 +93,7 @@ services:
     # ./init.sql:/docker-entrypoint-initdb.d/init.sql : 컨테이너 시작 시 init.sql을 자동 실행(테이블 생성 등 초기화 작업 가능)
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:rw
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD" ]
       interval: 20s
