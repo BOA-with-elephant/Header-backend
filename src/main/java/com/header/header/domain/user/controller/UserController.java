@@ -36,13 +36,10 @@ public class UserController {
     @Autowired
     private AuthUserService authUserService;
     @Autowired
-    private final EmailService emailService;
-    @Autowired
     private UserService userService;
 
-    public UserController(UserFacadeService userFacadeService, EmailService emailService) {
+    public UserController(UserFacadeService userFacadeService) {
         this.userFacadeService = userFacadeService;
-        this.emailService = emailService; // The emailService parameter from the constructor is assigned to the emailService field.
     }
 
     /* 설명.
@@ -60,8 +57,7 @@ public class UserController {
             return ResponseEntity
                     .ok()
                     .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
-                    //.body(new ResponseDTO(HttpStatus.OK, "로그인 성공")); //tokenDTO에서 JWT 노출됨. 삭제필요
-                    .body(new ResponseDTO(HttpStatus.OK, "로그인 성공", tokenDTO));
+                    .body(new ResponseDTO(HttpStatus.OK, "로그인 성공")); //tokenDTO에서 JWT 노출됨. 삭제필요
 
         } catch (FailedLoginException e) {
             log.error("[UserController] Login Failed: {}", e.getMessage());
@@ -146,69 +142,5 @@ public class UserController {
                 .ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                 .body(new ResponseDTO(HttpStatus.OK, "본인 확인 완료", null));
-    }
-
-    /**
-     * 이메일로 인증번호를 발송하는 엔드포인트
-     */
-    @PostMapping("/verification-code")
-    public ResponseEntity<ResponseDTO> sendVerificationCode(@RequestBody SignupDTO signupDTO, HttpSession httpSession){
-        try{
-            int authNumber = emailService.sendMail(signupDTO.getUserEmail());
-            httpSession.setAttribute(signupDTO.getUserEmail(), String.valueOf(authNumber));
-            // userId와 userEmail을 세션에 저장
-            httpSession.setAttribute("userId", signupDTO.getUserId());
-            httpSession.setAttribute("userEmail", signupDTO.getUserEmail());
-            return ResponseEntity.ok()
-                    .body(new ResponseDTO(HttpStatus.OK, "인증번호가 발송되었습니다.", null));
-        }
-        catch (Exception ex){
-            log.error("인증코드 발급 실패", ex);
-            return ResponseEntity.badRequest()
-                    .body(new ResponseDTO(HttpStatus.BAD_REQUEST, "인증코드 발급이 실패하였습니다.", null));
-        }
-    }
-
-    /**
-     * 사용자가 입력한 인증번호를 검증하는 엔드포인트
-     */
-    @PostMapping("/verification-code/validate")
-    public ResponseEntity<ResponseDTO> validateVerificationCode(@RequestBody Map<String, String> requestBody, HttpSession httpSession) {
-        String userEmail = requestBody.get("userEmail");
-        String verifyCode = requestBody.get("verifyCode");
-
-        try {
-            boolean isVerified = emailService.checkAuthNum(userEmail, verifyCode);
-            if (isVerified) {
-                httpSession.removeAttribute(userEmail); // 인증 성공 후 세션에서 제거
-                return ResponseEntity.ok()
-                        .body(new ResponseDTO(HttpStatus.OK, "인증이 성공적으로 완료되었습니다.", null));
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ResponseDTO(HttpStatus.BAD_REQUEST, "인증번호가 올바르지 않습니다.", null));
-            }
-        } catch (Exception ex) {
-            log.error("인증번호 확인 실패", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseDTO(HttpStatus.INTERNAL_SERVER_ERROR, "인증 절차 중 오류가 발생했습니다.", null));
-        }
-    }
-
-    /**
-     * 세션에서 사용자 정보를 가져오는 엔드포인트
-     */
-    @GetMapping("/session/user-info")
-    public ResponseEntity<Map<String, String>> getUserInfoFromSession(HttpSession session) {
-        String userId = (String) session.getAttribute("userId");
-        String userEmail = (String) session.getAttribute("userEmail");
-        Map<String, String> userInfo = new HashMap<>();
-
-        if (userId != null && userEmail != null) {
-            userInfo.put("userId", userId);
-            userInfo.put("userEmail", userEmail);
-            return ResponseEntity.ok(userInfo);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
     }
 }

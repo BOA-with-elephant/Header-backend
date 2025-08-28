@@ -22,6 +22,7 @@ public class EmailService {
         this.httpSession = httpSession;
     }
 
+
     private int SignupCodeGenerator() {
         Random rn = new Random();
         String randomNumber = "";

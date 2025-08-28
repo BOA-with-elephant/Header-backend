@@ -42,8 +42,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final HttpSession httpSession;
-    private final JavaMailSenderImpl mailSender;
-    private int authNumber;
 
     /***
      * dummy user을 추가한다.
@@ -182,38 +180,5 @@ public class UserService {
         // 이 부분에 ⭐이메일 전송 로직이 추가되어야 함.
         // sendEmailForPasswordReset(user.getUserEmail()); user에는 email이 없기 때문에 이거 그대로 쓰면 안 되고 redis에 저장한 이메일 써야함
         return userDTO;
-    }
-
-    @Transactional
-    public void SignupCodeGenerator() {
-        Random rn = new Random();
-        String randomNumber = "";
-        for (int i = 0; i < 6; i++){
-            randomNumber +=Integer.toString(rn.nextInt(10));
-        }
-        this.authNumber = Integer.parseInt(randomNumber);
-    }
-
-    public MimeMessage CreateMail(String mail){
-        SignupCodeGenerator();
-        MimeMessage message = mailSender.createMimeMessage();
-        try
-        {
-            message.setRecipients(MimeMessage.RecipientType.TO, mail);
-            message.setFrom(mail);
-            message.setSubject("이메일 인증"); // 이메일 제목
-            String body = "";
-            body += "<h3>Header CRM 가입 요청 </h3>";
-            body += "<h3>요청하신 인증 번호입니다.</h3>";
-            body += "<h1>" + authNumber + "</h1>";
-            body += "<h3>  감사합니다. </h3>";
-            message.setText(body, "UTF-8", "html"); // 이메일 본문
-            log.info("sent email: {}", "@90Company");
-        }
-        catch (MessagingException e){
-            log.error("[EmailService.send()] error {}", e.getMessage());
-        }
-
-        return message;
     }
 }
