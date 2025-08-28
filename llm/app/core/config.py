@@ -50,7 +50,9 @@ class Settings(BaseSettings):
 
     # Redis 설정
     # redis_url: str = Field(default="redis://localhost:6379")
-    redis_url: str = Field(default=f"redis://{'header-redis' if is_docker() else 'localhost'}:6379")
+    redis_url: str = Field(
+        default_factory=lambda: f"redis://{os.getenv('SPRING_REDIS_HOST', 'localhost')}:{os.getenv('SPRING_REDIS_PORT', 6379)}"
+    )
     redis_stream_data_requests: str = Field(default="data-requests")
     redis_stream_data_results: str = Field(default="data-results")
     redis_consumer_group: str = Field(default="fastapi-consumers")
