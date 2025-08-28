@@ -9,16 +9,25 @@ import com.header.header.auth.model.dto.LoginUserDTO;
 import com.header.header.domain.user.dto.UserDTO;
 import com.header.header.domain.user.entity.User;
 import com.header.header.domain.user.repository.MainUserRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 import static com.header.header.auth.common.ApiResponse.*;
 import static com.header.header.auth.common.ApiResponse.SUCCESS_MODIFY_USER;
@@ -32,6 +41,9 @@ public class UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
+    private final HttpSession httpSession;
+    private final JavaMailSenderImpl mailSender;
+    private int authNumber;
 
     /***
      * dummy user을 추가한다.
@@ -126,7 +138,7 @@ public class UserService {
         if (isNotEmpty(userDTO.getUserPhone())) user.modifyUserPhone(userDTO.getUserPhone());
         if (isNotEmpty(userDTO.getUserName())) user.modifyUserName(userDTO.getUserName());
 
-        userRepository.save(user);
+        userRepository.save(user); //Put .save explicitly
 
         return SUCCESS_MODIFY_USER.getMessage();
     }
@@ -170,5 +182,38 @@ public class UserService {
         // 이 부분에 ⭐이메일 전송 로직이 추가되어야 함.
         // sendEmailForPasswordReset(user.getUserEmail()); user에는 email이 없기 때문에 이거 그대로 쓰면 안 되고 redis에 저장한 이메일 써야함
         return userDTO;
+    }
+
+    @Transactional
+    public void SignupCodeGenerator() {
+        Random rn = new Random();
+        String randomNumber = "";
+        for (int i = 0; i < 6; i++){
+            randomNumber +=Integer.toString(rn.nextInt(10));
+        }
+        this.authNumber = Integer.parseInt(randomNumber);
+    }
+
+    public MimeMessage CreateMail(String mail){
+        SignupCodeGenerator();
+        MimeMessage message = mailSender.createMimeMessage();
+        try
+        {
+            message.setRecipients(MimeMessage.RecipientType.TO, mail);
+            message.setFrom(mail);
+            message.setSubject("이메일 인증"); // 이메일 제목
+            String body = "";
+            body += "<h3>Header CRM 가입 요청 </h3>";
+            body += "<h3>요청하신 인증 번호입니다.</h3>";
+            body += "<h1>" + authNumber + "</h1>";
+            body += "<h3>  감사합니다. </h3>";
+            message.setText(body, "UTF-8", "html"); // 이메일 본문
+            log.info("sent email: {}", "@90Company");
+        }
+        catch (MessagingException e){
+            log.error("[EmailService.send()] error {}", e.getMessage());
+        }
+
+        return message;
     }
 }

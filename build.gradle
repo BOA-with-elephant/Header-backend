@@ -68,6 +68,8 @@ dependencies {
 
     // Jakarta annotations (for @PostConstruct in Spring Boot 3.x)
     implementation 'jakarta.annotation:jakarta.annotation-api'
+
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {
