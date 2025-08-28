@@ -1,5 +1,6 @@
 import json
 import re
+import random
 from typing import Dict, Any, List, Optional
 from openai import OpenAI
 from app.core.config import ChatBotConfig
@@ -264,24 +265,37 @@ class VisitorsChatBotService:
                     })
                     
             elif intent == "memo_update":
-                # 메모 업데이트 실행
+                # 메모 업데이트 실행 (감정 분석 포함)
                 try:
                     logger.info(f"🔍 2단계: 메모 업데이트")
+                    memo_content = plan["parameters"].get("memo_content", "")
+                    
+                    # 1. 감정 분석 수행
+                    sentiment_analysis = self._analyze_memo_sentiment(memo_content)
+                    
+                    # 2. 메모 저장
                     memo_params = {
                         "client_code": client_code,
-                        "memo_content": plan["parameters"].get("memo_content", "")
+                        "memo_content": memo_content
                     }
                     memo_result = await self._request_data_via_redis("memo_update", memo_params, shop_id)
                     
+                    # 3. 감정 분석 결과와 메모 저장 결과 모두 저장
                     if memo_result and memo_result.get("status") == "success":
                         collected_data["success"].append({
                             "api": "memo_update",
-                            "data": memo_result.get("data", {})
+                            "data": {
+                                "memo_result": memo_result.get("data", {}),
+                                "sentiment_analysis": sentiment_analysis,
+                                "memo_content": memo_content
+                            }
                         })
                     else:
+                        # 메모 저장은 실패했지만 감정 분석 결과는 보존
                         collected_data["failed"].append({
                             "api": "memo_update",
-                            "error": memo_result.get("error", "메모 업데이트 실패") if memo_result else "Redis 응답 없음"
+                            "error": memo_result.get("error", "메모 업데이트 실패") if memo_result else "Redis 응답 없음",
+                            "sentiment_analysis": sentiment_analysis
                         })
                         
                 except Exception as e:
@@ -378,9 +392,13 @@ class VisitorsChatBotService:
         if not success_data:
             return self._handle_no_data_found(user_question, analysis)
         
-        # 고객 검색 실패 케이스 특별 처리
+        # 메모 업데이트 특별 처리 (감정 분석 기반 응답)
         intent = analysis.get("intent")
-        if intent in ["customer_inquiry", "memo_update"]:
+        if intent == "memo_update":
+            return self._handle_memo_update_response(success_data)
+        
+        # 고객 검색 실패 케이스 특별 처리
+        if intent in ["customer_inquiry"]:
             customer_data = self._extract_customer_data(success_data)
             if not customer_data or self._is_customer_not_found(customer_data):
                 customer_name = analysis.get("parameters", {}).get("customer_name", "해당 고객")
@@ -428,6 +446,9 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
         
         elif intent == "reservation_briefing":
             return error_responses.get("not_found", {}).get("reservation", "오늘 예약된 고객이 없어서 여유로운 하루네요! ☕️")
+        
+        elif intent == "memo_update":
+            return "메모 저장 중 문제가 발생했습니다. 다시 시도해주세요. 🙏"
         
         else:
             return error_responses.get("general_error", "요청하신 정보를 찾을 수 없어요. 다시 확인해주세요! 🤔")
@@ -598,6 +619,137 @@ CRITICAL: 제공된 실제 데이터만을 사용하여 응답하세요. 데이�
             
         # 기본 응답
         return general_responses.get("default", "안녕하세요! 뷰티샵 고객관리 도우미입니다!")
+
+    def _analyze_memo_sentiment(self, memo_content: str) -> Dict[str, Any]:
+        """메모 내용의 감정 및 상황 분석"""
+        try:
+            logger.info(f"📊 메모 감정 분석 시작: '{memo_content}'")
+            
+            system_prompt = self.config.get("sentiment_analysis_prompt")
+            
+            response = self.client.chat.completions.create(
+                model=self.config.get("model", "gpt-3.5-turbo"),
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": memo_content}
+                ],
+                temperature=0.1,  # 낮은 온도로 일관성 확보
+                max_tokens=300
+            )
+            
+            content = response.choices[0].message.content.strip()
+            analysis = self._parse_sentiment_result(content)
+            
+            logger.info(f"✅ 감정 분석 완료: {analysis.get('sentiment')} / {analysis.get('situation_type')}")
+            return analysis
+            
+        except Exception as e:
+            logger.error(f"❌ 감정 분석 실패: {e}")
+            return {
+                "sentiment": "neutral",
+                "situation_type": "information",
+                "confidence": 0.3,
+                "key_phrases": [],
+                "reasoning": "감정 분석 실패로 인한 기본값",
+                "response_tone": "informative"
+            }
+    
+    def _parse_sentiment_result(self, content: str) -> Dict[str, Any]:
+        """AI 감정 분석 결과 JSON 파싱"""
+        try:
+            # JSON 추출 및 파싱 (기존 로직과 동일)
+            content = content.strip()
+            
+            if content.startswith("{") and content.endswith("}"):
+                return json.loads(content)
+            
+            json_match = re.search(r'```json\s*\n(.*?)\n```', content, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(1).strip())
+            
+            start_idx = content.find("{")
+            end_idx = content.rfind("}") + 1
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = content[start_idx:end_idx]
+                return json.loads(json_str)
+            
+            logger.warning(f"감정 분석 JSON 파싱 실패: {content}")
+            return self._create_fallback_sentiment()
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"감정 분석 JSON 오류: {e}")
+            return self._create_fallback_sentiment()
+        except Exception as e:
+            logger.error(f"감정 분석 파싱 중 오류: {e}")
+            return self._create_fallback_sentiment()
+    
+    def _create_fallback_sentiment(self) -> Dict[str, Any]:
+        """감정 분석 실패시 기본값"""
+        return {
+            "sentiment": "neutral",
+            "situation_type": "information",
+            "confidence": 0.3,
+            "key_phrases": [],
+            "reasoning": "파싱 실패로 인한 기본값",
+            "response_tone": "informative"
+        }
+    
+    def _generate_sentiment_aware_response(self, sentiment_analysis: Dict[str, Any], memo_success: bool = True) -> str:
+        """감정 분석 결과를 바탕으로 적절한 메모 응답 생성"""
+        if not memo_success:
+            return "메모 저장 중 오류가 발생했습니다. 다시 시도해주세요. 🙏"
+        
+        sentiment = sentiment_analysis.get("sentiment", "neutral")
+        situation_type = sentiment_analysis.get("situation_type", "information")
+        
+        # 템플릿 카테고리 결정
+        template_key = self._determine_template_key(sentiment, situation_type)
+        
+        # 해당 카테고리의 응답 템플릿들 가져오기
+        templates = self.config.get("memo_response_templates", {}).get(template_key, [])
+        
+        if not templates:
+            # 기본 응답
+            return "메모를 성공적으로 기록했습니다. 📝"
+        
+        # 랜덤하게 응답 선택
+        selected_response = random.choice(templates)
+        
+        logger.info(f"💬 선택된 응답 템플릿: {template_key} -> {selected_response[:30]}...")
+        return selected_response
+    
+    def _determine_template_key(self, sentiment: str, situation_type: str) -> str:
+        """감정과 상황 유형을 바탕으로 적절한 템플릿 키 결정"""
+        if situation_type == "complaint" and sentiment == "negative":
+            return "complaint_negative"
+        elif situation_type == "compliment" and sentiment == "positive":
+            return "compliment_positive"
+        elif situation_type == "request":
+            return "request_neutral"
+        else:  # information 또는 기타
+            return "information_neutral"
+
+    def _handle_memo_update_response(self, success_data: List[Dict]) -> str:
+        """메모 업데이트 성공 데이터를 기반으로 감정 분석 응답 생성"""
+        memo_data = None
+        
+        # 메모 업데이트 데이터 찾기
+        for data_item in success_data:
+            if data_item.get("api") == "memo_update":
+                memo_data = data_item.get("data", {})
+                break
+        
+        if not memo_data:
+            return "메모를 성공적으로 기록했습니다. 📝"
+        
+        # 감정 분석 결과 추출
+        sentiment_analysis = memo_data.get("sentiment_analysis", {})
+        
+        if not sentiment_analysis:
+            return "메모를 성공적으로 기록했습니다. 📝"
+        
+        # 감정 분석 기반 응답 생성
+        return self._generate_sentiment_aware_response(sentiment_analysis, memo_success=True)
 
     def _handle_data_collection_failure(self, user_question: str) -> str:
         """데이터 수집 실패시 자연스러운 대안 응답"""
