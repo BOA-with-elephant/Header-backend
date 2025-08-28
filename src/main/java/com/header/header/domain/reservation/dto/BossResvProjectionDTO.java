@@ -1,5 +1,6 @@
 package com.header.header.domain.reservation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.header.header.domain.reservation.enums.ReservationState;
 import lombok.*;
 
@@ -19,7 +20,9 @@ public class BossResvProjectionDTO {
     private String menuName;
     private Boolean isActive;
     private ReservationState resvState;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private Date resvDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private Time resvTime;
     private String userComment;
 
