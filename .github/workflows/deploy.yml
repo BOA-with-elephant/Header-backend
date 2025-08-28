@@ -38,6 +38,7 @@ jobs:
           echo "SPRING_REDIS_PORT=${SPRING_REDIS_PORT}" >> .env
           echo "SPRING_API_BASE_URL=${SPRING_API_BASE_URL}" >> .env
           echo "FASTAPI_BASE_URL=${FASTAPI_BASE_URL}" >> .env
+          echo "REDIS_URL=${REDIS_URL}" >> .env
         env:
           SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
@@ -60,6 +61,7 @@ jobs:
           SPRING_REDIS_PORT: ${{ secrets.SPRING_REDIS_PORT }}
           SPRING_API_BASE_URL: ${{ secrets.SPRING_API_BASE_URL }}
           FASTAPI_BASE_URL: ${{ secrets.FASTAPI_BASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -151,6 +153,7 @@ jobs:
             echo "SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }}" >> .env
             echo "SPRING_API_BASE_URL=${{ secrets.SPRING_API_BASE_URL }}" >> .env
             echo "FASTAPI_BASE_URL=${{ secrets.FASTAPI_BASE_URL }}" >> .env
+            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
 
             git pull origin master
 

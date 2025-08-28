@@ -3,6 +3,7 @@ from pathlib import Path
 from functools import lru_cache
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import os
 
 class ChatBotConfig:
     def __init__(self, bot_name: str):
@@ -27,10 +28,13 @@ class ChatBotConfig:
 
         return value
 
+def is_docker() -> bool:
+    """ docker 환경인지 감지 """
+    return bool(os.getenv("HOSTNAME") or os.path.exists("/.dockerenv"))
+
 def detect_env_file():
     """환경에 따라 적절한 .env 파일을 선택"""
-    import os
-    
+
     # Docker 환경 감지 (HOSTNAME 환경변수 또는 컨테이너 특정 조건)
     if os.getenv("HOSTNAME") or os.path.exists("/.dockerenv"):
         return "../.env"
@@ -45,7 +49,10 @@ class Settings(BaseSettings):
     spring_api_base_url: str = Field(default="http://127.0.0.1:8080")
 
     # Redis 설정
-    redis_url: str = Field(default="redis://localhost:6379")
+    # redis_url: str = Field(default="redis://localhost:6379")
+    redis_url: str = Field(
+        default_factory=lambda: f"redis://{os.getenv('SPRING_REDIS_HOST', 'localhost')}:{os.getenv('SPRING_REDIS_PORT', 6379)}"
+    )
     redis_stream_data_requests: str = Field(default="data-requests")
     redis_stream_data_results: str = Field(default="data-results")
     redis_consumer_group: str = Field(default="fastapi-consumers")
