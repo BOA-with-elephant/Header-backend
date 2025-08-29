@@ -30,7 +30,7 @@
 
 ## 2. Team Members Information
 
-| Project Manager | Configuration Manager | Database Manager | Database Manager |
+| Project Manager | Configuration Manager | Database Manager | CI/CD |
 |-------------------|-------------------|-------------------|-------------------|
 | ![윤정아](https://github.com/user-attachments/assets/46ed801d-74f0-4a57-8d2e-ec7e62425b82)  | ![서열익](https://github.com/user-attachments/assets/d75f9846-532c-480f-b255-75fa342ed5b2)  | ![김예람](https://github.com/user-attachments/assets/1184360e-376d-42a1-a07d-f3226fc3a8de)  | ![김주혜](https://github.com/user-attachments/assets/3fda8e72-8f3a-4fdf-828c-103d97d7fd6c)
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  [**GitHub**](https://github.com/21jayoon) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  [**GitHub**](https://github.com/sortofel) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  [**GitHub**](https://github.com/Yeram522) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  [**GitHub**](https://github.com/JUHYE0925) |
@@ -102,7 +102,8 @@
 <img width="2559" height="1335" alt="스크린샷 2025-08-29 150809" src="https://github.com/user-attachments/assets/518a039c-e3f8-4e6a-a75c-3d12acef7948" />
 
 #### Chatbot
-<img width="454" height="719" alt="스크린샷 2025-08-29 151043" src="https://github.com/user-attachments/assets/5ef7e620-aa1f-4846-95c2-85e7d80cf175" />
+![2025-08-29 152747](https://github.com/user-attachments/assets/dd4f630a-1ff4-422a-9429-5f394b73a3c5)
+
 
 
 ### 사장님 페이지
